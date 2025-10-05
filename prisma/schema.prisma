@@ -1,0 +1,46 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+// Exemplo de Model para Autenticação (Milestone 2)
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String // O password será um hash
+  name      String?
+  role      String   @default("CLIENTE") // Pode ser 'CORRETOR' ou 'CLIENTE'
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  imoveis   Imovel[] // Relação 1:N com Imóveis que o corretor gerencia
+}
+
+// Exemplo de Model para o Imóvel (Milestone 2)
+model Imovel {
+  id          String    @id @default(uuid())
+  titulo      String
+  descricao   String
+  preco       Float
+  tipo        String    // Ex: Apartamento, Casa, Terreno
+  localizacao String
+  fotosUrls   String?  // Array de URLs de fotos (se o SQLite suportar, caso contrário use uma tabela separada)
+  disponivel  Boolean   @default(true)
+  
+  // Relação com o Corretor que cadastrou/é responsável
+  corretorId  String
+  corretor    User      @relation(fields: [corretorId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
