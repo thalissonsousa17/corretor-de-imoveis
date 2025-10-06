@@ -10,7 +10,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 // Exemplo de Model para Autenticação (Milestone 2)
@@ -24,6 +24,7 @@ model User {
   updatedAt DateTime @updatedAt
 
   imoveis   Imovel[] // Relação 1:N com Imóveis que o corretor gerencia
+  sessions Session[]
 }
 
 // Exemplo de Model para o Imóvel (Milestone 2)
@@ -43,4 +44,16 @@ model Imovel {
 
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+}
+
+model Session {
+  id        String   @id @default(uuid()) // O ID da sessão que vai para o cookie
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+
+  expiresAt DateTime // Para saber quando a sessão expira
+  createdAt DateTime @default(now())
+
+  @@index([userId]) // Otimiza a busca por ID de usuário
 }
