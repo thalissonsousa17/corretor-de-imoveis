@@ -18,7 +18,8 @@ export default async function handleLougout(
       });
     } catch (error) {
       console.log(
-        "Erro ao deletar sessão, mas prosseguindo com o logout do cliente."
+        "Erro ao deletar sessão, mas prosseguindo com o logout do cliente.",
+        error
       );
     }
   }

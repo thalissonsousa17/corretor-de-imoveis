@@ -35,7 +35,7 @@ model Imovel {
   preco       Float
   tipo        String    // Ex: Apartamento, Casa, Terreno
   localizacao String
-  fotosUrls   String?  // Array de URLs de fotos (se o SQLite suportar, caso contrário use uma tabela separada)
+  fotos Foto[] // Array de URLs de fotos (se o SQLite suportar, caso contrário use uma tabela separada)
   disponivel  Boolean   @default(true)
   
   // Relação com o Corretor que cadastrou/é responsável
@@ -56,4 +56,18 @@ model Session {
   createdAt DateTime @default(now())
 
   @@index([userId]) // Otimiza a busca por ID de usuário
+}
+
+model Foto {
+  id String @id @default(uuid())
+  url String
+  princial Boolean @default(false)
+  ordem Int @default(0)
+
+  imovelId String
+  imovel   Imovel @relation(fields: [imovelId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([imovelId])
 }
