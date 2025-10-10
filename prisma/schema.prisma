@@ -1,73 +1,57 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
-  output   = "../lib/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-// Exemplo de Model para Autenticação (Milestone 2)
-model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String // O password será um hash
-  name      String?
-  role      String   @default("CLIENTE") // Pode ser 'CORRETOR' ou 'CLIENTE'
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 
-  imoveis   Imovel[] // Relação 1:N com Imóveis que o corretor gerencia
-  sessions Session[]
+model User {
+  id        String    @id @default(uuid())
+  email     String    @unique
+  password  String
+  name      String?
+  role      String    @default("CLIENTE")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  imoveis   Imovel[]
+  sessions  Session[]
 }
 
-// Exemplo de Model para o Imóvel (Milestone 2)
 model Imovel {
-  id          String    @id @default(uuid())
+  id          String   @id @default(uuid())
   titulo      String
   descricao   String
   preco       Float
-  tipo        String    // Ex: Apartamento, Casa, Terreno
+  tipo        String
   localizacao String
-  fotos Foto[] // Array de URLs de fotos (se o SQLite suportar, caso contrário use uma tabela separada)
-  disponivel  Boolean   @default(true)
-  
-  // Relação com o Corretor que cadastrou/é responsável
+  disponivel  Boolean  @default(true)
   corretorId  String
-  corretor    User      @relation(fields: [corretorId], references: [id])
-
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  fotos       Foto[]
+  corretor    User     @relation(fields: [corretorId], references: [id])
 }
 
 model Session {
-  id        String   @id @default(uuid()) // O ID da sessão que vai para o cookie
-
+  id        String   @id @default(uuid())
   userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id])
 
-  expiresAt DateTime // Para saber quando a sessão expira
-  createdAt DateTime @default(now())
-
-  @@index([userId]) // Otimiza a busca por ID de usuário
+  @@index([userId])
 }
 
 model Foto {
-  id String @id @default(uuid())
-  url String
-  princial Boolean @default(false)
-  ordem Int @default(0)
-
-  imovelId String
-  imovel   Imovel @relation(fields: [imovelId], references: [id])
-
+  id        String   @id @default(uuid())
+  url       String
+  principal  Boolean  @default(false)
+  ordem     Int      @default(0)
+  imovelId  String
   createdAt DateTime @default(now())
+  imovel    Imovel   @relation(fields: [imovelId], references: [id])
 
   @@index([imovelId])
 }

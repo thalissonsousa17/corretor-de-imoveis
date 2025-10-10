@@ -1,19 +1,12 @@
-// Conteúdo esperado em lib/prisma.ts
-
 import { PrismaClient } from "@prisma/client";
 
-const prismaClientSingleton = () => {
-  return new PrismaClient();
-};
+const globalForPrisma = global as unknown as { prisma: PrismaClient };
 
-// ... (O trecho para hot-reload do Next.js)
-declare global {
-  var prisma: undefined | ReturnType<typeof prismaClientSingleton>;
-}
+export const prisma =
+  globalForPrisma.prisma ||
+  new PrismaClient({
+    log: ["error", "warn"],
+  });
 
-const prisma = globalThis.prisma ?? prismaClientSingleton();
-
-// OBRIGATÓRIO: Esta linha garante que 'import prisma from...' funcione
+if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
 export default prisma;
-
-if (process.env.NODE_ENV !== "production") globalThis.prisma = prisma;

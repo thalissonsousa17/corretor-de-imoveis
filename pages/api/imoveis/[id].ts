@@ -7,10 +7,7 @@ import path from "path";
 // ----------------------------------------------------------------------------------
 // Handler para DELEÇÃO (DELETE) - ROTA PROTEGIDA
 // ----------------------------------------------------------------------------------
-const handleDelete = async (
-  req: AuthApiRequest,
-  res: NextApiResponse
-): Promise<void> => {
+const handleDelete = async (req: AuthApiRequest, res: NextApiResponse): Promise<void> => {
   const { id } = req.query; // Pega o ID do imóvel da URL (id)
 
   if (typeof id !== "string") {
@@ -29,12 +26,9 @@ const handleDelete = async (
     }
 
     if (imovel.corretorId !== req.user!.id) {
-      return res
-        .status(403)
-        .json({
-          message:
-            "Acesso negado. Você não é o corretor responsável por este imóvel.",
-        });
+      return res.status(403).json({
+        message: "Acesso negado. Você não é o corretor responsável por este imóvel.",
+      });
     }
 
     // 2. Exclui os arquivos físicos das fotos
@@ -44,9 +38,7 @@ const handleDelete = async (
       // Remove o arquivo, ignorando erros se o arquivo já não existir
       return fs
         .unlink(filePath)
-        .catch((err) =>
-          console.warn(`Falha ao deletar arquivo: ${filePath}`, err.message)
-        );
+        .catch((err) => console.warn(`Falha ao deletar arquivo: ${filePath}`, err.message));
     });
     await Promise.all(deletePromises);
 
@@ -65,10 +57,7 @@ const handleDelete = async (
 // ----------------------------------------------------------------------------------
 // Handler para ATUALIZAÇÃO (PUT) - ROTA PROTEGIDA
 // ----------------------------------------------------------------------------------
-const handlePut = async (
-  req: AuthApiRequest,
-  res: NextApiResponse
-): Promise<void> => {
+const handlePut = async (req: AuthApiRequest, res: NextApiResponse): Promise<void> => {
   const { id } = req.query;
   const { titulo, descricao, preco, tipo, localizacao, disponivel } = req.body;
 
@@ -85,12 +74,9 @@ const handlePut = async (
     }
 
     if (imovel.corretorId !== req.user!.id) {
-      return res
-        .status(403)
-        .json({
-          message:
-            "Acesso negado. Você não tem permissão para atualizar este imóvel.",
-        });
+      return res.status(403).json({
+        message: "Acesso negado. Você não tem permissão para atualizar este imóvel.",
+      });
     }
 
     // 2. Cria o objeto de dados para atualização (apenas campos que vieram na requisição)
@@ -122,19 +108,14 @@ const handlePut = async (
     return res.status(200).json(imovelAtualizado);
   } catch (error) {
     console.error("Erro ao atualizar imóvel:", error);
-    return res
-      .status(500)
-      .json({ message: "Erro interno ao atualizar imóvel." });
+    return res.status(500).json({ message: "Erro interno ao atualizar imóvel." });
   }
 };
 
 // ----------------------------------------------------------------------------------
 // Função Principal que Roteia as Requisições
 // ----------------------------------------------------------------------------------
-export default async function handleImovelById(
-  req: AuthApiRequest,
-  res: NextApiResponse
-) {
+export default async function handleImovelById(req: AuthApiRequest, res: NextApiResponse) {
   // O PUT e o DELETE são protegidos e requerem a role 'CORRETOR'
   if (req.method === "PUT") {
     return authorize(handlePut, "CORRETOR")(req, res);
@@ -147,10 +128,36 @@ export default async function handleImovelById(
   // O GET (detalhes do imóvel) pode ser feito publicamente
   if (req.method === "GET") {
     // Você pode criar um handleGetById aqui se quiser
-    return res
-      .status(405)
-      .json({ message: "Rota GET By ID não implementada." });
-  }
 
-  return res.status(405).json({ message: "Método não permitido" });
+    const handleGetById = async (req: AuthApiRequest, res: NextApiResponse) => {
+      const { id } = req.query;
+
+      if (typeof id !== "string") {
+        return res.status(400).json({ message: "ID do imóvel inválido." });
+      }
+
+      try {
+        const imovel = await prisma.imovel.findUnique({
+          where: { disponivel: true, id },
+          include: {
+            corretor: {
+              select: { name: true, email: true },
+            },
+            fotos: {
+              orderBy: { ordem: "asc" },
+            },
+          },
+        });
+        if (!imovel) {
+          return res.status(404).json({ message: "Imóvel não encontrado ou não disponível." });
+        }
+        return res.status(200).json(imovel);
+      } catch (error) {
+        console.error("Erro ao buscar imóvel:", error);
+        return res.status(500).json({ message: "Erro interno ao buscar imóvel." });
+      }
+    };
+
+    return handleGetById(req, res);
+  }
 }

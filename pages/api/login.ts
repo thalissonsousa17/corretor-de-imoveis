@@ -1,15 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import prisma from "@/lib/prisma";
+import prisma from "../../lib/prisma";
 import bcrypt from "bcrypt";
-import cookie from "cookie"; // Lembre-se de instalar: npm install cookie
+import * as cookie from "cookie";
 
 // Sessão expira em 1 dia (em segundos)
 const SESSION_EXPIRY_SECONDS = 60 * 60 * 24;
 
-export default async function handleLogin(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
+export default async function handleLogin(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
     return res.status(405).json({ message: "Método não permitido" });
   }
@@ -40,7 +37,8 @@ export default async function handleLogin(
     // 2. Enviar o ID da sessão para o cliente via Cookie
     const sessionCookie = cookie.serialize("sessionId", session.id, {
       httpOnly: true, // Essencial para segurança (não acessível via JS)
-      secure: process.env.NODE_ENV === "production",
+      secure: false,
+      sameSite: "lax",
       maxAge: SESSION_EXPIRY_SECONDS,
       path: "/",
     });

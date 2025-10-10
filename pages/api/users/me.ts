@@ -1,18 +1,20 @@
-import { AuthApiRequest, authorize } from "@/lib/authMiddleware";
+import { AuthApiRequest, authorize } from "../../../lib/authMiddleware";
 import { NextApiResponse } from "next";
 
-const handleGetMe = async (req: AuthApiRequest, res: NextApiResponse) => {
-  if (req.user) {
-    res.status(200).json({ user: req.user, message: "Sessão ativa." });
-  }
-
-  return res.status(401).json({ message: "Sessão inválida ou expirada." });
+export const config = {
+  api: {
+    bodyParser: true,
+  },
 };
 
-export default async function handleMe(
-  req: AuthApiRequest,
-  res: NextApiResponse
-) {
+const handleGetMe = async (req: AuthApiRequest, res: NextApiResponse) => {
+  return res.status(200).json({
+    user: req.user,
+    message: "Sessão ativa.",
+  });
+};
+
+export default async function handleMe(req: AuthApiRequest, res: NextApiResponse) {
   if (req.method === "GET") {
     return authorize(handleGetMe)(req, res);
   }

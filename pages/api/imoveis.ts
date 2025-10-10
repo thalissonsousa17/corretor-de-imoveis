@@ -12,7 +12,7 @@ export const config = {
 };
 
 const handlePost = async (req: AuthApiRequest, res: NextApiResponse) => {
-  const corretorId = { Id: req.user!.id };
+  const corretorId = req.user!.id;
 
   const uploadDir = path.join(process.cwd(), "public", "uploads");
 
@@ -34,11 +34,11 @@ const handlePost = async (req: AuthApiRequest, res: NextApiResponse) => {
     const novoImovel = await prisma.imovel.create({
       data: {
         titulo: titulo[0],
-        descricao: descricao?.[0],
+        descricao: descricao?.[0] ?? "",
         preco: parseFloat(preco[0]),
         tipo: tipo[0],
-        localizacao: localizacao?.[0],
-        corretorId: corretorId,
+        localizacao: localizacao?.[0] ?? "",
+        corretorId,
         disponivel: true,
       },
     });
@@ -72,6 +72,8 @@ const handlePost = async (req: AuthApiRequest, res: NextApiResponse) => {
 };
 
 const handleGet = async (_req: NextApiRequest, res: NextApiResponse) => {
+  console.log("🔍 Buscando imóveis...");
+
   try {
     const imoveis = await prisma.imovel.findMany({
       where: { disponivel: true },
@@ -101,10 +103,7 @@ const handleGet = async (_req: NextApiRequest, res: NextApiResponse) => {
   }
 };
 
-export default async function handleImoveis(
-  req: AuthApiRequest,
-  res: NextApiResponse
-) {
+export default async function handleImoveis(req: AuthApiRequest, res: NextApiResponse) {
   if (req.method === "POST") {
     return authorize(handlePost, "CORRETOR")(req, res);
   }

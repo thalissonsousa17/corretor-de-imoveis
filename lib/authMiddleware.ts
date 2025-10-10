@@ -1,6 +1,12 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import prisma from "./prisma";
-import cookie from "cookie";
+import * as cookie from "cookie";
+
+console.log("cookie importado:", cookie);
+
+export const config = {
+  runtime: "nodejs",
+};
 
 export interface AuthPayload {
   id: string;
@@ -24,9 +30,7 @@ export const authorize =
     const sessionId = cookies.sessionId;
 
     if (!sessionId) {
-      return res
-        .status(401)
-        .json({ message: "Acesso negado. Sessão não iniciada." });
+      return res.status(401).json({ message: "Acesso negado. Sessão não iniciada." });
     }
 
     try {
@@ -37,13 +41,9 @@ export const authorize =
 
       if (!session || session.expiresAt < new Date()) {
         if (session) await prisma.session.delete({ where: { id: sessionId } });
-        res.setHeader(
-          "Set-Cookie",
-          cookie.serialize("sessionId", "", { maxAge: 0, path: "/" })
-        );
-        return res
-          .status(401)
-          .json({ message: "Sessão inválida ou expirada." });
+
+        res.setHeader("Set-Cookie", cookie.serialize("sessionId", "", { maxAge: 0, path: "/" }));
+        return res.status(401).json({ message: "Sessão inválida ou expirada." });
       }
 
       req.user = {
@@ -53,9 +53,7 @@ export const authorize =
       };
 
       if (requiredRole && req.user.role !== requiredRole) {
-        return res
-          .status(403)
-          .json({ message: " Acesso negado, Permissão insulficiente" });
+        return res.status(403).json({ message: " Acesso negado, Permissão insulficiente" });
       }
       return handler(req, res);
     } catch (error) {
