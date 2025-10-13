@@ -1,9 +1,8 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import cookie from "cookie";
-export default async function handleLougout(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
+import * as cookie from "cookie";
+import prisma from "../../lib/prisma";
+
+export default async function handleLougout(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
     return res.status(405).json({ message: "Método não permitido" });
   }
@@ -17,10 +16,7 @@ export default async function handleLougout(
         where: { id: sessionId },
       });
     } catch (error) {
-      console.log(
-        "Erro ao deletar sessão, mas prosseguindo com o logout do cliente.",
-        error
-      );
+      console.log("Erro ao deletar sessão, mas prosseguindo com o logout do cliente.", error);
     }
   }
 
@@ -31,6 +27,7 @@ export default async function handleLougout(
       secure: process.env.NODE_ENV === "production",
       maxAge: 0,
       path: "/",
+      expires: new Date(0),
     })
   );
   return res.status(200).json({ message: "Logout realizado com sucesso." });
