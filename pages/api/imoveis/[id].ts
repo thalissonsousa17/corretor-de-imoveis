@@ -54,12 +54,31 @@ const handleDelete = async (req: AuthApiRequest, res: NextApiResponse): Promise<
   }
 };
 
-// ----------------------------------------------------------------------------------
 // Handler para ATUALIZAÇÃO (PUT) - ROTA PROTEGIDA
-// ----------------------------------------------------------------------------------
+
 const handlePut = async (req: AuthApiRequest, res: NextApiResponse): Promise<void> => {
   const { id } = req.query;
   const { titulo, descricao, preco, tipo, localizacao, disponivel } = req.body;
+
+  // pages/api/imoveis/[id].ts (Dentro do handlePut ou crie um handlePatch)
+
+  if (req.method === "PATCH") {
+    const { id } = req.query;
+    const { disponivel } = req.body; // Recebe o novo status (true/false)
+
+    try {
+      const updatedImovel = await prisma.imovel.update({
+        where: { id: String(id) },
+        data: { disponivel: Boolean(disponivel) },
+      });
+      return res.status(200).json({
+        message: `Status atualizado para ${updatedImovel.disponivel ? "Disponível" : "Indisponível"}`,
+        imovel: updatedImovel,
+      });
+    } catch (error) {
+      // ... (erro)
+    }
+  }
 
   if (typeof id !== "string") {
     return res.status(400).json({ message: "ID do imóvel inválido." });
@@ -112,9 +131,8 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse): Promise<voi
   }
 };
 
-// ----------------------------------------------------------------------------------
 // Função Principal que Roteia as Requisições
-// ----------------------------------------------------------------------------------
+
 export default async function handleImovelById(req: AuthApiRequest, res: NextApiResponse) {
   // O PUT e o DELETE são protegidos e requerem a role 'CORRETOR'
   if (req.method === "PUT") {
@@ -127,8 +145,6 @@ export default async function handleImovelById(req: AuthApiRequest, res: NextApi
 
   // O GET (detalhes do imóvel) pode ser feito publicamente
   if (req.method === "GET") {
-    // Você pode criar um handleGetById aqui se quiser
-
     const handleGetById = async (req: AuthApiRequest, res: NextApiResponse) => {
       const { id } = req.query;
 
