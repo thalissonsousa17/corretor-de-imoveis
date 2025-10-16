@@ -2,6 +2,7 @@ import React from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import { FiHome, FiUser, FiPlusSquare, FiList, FiLogOut } from "react-icons/fi";
+import axios from "axios";
 
 const navItems = [
   { href: "/corretor/dashboard", icon: FiHome, label: "Dashboard" },
@@ -13,13 +14,23 @@ const navItems = [
 const SidebarCorretor: React.FC = () => {
   const router = useRouter();
 
-  const handleLogout = () => {
-    // Lógica de logout aqui
-    router.push("/login");
+  // const handleLogout = () => {
+  //   // Lógica de logout aqui
+  //   router.push("/login");
+  // };
+
+  const handleLogout = async () => {
+    try {
+      await axios.post("/api/logout");
+      router.push("/login");
+    } catch (error) {
+      console.error("Erro ao fazer logout:", error);
+      alert("Falha ao sair.");
+    }
   };
 
   return (
-    <div className="flex flex-col w-64 bg-gray-900 text-white min-h-screen fixed top-0 left-0">
+    <div className="flex flex-col w-64 bg-gray-800 text-white min-h-screen fixed top-0 left-0">
       {/* 1. Cabeçalho */}
       <div className="p-4 border-b border-gray-700">
         <h1 className="text-2xl font-bold flex items-center">
@@ -59,7 +70,7 @@ const SidebarCorretor: React.FC = () => {
       <div className="p-4 border-t border-gray-700">
         <button
           onClick={handleLogout}
-          className="flex items-center w-full p-3 rounded-lg text-red-400 hover:bg-gray-700 transition-colors duration-200"
+          className="flex items-center w-full p-3 cursor-pointer rounded-lg text-red-400  hover:bg-gray-700 transition-colors duration-200"
         >
           <FiLogOut className="w-5 h-5 mr-3" />
           <span className="font-medium">Sair</span>

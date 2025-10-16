@@ -11,6 +11,7 @@
     "test": "echo \"No tests configured yet\""
   },
   "dependencies": {
+    "@material-tailwind/react": "^2.1.10",
     "@prisma/client": "^6.16.3",
     "@types/bcrypt": "^6.0.0",
     "@types/jsonwebtoken": "^9.0.10",

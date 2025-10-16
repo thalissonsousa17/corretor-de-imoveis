@@ -77,6 +77,7 @@ const ImovelListagemCorretor: React.FC<ImovelListagemCorretorProps> = ({
     );
   if (error) return <p className="p-4 text-red-500">{error}</p>;
 
+  // 3. Função para alternar a disponibilidade do imóvel
   const toggleDisponibilidade = async (imovel: Imovel) => {
     try {
       await axios.patch(`/api/imoveis/${imovel.id}`, {

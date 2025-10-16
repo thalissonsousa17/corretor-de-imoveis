@@ -103,11 +103,9 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
             localizacao: imovel.localizacao,
             disponivel: imovel.disponivel,
           });
-          // setCep(imovel.cep ?? "");
-          // setRua(imovel.rua ?? "");
-          // setBairro(imovel.bairro ?? "");
-          // setNumero(imovel.numero ?? "");
-          // Marca as fotos existentes com a flag de deleção (false)
+          setCep(imovel.cep ?? "");
+          setNumero(imovel.numero ?? "");
+
           setExistingPhotos(imovel.fotos.map((f) => ({ ...f, toBeDeleted: false })));
         })
         .catch((err) => {
@@ -118,9 +116,6 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
     }
   }, [isEditMode, imovelId]);
 
-  // ----------------------------------------------------------------------------------
-  // HANDLERS
-  // ----------------------------------------------------------------------------------
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
@@ -146,9 +141,7 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
     );
   };
 
-  // ----------------------------------------------------------------------------------
-  // SUBMISSÃO
-  // ----------------------------------------------------------------------------------
+  // Envio do Formulário
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -156,25 +149,22 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
 
     const data = new FormData();
 
-    // 1. Anexa todos os campos de texto
+    // 1. Anexa os dados do formulário
     Object.keys(formData).forEach((key) => {
       const value = formData[key as keyof FormState];
-      // Boolean precisa ser enviado como string 'true' ou 'false'
+
       data.append(key, typeof value === "boolean" ? String(value) : value || "");
     });
-
-    // 1.5. Anexa os NOVOS campos de localização
 
     data.append("cep", cep);
     data.append("rua", rua);
     data.append("bairro", bairro);
     data.append("numero", numero);
 
-    // 2. Lógica para Edição: Remoção de Fotos
+    // 2. Anexa as fotos a remover (apenas no modo edição)
     if (isEditMode) {
       const photosToDelete = existingPhotos.filter((f) => f.toBeDeleted).map((f) => f.id);
       if (photosToDelete.length > 0) {
-        // Enviamos uma lista de IDs para o backend processar a remoção
         data.append("fotosRemover", JSON.stringify(photosToDelete));
       }
     }
@@ -201,10 +191,8 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
       };
 
       if (isEditMode) {
-        // Modo Edição: Rota /api/imoveis/[id] com método PUT
         response = await axios.put(`/api/imoveis/${imovelId}`, data, config);
       } else {
-        // Modo Cadastro: Rota /api/imoveis com método POST
         response = await axios.post("/api/imoveis", data, config);
       }
 
@@ -219,7 +207,6 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
       // Limpa o formulário ou atualiza o estado de edição
       if (!isEditMode) {
         setFormData({
-          // Limpa o formulário para um novo cadastro
           titulo: "",
           descricao: "",
           preco: "",
@@ -371,7 +358,7 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
         <div className="md:col-span-2">
           <BuscaEndereco onEnderecoAchado={handleEnderecoAchado} />
 
-          {/* Bloco NÚMERO (2/4 colunas) */}
+          {/* Campo Número */}
           <div className="md:col-span-2">
             <label htmlFor="numero" className="block text-sm font-medium text-gray-700">
               Número *
@@ -380,9 +367,9 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
               type="text"
               name="numero"
               id="numero"
-              value={formData.numero}
+              value={numero}
               onChange={(e) => setNumero(e.target.value)}
-              required
+              readOnly={false}
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
@@ -400,7 +387,6 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
               value={formData.rua}
               onChange={(e) => setRua(e.target.value)}
               required
-              // Adicione bg-gray-100 e readOnly para indicar que é preenchido automaticamente
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 bg-gray-100"
             />
           </div>
@@ -455,7 +441,7 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
         </div>
       </div>
 
-      {/* Linha 6: Disponibilidade (NOVO CAMPO, apenas Edição) */}
+      {/* Linha 6: Disponibilidade (Apenas no Modo Edição) */}
       {isEditMode && (
         <div className="flex items-center">
           <input
@@ -472,7 +458,7 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
         </div>
       )}
 
-      {/* --------------------------- GERENCIAMENTO DE FOTOS --------------------------- */}
+      {/* Linha 7: Fotos */}
       {isEditMode && existingPhotos.length > 0 && (
         <div className="border-t pt-4">
           <h3 className="text-lg font-medium mb-2 text-gray-800">Fotos Existentes</h3>
@@ -527,7 +513,7 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
       <button
         type="submit"
         disabled={loading}
-        className={`w-full py-3 px-4 border border-transparent rounded-md shadow-sm text-lg font-medium text-white ${loading ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"}`}
+        className={`w-full py-3 px-4 cursor-pointer border border-transparent rounded-md shadow-sm text-lg font-medium text-white ${loading ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"}`}
       >
         {loading ? "Processando..." : isEditMode ? "Salvar Alterações" : "Cadastrar Imóvel"}
       </button>
