@@ -2,10 +2,11 @@
 
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-// Certifique-se de que o caminho para o seu tipo Imovel está correto
 import { Imovel } from "@/types/Imovel";
 import { FiRefreshCw } from "react-icons/fi";
 import StatusDropdown from "./StatusDropdown";
+import EdtiImovel from "./EditImovel";
+import DeleteImovelModal from "./DeleteImovelModal";
 
 // Define as propriedades que o componente irá receber
 interface ImovelListagemCorretorProps {
@@ -18,14 +19,15 @@ interface ImovelListagemCorretorProps {
 // O tipo Imovel precisa incluir o ID
 // type Imovel = { id: string; titulo: string; valor: number; disponivel: boolean; /* ... outros campos */ };
 
-const ImovelListagemCorretor: React.FC<ImovelListagemCorretorProps> = ({
-  onEdit,
-  onImovelChange,
-}) => {
+const ImovelListagemCorretor: React.FC<ImovelListagemCorretorProps> = ({ onImovelChange }) => {
   const [imoveis, setImoveis] = useState<Imovel[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  // Edite imóvel e Delete
+  const [imovelSelecionadoDelete, setImovelSelecionadoDelete] = useState<Imovel | null>(null);
+  const [imovelSelecionado, setImovelSelecionado] = useState<Imovel | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   // 1. Função para buscar os imóveis do corretor
   const fetchImoveis = async () => {
     setLoading(true);
@@ -46,31 +48,6 @@ const ImovelListagemCorretor: React.FC<ImovelListagemCorretorProps> = ({
     // A dependência vazia garante que só carrega na montagem
   }, []);
 
-  const handleEdit = (id: string) => {};
-  // 2. Função para deletar um imóvel
-  const handleDelete = async (id: string) => {
-    if (
-      !window.confirm(
-        "ATENÇÃO: Tem certeza que deseja DELETAR este imóvel? Esta ação é irreversível."
-      )
-    )
-      return;
-
-    try {
-      // A API de DELETE /api/imoveis/[id] é protegida e verifica o corretorId
-      await axios.delete(`/api/imoveis/${id}`);
-
-      // Atualiza a lista no frontend (Otimista)
-      setImoveis(imoveis.filter((i) => i.id !== id));
-      onImovelChange(); // Notifica o dashboard sobre a mudança
-
-      alert("Imóvel deletado com sucesso!");
-    } catch (error) {
-      console.error("Erro ao deletar:", error);
-      alert("Falha ao deletar o imóvel. Verifique se você é o dono.");
-    }
-  };
-
   if (loading)
     return (
       <div className="p-4 text-center">
@@ -79,27 +56,56 @@ const ImovelListagemCorretor: React.FC<ImovelListagemCorretorProps> = ({
     );
   if (error) return <p className="p-4 text-red-500">{error}</p>;
 
+  // Editar Imóvel
+  const handleEdit = (imovel: Imovel) => {
+    setImovelSelecionado(imovel);
+  };
+
+  const handleSave = (imovelAtualizado: Imovel) => {
+    setImoveis((prev) => prev.map((i) => (i.id === imovelAtualizado.id ? imovelAtualizado : i)));
+  };
+
+  // Deletar Imóvel
+  const handleDeleteClick = (imovel: Imovel) => {
+    setImovelSelecionadoDelete(imovel);
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteSuccess = () => {
+    if (imovelSelecionadoDelete) {
+      setImoveis(imoveis.filter((i) => i.id !== imovelSelecionadoDelete.id));
+    }
+  };
+
   return (
-    <div className="overflow-x-auto bg-gray-100 rounded-lg shadow">
+    <div className="overflow-x-auto bg-gray-100 rounded-lg shadow-xl">
       {imoveis.length === 0 ? (
         <p className="p-4 text-center text-gray-600">
           Você ainda não possui imóveis cadastrados. Use o formulário abaixo.
         </p>
       ) : (
         <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+          <thead className="bg-gray-300">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
                 Título / Endereço Completo
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
                 Valor
               </th>
-
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Fotos
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
+                Status
               </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
+                Editar
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
+                Excluir
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
+                Pesquisar
+              </th>
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-900 uppercase tracking-wider">
                 Ações
                 <button
                   onClick={fetchImoveis}
@@ -108,6 +114,9 @@ const ImovelListagemCorretor: React.FC<ImovelListagemCorretorProps> = ({
                 >
                   <FiRefreshCw className="inline w-4 h-4" />
                 </button>
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
+                Fotos
               </th>
             </tr>
           </thead>
@@ -123,6 +132,8 @@ const ImovelListagemCorretor: React.FC<ImovelListagemCorretorProps> = ({
                   <div className="text-xs text-gray-600">
                     {imovel.cidade} - {imovel.estado} ({imovel.cep})
                   </div>
+                  <div className="text-xs text-gray-600">{imovel.descricao}</div>
+                  <div className="text-xs text-gray-600">{imovel.status}</div>
                 </td>
 
                 {/* Valor */}
@@ -135,34 +146,48 @@ const ImovelListagemCorretor: React.FC<ImovelListagemCorretorProps> = ({
                   {/* Status */}
                   <span
                     className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full
-            ${
-              imovel.status === "Disponivel"
-                ? "bg-green-100 text-green-800"
-                : imovel.status === "Vendido"
-                  ? "bg-red-100 text-red-800"
-                  : "bg-yellow-100 text-yellow-800"
-            }
-          `}
+                      ${
+                        imovel.status === "Disponivel"
+                          ? "bg-green-100 text-green-800"
+                          : imovel.status === "Vendido"
+                            ? "bg-red-100 text-red-800"
+                            : "bg-yellow-100 text-yellow-800"
+                      }
+                    `}
                   >
                     {imovel.status || "Não Definido"}
                   </span>
 
-                  {/* Botões e Dropdown */}
+                  {/* Edite Imóvel */}
                   <div className="inline-flex items-center space-x-2 ml-2">
                     <button
-                      onClick={() => handleEdit(imovel.id)}
-                      className="text-blue-600 hover:text-blue-900"
+                      onClick={() => handleEdit(imovel)}
+                      className=" cursor-pointer text-blue-600 hover:text-blue-900"
                       title="Editar Imóvel"
                     >
                       ✏️
                     </button>
+                    {imovelSelecionado && (
+                      <EdtiImovel
+                        imovel={imovelSelecionado}
+                        onClose={() => setImovelSelecionado(null)}
+                        onSave={handleSave}
+                      />
+                    )}
                     <button
-                      onClick={() => handleDelete(imovel.id)}
-                      className="text-red-600 hover:text-red-900"
+                      onClick={() => handleDeleteClick(imovel)}
+                      className="cursor-pointer text-red-600 hover:text-red-900"
                       title="Excluir Imóvel"
                     >
                       🗑️
                     </button>
+                    {imovelSelecionadoDelete && (
+                      <DeleteImovelModal
+                        imovel={imovelSelecionadoDelete}
+                        onClose={() => setImovelSelecionadoDelete(null)}
+                        onDeleteSuccess={handleDeleteSuccess}
+                      />
+                    )}
 
                     <StatusDropdown
                       imovelId={imovel.id}

@@ -441,23 +441,6 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
         </div>
       </div>
 
-      {/* Linha 6: Disponibilidade (Apenas no Modo Edição) */}
-      {isEditMode && (
-        <div className="flex items-center">
-          <input
-            type="checkbox"
-            name="disponivel"
-            id="disponivel"
-            checked={formData.disponivel}
-            onChange={handleChange}
-            className="h-20 w-20 text-blue-600 border-gray-300 rounded"
-          />
-          <label htmlFor="disponivel" className="ml-2 block text-sm text-gray-900">
-            Imóvel Disponível
-          </label>
-        </div>
-      )}
-
       {/* Linha 7: Fotos */}
       {isEditMode && existingPhotos.length > 0 && (
         <div className="border-t pt-4">

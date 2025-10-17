@@ -25,16 +25,16 @@ export interface Imovel {
   id: string;
   titulo: string;
   descricao: string;
-  preco: number; // Stored as Decimal in DB, number in TS
+  preco: number | string;
   tipo: string;
-  localizacao: string; // Campo obrigatório que causou erro no backend
+  localizacao: string;
   cidade: string;
   estado: string;
   bairro?: string;
   rua?: string;
   numero?: string;
   cep?: string;
-  disponivel: boolean; // Usado para status (Disponível/Vendido)
+  disponivel: boolean;
   corretorId: string;
   createdAt: string;
   updatedAt: string;
