@@ -38,6 +38,7 @@ model Imovel {
   updatedAt   DateTime @updatedAt
   fotos       Foto[]
   corretor    User     @relation(fields: [corretorId], references: [id])
+  status      String   @default("Disponivel")
 }
 
 model Session {
@@ -53,7 +54,7 @@ model Session {
 model Foto {
   id        String   @id @default(uuid())
   url       String
-  principal  Boolean  @default(false)
+  principal Boolean  @default(false)
   ordem     Int      @default(0)
   imovelId  String
   createdAt DateTime @default(now())

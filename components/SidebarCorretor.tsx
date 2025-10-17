@@ -44,18 +44,17 @@ const SidebarCorretor: React.FC = () => {
           const isActive = router.pathname.startsWith(item.href);
 
           return (
-            <Link key={item.href} href={item.href} legacyBehavior>
-              <a
-                className={`flex items-center p-3 rounded-lg transition-colors duration-200 
-                  ${
-                    isActive
-                      ? "bg-blue-600 text-white shadow-lg"
-                      : "text-gray-300 hover:bg-gray-700 hover:text-white"
-                  }`}
-              >
-                <item.icon className="w-5 h-5 mr-3" />
-                <span className="font-medium">{item.label}</span>
-              </a>
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`flex items-center p-3 rounded-lg transition-colors duration-200 ${
+                isActive
+                  ? "bg-blue-600 text-white shadow-lg"
+                  : "text-gray-300 hover:bg-gray-700 hover:text-white"
+              }`}
+            >
+              <item.icon className="w-5 h-5 mr-3" />
+              <span className="font-medium">{item.label}</span>
             </Link>
           );
         })}

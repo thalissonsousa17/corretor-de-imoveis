@@ -4,7 +4,8 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 // Certifique-se de que o caminho para o seu tipo Imovel está correto
 import { Imovel } from "@/types/Imovel";
-import { FiEdit, FiTrash2, FiRefreshCw } from "react-icons/fi";
+import { FiRefreshCw } from "react-icons/fi";
+import StatusDropdown from "./StatusDropdown";
 
 // Define as propriedades que o componente irá receber
 interface ImovelListagemCorretorProps {
@@ -45,6 +46,7 @@ const ImovelListagemCorretor: React.FC<ImovelListagemCorretorProps> = ({
     // A dependência vazia garante que só carrega na montagem
   }, []);
 
+  const handleEdit = (id: string) => {};
   // 2. Função para deletar um imóvel
   const handleDelete = async (id: string) => {
     if (
@@ -77,20 +79,8 @@ const ImovelListagemCorretor: React.FC<ImovelListagemCorretorProps> = ({
     );
   if (error) return <p className="p-4 text-red-500">{error}</p>;
 
-  // 3. Função para alternar a disponibilidade do imóvel
-  const toggleDisponibilidade = async (imovel: Imovel) => {
-    try {
-      await axios.patch(`/api/imoveis/${imovel.id}`, {
-        disponivel: !imovel.disponivel,
-      });
-      fetchImoveis();
-    } catch (error) {
-      console.error("Erro ao atualizar status:", error);
-      alert("Falha ao atualizar o status do imóvel.");
-    }
-  };
   return (
-    <div className="overflow-x-auto bg-white rounded-lg shadow">
+    <div className="overflow-x-auto bg-gray-100 rounded-lg shadow">
       {imoveis.length === 0 ? (
         <p className="p-4 text-center text-gray-600">
           Você ainda não possui imóveis cadastrados. Use o formulário abaixo.
@@ -100,13 +90,14 @@ const ImovelListagemCorretor: React.FC<ImovelListagemCorretorProps> = ({
           <thead className="bg-gray-50">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Título
+                Título / Endereço Completo
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Valor
               </th>
+
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Status
+                Fotos
               </th>
               <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Ações
@@ -122,51 +113,63 @@ const ImovelListagemCorretor: React.FC<ImovelListagemCorretorProps> = ({
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {imoveis.map((imovel) => (
-              <tr key={imovel.id} className="hover:bg-gray-50">
+              <tr key={imovel.id} className="bg-gray-200 border-b hover:bg-gray-300">
+                {/* Título / Endereço */}
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900">{imovel.titulo}</div>
-                  <div className="text-xs text-gray-500">
-                    {imovel.cidade} - {imovel.estado}
+                  <div className="text-sm font-medium text-gray-700">{imovel.titulo}</div>
+                  <div className="text-xs text-gray-600">
+                    {imovel.rua}, {imovel.numero} - {imovel.bairro}
+                  </div>
+                  <div className="text-xs text-gray-600">
+                    {imovel.cidade} - {imovel.estado} ({imovel.cep})
                   </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-bold">
-                  {(imovel.preco ?? 0).toLocaleString("pt-BR", {
-                    style: "currency",
-                    currency: "BRL",
-                  })}
+
+                {/* Valor */}
+                <td className="text-gray-600 px-6 py-4 whitespace-nowrap text-sm font-bold">
+                  {imovel.preco?.toLocaleString("pt-BR", { minimumFractionDigits: 2 }) ?? "0,00"}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span
-                    className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${imovel.disponivel ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}
-                  >
-                    {imovel.disponivel ? "Disponível" : "Vendido"}
-                  </span>
-                </td>
+
+                {/* Ações e Status */}
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                  {/* Botão de Edição - Chama a função onEdit que veio do Dashboard */}
-                  <button
-                    onClick={() => onEdit(imovel.id)}
-                    className="text-blue-600 hover:text-blue-900 transition"
-                    title="Editar Imóvel"
+                  {/* Status */}
+                  <span
+                    className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full
+            ${
+              imovel.status === "Disponivel"
+                ? "bg-green-100 text-green-800"
+                : imovel.status === "Vendido"
+                  ? "bg-red-100 text-red-800"
+                  : "bg-yellow-100 text-yellow-800"
+            }
+          `}
                   >
-                    <FiEdit className="inline w-5 h-5" />
-                  </button>
-                  {/* Botão de Deleção - Chama a função handleDelete */}
-                  <button
-                    onClick={() => handleDelete(imovel.id)}
-                    className="text-red-600 hover:text-red-900 transition"
-                    title="Deletar Imóvel"
-                  >
-                    <FiTrash2 className="inline w-5 h-5" />
-                  </button>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <button
-                    onClick={() => toggleDisponibilidade(imovel)}
-                    className={`px-3 py-1 rounded-full text-xs font-semibold ${imovel.disponivel ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}
-                  >
-                    {imovel.disponivel ? "Disponível" : "Indisponível"}
-                  </button>
+                    {imovel.status || "Não Definido"}
+                  </span>
+
+                  {/* Botões e Dropdown */}
+                  <div className="inline-flex items-center space-x-2 ml-2">
+                    <button
+                      onClick={() => handleEdit(imovel.id)}
+                      className="text-blue-600 hover:text-blue-900"
+                      title="Editar Imóvel"
+                    >
+                      ✏️
+                    </button>
+                    <button
+                      onClick={() => handleDelete(imovel.id)}
+                      className="text-red-600 hover:text-red-900"
+                      title="Excluir Imóvel"
+                    >
+                      🗑️
+                    </button>
+
+                    <StatusDropdown
+                      imovelId={imovel.id}
+                      currentStatus={imovel.status ?? "Disponivel"}
+                      onUpdate={fetchImoveis}
+                    />
+                  </div>
                 </td>
               </tr>
             ))}

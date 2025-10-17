@@ -19,7 +19,7 @@ export interface CorretorInfo {
   name: string;
   email: string;
 }
-
+export type Status = "Disponivel" | "Vendido" | "Inativo";
 // O tipo principal do Imóvel, espelhando a estrutura do Prisma
 export interface Imovel {
   id: string;
@@ -40,4 +40,5 @@ export interface Imovel {
   updatedAt: string;
   fotos: Foto[];
   corretor?: CorretorInfo;
+  status?: Status;
 }

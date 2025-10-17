@@ -3,6 +3,7 @@ import prisma from "../../../lib/prisma"; // Use o caminho relativo corrigido
 import { AuthApiRequest, authorize } from "../../../lib/authMiddleware";
 import fs from "fs/promises";
 import path from "path";
+import { select } from "@material-tailwind/react";
 
 // ----------------------------------------------------------------------------------
 // Handler para DELEÇÃO (DELETE) - ROTA PROTEGIDA
@@ -115,10 +116,6 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse): Promise<voi
     if (localizacao !== undefined) data.localizacao = localizacao;
     if (disponivel !== undefined) data.disponivel = disponivel;
 
-    // ATENÇÃO: Se a atualização incluir novas fotos, a rota deve ser mais complexa
-    // e possivelmente usar multipart/form-data novamente (como o POST).
-    // Para simplificar, esta rota PUT só lida com campos de texto.
-
     const imovelAtualizado = await prisma.imovel.update({
       where: { id },
       data: data,
@@ -135,6 +132,29 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse): Promise<voi
 
 export default async function handleImovelById(req: AuthApiRequest, res: NextApiResponse) {
   // O PUT e o DELETE são protegidos e requerem a role 'CORRETOR'
+  if (req.method === "PATCH") {
+    const { id } = req.query;
+    const { status } = req.body;
+
+    if (typeof id !== "string") {
+      return res.status(400).json({ message: "ID do Imóvel Inválido." });
+    }
+
+    try {
+      const imovelAtualizado = await prisma.imovel.update({
+        where: { id },
+        data: { status },
+      });
+
+      return res.status(200).json(imovelAtualizado);
+    } catch (error) {
+      console.error("Error ao atualizar status:", error);
+      return res.status(500).json({ message: "Erro interno ao atualizar status." });
+    }
+  }
+
+  //Put - Atualização geral (rota protegida)
+
   if (req.method === "PUT") {
     return authorize(handlePut, "CORRETOR")(req, res);
   }
@@ -143,7 +163,7 @@ export default async function handleImovelById(req: AuthApiRequest, res: NextApi
     return authorize(handleDelete, "CORRETOR")(req, res);
   }
 
-  // O GET (detalhes do imóvel) pode ser feito publicamente
+  // O GET - Busca imóvel especifico
   if (req.method === "GET") {
     const handleGetById = async (req: AuthApiRequest, res: NextApiResponse) => {
       const { id } = req.query;
@@ -154,16 +174,20 @@ export default async function handleImovelById(req: AuthApiRequest, res: NextApi
 
       try {
         const imovel = await prisma.imovel.findUnique({
-          where: { disponivel: true, id },
+          where: { id },
           include: {
             corretor: {
-              select: { name: true, email: true },
+              select: {
+                name: true,
+                email: true,
+              },
             },
             fotos: {
               orderBy: { ordem: "asc" },
             },
           },
         });
+
         if (!imovel) {
           return res.status(404).json({ message: "Imóvel não encontrado ou não disponível." });
         }
@@ -176,4 +200,5 @@ export default async function handleImovelById(req: AuthApiRequest, res: NextApi
 
     return handleGetById(req, res);
   }
+  return res.status(405).json({ message: "Método não permitido." });
 }
