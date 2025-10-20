@@ -12,6 +12,30 @@ export const config = {
   },
 };
 
+// GET - Lista todos os Imóveis do corretor logado
+
+const handleGet = async (req: AuthApiRequest, res: NextApiResponse) => {
+  try {
+    const corretorId = req.user?.id;
+
+    if (!corretorId) {
+      return res.status(401).json({ message: "Não autorizado." });
+    }
+    const imoveis = await prisma.imovel.findMany({
+      where: { corretorId },
+      include: { fotos: true },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return res.status(200).json(imoveis);
+  } catch (error) {
+    console.error("Erro ao buscar imóveis:", error);
+    return res.status(500).json({ message: "Erro ao buscar imóveis." });
+  }
+};
+
+// POST - Cadastra novo Imóvel
+
 const handlePost = async (req: AuthApiRequest, res: NextApiResponse) => {
   const corretorId = req.user!.id; // ID do corretor logado
 
@@ -94,6 +118,10 @@ const handlePost = async (req: AuthApiRequest, res: NextApiResponse) => {
 };
 
 export default function handler(req: AuthApiRequest, res: NextApiResponse) {
+  if (req.method === "GET") {
+    return authorize(handleGet, "CORRETOR")(req, res);
+  }
+
   if (req.method === "POST") {
     return authorize(handlePost, "CORRETOR")(req, res);
   }

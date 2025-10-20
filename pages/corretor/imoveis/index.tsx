@@ -14,6 +14,7 @@ const GerenciarImoveisPage: React.FC = () => {
     console.log("Atualizando listagem de imóveis...");
     // Aqui você pode refazer o fetch dos imóveis
   };
+
   return (
     <CorretorLayout>
       <div className="space-y-6">

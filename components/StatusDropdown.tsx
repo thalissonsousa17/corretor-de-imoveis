@@ -36,21 +36,21 @@ export default function StatusDropdown({ imovelId, currentStatus, onUpdate }: St
       <button
         onClick={() => setIsOpen(!isOpen)}
         disabled={loading}
-        className="inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none"
+        className="cursor-pointer inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none"
       >
         {loading ? "Aguarde..." : "Mudar Status"}
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-40 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
+        <div className="absolute right-0 bottom-full mb-2 w-40 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-20">
           {statusOptions.map((status) => (
             <button
               key={status}
               onClick={() => handleUpdate(status)}
               className={`block w-full text-left px-4 py-2 text-sm ${
                 status === currentStatus
-                  ? "bg-blue-50 text-blue-600"
-                  : "text-gray-700 hover:bg-gray-100"
+                  ? "bg-green-200 text-green-700"
+                  : "text-gray-700 hover:bg-green-400"
               }`}
             >
               {status}
