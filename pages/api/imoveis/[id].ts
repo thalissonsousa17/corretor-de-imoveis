@@ -3,7 +3,6 @@ import prisma from "../../../lib/prisma"; // Use o caminho relativo corrigido
 import { AuthApiRequest, authorize } from "../../../lib/authMiddleware";
 import fs from "fs/promises";
 import path from "path";
-import { select } from "@material-tailwind/react";
 
 // ----------------------------------------------------------------------------------
 // Handler para DELEÇÃO (DELETE) - ROTA PROTEGIDA
@@ -59,35 +58,17 @@ const handleDelete = async (req: AuthApiRequest, res: NextApiResponse): Promise<
 
 const handlePut = async (req: AuthApiRequest, res: NextApiResponse): Promise<void> => {
   const { id } = req.query;
-  const { titulo, descricao, preco, tipo, localizacao, disponivel } = req.body;
-
-  // pages/api/imoveis/[id].ts (Dentro do handlePut ou crie um handlePatch)
-
-  if (req.method === "PATCH") {
-    const { id } = req.query;
-    const { disponivel } = req.body; // Recebe o novo status (true/false)
-
-    try {
-      const updatedImovel = await prisma.imovel.update({
-        where: { id: String(id) },
-        data: { disponivel: Boolean(disponivel) },
-      });
-      return res.status(200).json({
-        message: `Status atualizado para ${updatedImovel.disponivel ? "Disponível" : "Indisponível"}`,
-        imovel: updatedImovel,
-      });
-    } catch (error) {
-      // ... (erro)
-    }
-  }
 
   if (typeof id !== "string") {
     return res.status(400).json({ message: "ID do imóvel inválido." });
   }
 
   try {
-    // 1. Verifica se o corretor logado é o dono
-    const imovel = await prisma.imovel.findUnique({ where: { id } });
+    // Verifica se o corretor é o dono
+    const imovel = await prisma.imovel.findUnique({
+      where: { id },
+      include: { fotos: true },
+    });
 
     if (!imovel) {
       return res.status(404).json({ message: "Imóvel não encontrado." });
@@ -99,26 +80,80 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse): Promise<voi
       });
     }
 
-    // 2. Cria o objeto de dados para atualização (apenas campos que vieram na requisição)
-    interface ImovelUpdateData {
-      titulo?: string;
-      descricao?: string;
-      preco?: number;
-      tipo?: string;
-      localizacao?: string;
-      disponivel?: boolean;
-    }
-    const data: ImovelUpdateData = {};
-    if (titulo !== undefined) data.titulo = titulo;
-    if (descricao !== undefined) data.descricao = descricao;
-    if (preco !== undefined) data.preco = parseFloat(preco);
-    if (tipo !== undefined) data.tipo = tipo;
-    if (localizacao !== undefined) data.localizacao = localizacao;
-    if (disponivel !== undefined) data.disponivel = disponivel;
+    // -----------------------------------------
+    //  Atualiza campos básicos
+    // -----------------------------------------
+    const { titulo, descricao, preco, tipo, localizacao, disponivel } = req.body;
+    const data: Partial<{
+      titulo: string;
+      descricao: string;
+      preco: number;
+      tipo: string;
+      localizacao: string;
+      disponivel: boolean;
+    }> = {};
+    if (titulo) data.titulo = titulo;
+    if (descricao) data.descricao = descricao;
+    if (preco) data.preco = parseFloat(preco);
+    if (tipo) data.tipo = tipo;
+    if (localizacao) data.localizacao = localizacao;
+    if (disponivel !== undefined) data.disponivel = disponivel === "true" || disponivel === true;
 
+    // Remove fotos antigas (se enviadas)
+
+    let fotosRemover: string[] = [];
+    if (req.body.fotosRemover) {
+      try {
+        fotosRemover = JSON.parse(req.body.fotosRemover);
+      } catch {
+        console.warn("Campo fotosRemover inválido (não JSON)");
+      }
+    }
+
+    if (Array.isArray(fotosRemover) && fotosRemover.length > 0) {
+      const uploadDir = path.join(process.cwd(), "public");
+      const fotosParaExcluir = imovel.fotos.filter((f) => fotosRemover.includes(f.id));
+
+      await Promise.all(
+        fotosParaExcluir.map(async (foto) => {
+          const filePath = path.join(uploadDir, foto.url);
+          try {
+            await fs.unlink(filePath);
+          } catch (err) {
+            console.warn(`Falha ao excluir arquivo: ${filePath}`, err);
+          }
+        })
+      );
+
+      await prisma.foto.deleteMany({
+        where: { id: { in: fotosRemover } },
+      });
+    }
+
+    // -----------------------------------------
+    //  Adiciona novas fotos (upload)
+    // -----------------------------------------
+    // ⚠️ Aqui depende se você está usando formData com multer/formidable.
+    // Caso esteja salvando os arquivos em `public/uploads`, pode adicionar aqui depois do upload.
+    // Exemplo genérico (após tratar upload):
+    // const novasFotos = req.files as Express.Multer.File[];
+    // if (novasFotos?.length) {
+    //   await prisma.foto.createMany({
+    //     data: novasFotos.map((f, index) => ({
+    //       url: `/uploads/${f.filename}`,
+    //       imovelId: id,
+    //       ordem: index,
+    //     })),
+    //   });
+    // }
+
+    // -----------------------------------------
+    //  Atualiza imóvel
+    // -----------------------------------------
     const imovelAtualizado = await prisma.imovel.update({
       where: { id },
-      data: data,
+      data,
+      include: { fotos: true },
     });
 
     return res.status(200).json(imovelAtualizado);

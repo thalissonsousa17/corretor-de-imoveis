@@ -5,9 +5,10 @@ import axios from "axios";
 import { Imovel, Foto } from "@/types/Imovel";
 import BuscaEndereco from "./BuscaEndereco";
 import { Endereco } from "../types/endereco";
-// ----------------------------------------------------------------------------------
+import FotosUploader from "./FotosUploader";
+
 // INTERFACES
-// ----------------------------------------------------------------------------------
+
 interface FormState {
   titulo: string;
   descricao: string;
@@ -19,17 +20,17 @@ interface FormState {
   cep?: string;
   cidade: string;
   estado: string;
-  localizacao: string; // Adicionado, conforme seu schema
-  disponivel: boolean; // Adicionado, para o modo edição
+  localizacao: string;
+  disponivel: boolean;
 }
 
 interface ExistingPhoto extends Foto {
-  toBeDeleted: boolean; // Flag para marcar fotos para remoção
+  toBeDeleted: boolean;
 }
 
 interface ImovelFormularioProps {
-  imovelId?: string | null; // Se for null, é Cadastro (POST)
-  onSuccess: () => void; // Função para ser chamada no sucesso
+  imovelId?: string | null;
+  onSuccess: () => void;
 }
 
 const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess }) => {
@@ -49,11 +50,12 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
     cep: "",
     cidade: "",
     estado: "",
-    localizacao: "", // Valor inicial para o novo campo
-    disponivel: true, // Valor inicial para o novo campo
+    localizacao: "",
+    disponivel: true,
   });
+
   const [fotos, setFotos] = useState<FileList | null>(null);
-  const [existingPhotos, setExistingPhotos] = useState<ExistingPhoto[]>([]); // Fotos carregadas
+  const [existingPhotos, setExistingPhotos] = useState<ExistingPhoto[]>([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ text: string; type: "success" | "error" | "" }>({
     text: "",
@@ -77,11 +79,10 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
       estado: endereco.uf || prev.estado,
       numero: numero || prev.numero,
     }));
-    setMessage({ text: "Endereço preemchido com sucesso", type: "success" });
   };
 
   // EFEITO: CARREGAR DADOS NA EDIÇÃO
-  // ----------------------------------------------------------------------------------
+
   useEffect(() => {
     if (isEditMode && imovelId) {
       setLoading(true);
@@ -120,7 +121,7 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value, type } = e.target;
-    // Lida com checkbox 'disponivel'
+
     const finalValue = type === "checkbox" ? (e.target as HTMLInputElement).checked : value;
 
     setFormData((prev) => ({ ...prev, [name]: finalValue }));
@@ -202,7 +203,7 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
           `Imóvel ${isEditMode ? "atualizado" : "cadastrado"} com sucesso!`,
         type: "success",
       });
-      onSuccess(); // Chama a função para atualizar a listagem
+      onSuccess();
 
       // Limpa o formulário ou atualiza o estado de edição
       if (!isEditMode) {
@@ -244,9 +245,9 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
     }
   };
 
-  function setEstado(_value: string): void {
-    throw new Error("Function not implemented.");
-  }
+  const setEstado = (value: string) => {
+    setFormData((prev) => ({ ...prev, estado: value }));
+  };
 
   return (
     <form
@@ -312,6 +313,7 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
             required
             min="0"
             step="0.01"
+            placeholder=" 150000.00"
             className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
@@ -435,7 +437,6 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
               onChange={(e) => setEstado(e.target.value.toUpperCase())}
               required
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 bg-gray-100"
-              readOnly
             />
           </div>
         </div>
@@ -473,24 +474,7 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
       )}
 
       {/* Linha de Upload de Fotos */}
-      <div>
-        <label htmlFor="fotos" className="block text-sm font-medium text-gray-700">
-          {isEditMode ? "Adicionar Novas Fotos" : "Fotos do Imóvel (Máx. 10)"}
-        </label>
-        <input
-          type="file"
-          name="fotos"
-          id="fotos"
-          onChange={handleFileChange}
-          multiple
-          required={!isEditMode}
-          accept="image/*"
-          className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-        />
-        {fotos && (
-          <p className="mt-1 text-xs text-gray-500">{fotos.length} arquivo(s) selecionado(s).</p>
-        )}
-      </div>
+      <FotosUploader imovelId={imovelId} existingPhotos={[]} onChange={handleFileChange} />
 
       {/* Botão de Submissão */}
       <button

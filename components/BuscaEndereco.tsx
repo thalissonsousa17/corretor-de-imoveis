@@ -59,7 +59,7 @@ const BuscaEndereco: React.FC<{ onEnderecoAchado: (endereco: Endereco, cep: stri
           onBlur={buscarCep}
           required
           disabled={isLoading}
-          className="block w-full border border-gray-300 rounded-l-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50"
+          className="block w-full border border-gray-700 rounded-l-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50"
           placeholder="Ex: 58400000"
         />
 

@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 
 type Status = "Disponivel" | "Vendido" | "Inativo";
 
@@ -14,6 +14,17 @@ const statusOptions: Status[] = ["Disponivel", "Vendido", "Inativo"];
 export default function StatusDropdown({ imovelId, currentStatus, onUpdate }: StatusDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const handleUpdate = async (newStatus: Status) => {
     if (loading || newStatus === currentStatus) return;
@@ -32,11 +43,11 @@ export default function StatusDropdown({ imovelId, currentStatus, onUpdate }: St
   };
 
   return (
-    <div className="relative inline-block text-left ml-4">
+    <div ref={dropdownRef} className="relative inline-block text-left ml-4">
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => setIsOpen((prev) => !prev)}
         disabled={loading}
-        className="cursor-pointer inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none"
+        className="cursor-pointer inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-1 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none"
       >
         {loading ? "Aguarde..." : "Mudar Status"}
       </button>
@@ -47,10 +58,10 @@ export default function StatusDropdown({ imovelId, currentStatus, onUpdate }: St
             <button
               key={status}
               onClick={() => handleUpdate(status)}
-              className={`block w-full text-left px-4 py-2 text-sm ${
+              className={`block w-full text-left px-4 py-2 text-sm transition ${
                 status === currentStatus
                   ? "bg-green-200 text-green-700"
-                  : "text-gray-700 hover:bg-green-400"
+                  : "text-gray-700 hover:bg-green-100"
               }`}
             >
               {status}

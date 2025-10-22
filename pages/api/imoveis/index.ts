@@ -1,6 +1,6 @@
 // pages/api/imoveis/index.ts (APENAS o método POST)
 
-import { NextApiResponse } from "next";
+import { NextApiRequest, NextApiResponse } from "next";
 import { AuthApiRequest, authorize } from "../../../lib/authMiddleware";
 import prisma from "../../../lib/prisma";
 import formidable from "formidable";

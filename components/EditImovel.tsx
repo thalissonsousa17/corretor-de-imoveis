@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Imovel } from "@/types/Imovel";
+import FotosUploader from "./FotosUploader";
 
 interface EditImovelProps {
   imovel: Imovel;
@@ -7,7 +8,7 @@ interface EditImovelProps {
   onSave: (imovelAtualizado: Imovel) => void;
 }
 
-const EdtiImovel: React.FC<EditImovelProps> = ({ imovel, onClose, onSave }) => {
+const EditImovel: React.FC<EditImovelProps> = ({ imovel, onClose, onSave }) => {
   const [formData, setFormData] = useState({
     titulo: "",
     descricao: "",
@@ -20,6 +21,9 @@ const EdtiImovel: React.FC<EditImovelProps> = ({ imovel, onClose, onSave }) => {
     cep: "",
     tipo: "",
   });
+
+  const [newFiles, setNewFiles] = useState<FileList | null>(null);
+  const [fotosExistentes, setFotosExistentes] = useState<{ id: string; url: string }[]>([]);
 
   useEffect(() => {
     if (imovel) {
@@ -35,6 +39,10 @@ const EdtiImovel: React.FC<EditImovelProps> = ({ imovel, onClose, onSave }) => {
         cep: imovel.cep || "",
         tipo: imovel.tipo || "",
       });
+
+      if (imovel.fotos) {
+        setFotosExistentes(imovel.fotos.map((foto) => ({ id: foto.id, url: foto.url })));
+      }
     }
   }, [imovel]);
 
@@ -43,14 +51,49 @@ const EdtiImovel: React.FC<EditImovelProps> = ({ imovel, onClose, onSave }) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  //  Deletar foto existente (rota API: /api/imoveis/fotos/[id].ts)
+  const handleDeleteFotoDoBanco = async (fotoId: string) => {
+    try {
+      console.log("Deletando foto ID:", fotoId);
+
+      const res = await fetch(`/api/fotos/${fotoId}`, { method: "DELETE" });
+
+      if (!res.ok) {
+        const msg = await res.text();
+        throw new Error(`Erro ao excluir foto: ${msg}`);
+      }
+
+      setFotosExistentes((prev) => prev.filter((foto) => foto.id !== fotoId));
+    } catch (error) {
+      console.error("Erro ao excluir foto:", error);
+    }
+  };
+
+  //  Salvar alterações (inclui upload se houver novas fotos)
   const handleSave = async () => {
     try {
+      // 1️ Atualiza dados do imóvel
       const res = await fetch(`/api/imoveis/${imovel.id}`, {
         method: "PUT",
         headers: { "Content-type": "application/json" },
         body: JSON.stringify(formData),
       });
       if (!res.ok) throw new Error("Erro ao atualizar imóvel");
+
+      // 2️ Upload de novas fotos, se houver
+      if (newFiles && newFiles.length > 0) {
+        const formDataUpload = new FormData();
+        Array.from(newFiles).forEach((file) => {
+          formDataUpload.append("fotos", file);
+        });
+        formDataUpload.append("imovelId", imovel.id);
+
+        const uploadRes = await fetch("/api/fotos/upload", {
+          method: "POST",
+          body: formDataUpload,
+        });
+        if (!uploadRes.ok) throw new Error("Erro ao enviar novas fotos");
+      }
 
       const data = await res.json();
       onSave(data);
@@ -62,11 +105,11 @@ const EdtiImovel: React.FC<EditImovelProps> = ({ imovel, onClose, onSave }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-blck/50 flex items-center justify-center z-50 text-gray-600">
-      <div className="bg-white rounded-2xl p-6 w-full max-w-2xl shadow lg">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 text-gray-700">
+      <div className="bg-white rounded-2xl p-6 w-full max-w-2xl shadow-lg overflow-y-auto max-h-[90vh]">
         <h2 className="text-xl font-semibold mb-4">Editar Imóvel</h2>
+
         <div className="grid grid-cols-2 gap-3">
-          {/* título */}
           <input
             name="titulo"
             placeholder="Título"
@@ -74,7 +117,6 @@ const EdtiImovel: React.FC<EditImovelProps> = ({ imovel, onClose, onSave }) => {
             onChange={handleChange}
             className="border rounded p-2 w-full"
           />
-          {/* Preço */}
           <input
             name="preco"
             placeholder="Preço"
@@ -83,7 +125,6 @@ const EdtiImovel: React.FC<EditImovelProps> = ({ imovel, onClose, onSave }) => {
             onChange={handleChange}
             className="border rounded p-2 w-full"
           />
-          {/* Cidade */}
           <input
             name="cidade"
             placeholder="Cidade"
@@ -91,7 +132,6 @@ const EdtiImovel: React.FC<EditImovelProps> = ({ imovel, onClose, onSave }) => {
             onChange={handleChange}
             className="border rounded p-2 w-full"
           />
-          {/* Estado */}
           <input
             name="estado"
             placeholder="Estado"
@@ -99,7 +139,6 @@ const EdtiImovel: React.FC<EditImovelProps> = ({ imovel, onClose, onSave }) => {
             onChange={handleChange}
             className="border rounded p-2 w-full"
           />
-          {/* Bairro */}
           <input
             name="bairro"
             placeholder="Bairro"
@@ -107,7 +146,6 @@ const EdtiImovel: React.FC<EditImovelProps> = ({ imovel, onClose, onSave }) => {
             onChange={handleChange}
             className="border rounded p-2 w-full"
           />
-          {/* Rua */}
           <input
             name="rua"
             placeholder="Rua"
@@ -115,7 +153,6 @@ const EdtiImovel: React.FC<EditImovelProps> = ({ imovel, onClose, onSave }) => {
             onChange={handleChange}
             className="border rounded p-2 w-full"
           />
-          {/* Número */}
           <input
             name="numero"
             placeholder="Número"
@@ -123,7 +160,6 @@ const EdtiImovel: React.FC<EditImovelProps> = ({ imovel, onClose, onSave }) => {
             onChange={handleChange}
             className="border rounded p-2 w-full"
           />
-          {/* Cep */}
           <input
             name="cep"
             placeholder="CEP"
@@ -131,7 +167,6 @@ const EdtiImovel: React.FC<EditImovelProps> = ({ imovel, onClose, onSave }) => {
             onChange={handleChange}
             className="border rounded p-2 w-full"
           />
-          {/* Tipo */}
           <input
             name="tipo"
             placeholder="Tipo"
@@ -139,8 +174,7 @@ const EdtiImovel: React.FC<EditImovelProps> = ({ imovel, onClose, onSave }) => {
             onChange={handleChange}
             className="border rounded p-2 w-full"
           />
-          {/* Descrição */}
-          <input
+          <textarea
             name="descricao"
             placeholder="Descrição"
             value={formData.descricao}
@@ -148,16 +182,33 @@ const EdtiImovel: React.FC<EditImovelProps> = ({ imovel, onClose, onSave }) => {
             className="border rounded p-2 col-span-2 w-full"
           />
         </div>
+
+        {/*  Seção de fotos */}
+        {/* <FotosUploader
+        imovelId={imovel.id}
+          existingPhotos={fotosExistentes}
+          onChange={(files) => setNewFiles(files)}
+          onDeleteExisting={handleDeleteFotoDoBanco}
+        /> */}
+        {imovel.id && (
+          <FotosUploader
+            imovelId={imovel.id}
+            existingPhotos={fotosExistentes}
+            onChange={(e) => setNewFiles(e.target.files)}
+            onDeleteExisting={handleDeleteFotoDoBanco}
+          />
+        )}
+
         <div className="flex justify-end gap-3 mt-6">
           <button
             onClick={onClose}
-            className="px-4 py-2 cursor-pointer bg-gray200 rounded hover:bg-gray-300"
+            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 cursor-pointer"
           >
             Cancelar
           </button>
           <button
             onClick={handleSave}
-            className="px-4 py-2 bg-blue-600 text-gray-200 cursor-pointer rounded hover:bg-blue-700 "
+            className="px-4 py-2 bg-blue-600 text-gray-100 rounded hover:bg-blue-700 cursor-pointer"
           >
             Salvar
           </button>
@@ -167,4 +218,4 @@ const EdtiImovel: React.FC<EditImovelProps> = ({ imovel, onClose, onSave }) => {
   );
 };
 
-export default EdtiImovel;
+export default EditImovel;

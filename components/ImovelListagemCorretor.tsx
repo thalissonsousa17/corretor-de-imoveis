@@ -6,8 +6,10 @@ import { FiRefreshCw } from "react-icons/fi";
 import StatusDropdown from "./StatusDropdown";
 import EdtiImovel from "./EditImovel";
 import DeleteImovelModal from "./DeleteImovelModal";
-import { Pencil } from "lucide-react";
+import { Camera, Pencil } from "lucide-react";
 import FiltroImoveis from "./FiltroImoveis";
+import Paginacao from "./Paginacao";
+import VisualizarFotosModal from "@/components/VisualizarFotosModal";
 
 interface ImovelListagemCorretorProps {
   onEdit: (imovelId: string) => void;
@@ -19,11 +21,25 @@ const ImovelListagemCorretor: React.FC<ImovelListagemCorretorProps> = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
+  const [statusFiltro, setStatusFiltro] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [fotosModalOpen, setFotosModalOpen] = useState(false);
+  const [fotosSelecionadas, setFotosSelecionadas] = useState<{ id: string; url: string }[]>([]);
 
-  // Modais
-  const [imovelSelecionadoDelete, setImovelSelecionadoDelete] = useState<Imovel | null>(null);
-  const [imovelSelecionado, setImovelSelecionado] = useState<Imovel | null>(null);
+  const handleVerFotos = (imovel: Imovel) => {
+    if (imovel.fotos && imovel.fotos.length > 0) {
+      const fotosFormatadas = imovel.fotos.map((f) => ({
+        id: f.id,
+        url: f.url,
+      }));
+      setFotosSelecionadas(fotosFormatadas);
+      setFotosModalOpen(true);
+    }
+  };
 
+  //  Função principal de carregamento
   const fetchImoveis = async () => {
     setLoading(true);
     setError("");
@@ -41,6 +57,25 @@ const ImovelListagemCorretor: React.FC<ImovelListagemCorretorProps> = () => {
     fetchImoveis();
   }, []);
 
+  //  Filtro por texto
+  const imoveisFiltradosPorBusca = imoveis.filter((imovel) =>
+    imovel.titulo.toLowerCase().includes(search.toLowerCase())
+  );
+
+  //  Filtro por status
+  const imoveisFiltradosStatus = statusFiltro
+    ? imoveisFiltradosPorBusca.filter((imovel) => imovel.status === statusFiltro)
+    : imoveisFiltradosPorBusca;
+
+  //  Paginação
+  const totalPages = Math.ceil(imoveisFiltradosStatus.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentImoveis = imoveisFiltradosStatus.slice(startIndex, startIndex + itemsPerPage);
+
+  //  Controle de modais
+  const [imovelSelecionadoDelete, setImovelSelecionadoDelete] = useState<Imovel | null>(null);
+  const [imovelSelecionado, setImovelSelecionado] = useState<Imovel | null>(null);
+
   const handleEdit = (imovel: Imovel) => setImovelSelecionado(imovel);
   const handleSave = (imovelAtualizado: Imovel) => {
     setImoveis((prev) => prev.map((i) => (i.id === imovelAtualizado.id ? imovelAtualizado : i)));
@@ -53,22 +88,22 @@ const ImovelListagemCorretor: React.FC<ImovelListagemCorretorProps> = () => {
     }
   };
 
-  const imoveisFiltrados = imoveis.filter((imovel) =>
-    imovel.titulo.toLowerCase().includes(search.toLowerCase())
-  );
+  const handleFiltrarStatus = (status: string | null) => {
+    setStatusFiltro(status === statusFiltro ? null : status);
+  };
 
   if (loading) return <p className="p-4 text-center text-gray-600">Carregando seus imóveis...</p>;
   if (error) return <p className="p-4 text-red-500">{error}</p>;
 
   return (
-    <div className="overflow-x-auto bg-gray-100 rounded-lg shadow-xl p-4 ">
+    <div className="overflow-x-auto bg-gray-100 rounded-lg shadow-xl p-4">
       <FiltroImoveis
         search={search}
         onSearchChange={setSearch}
         onFilterclick={() => console.log("Filtrando últimos 30 dias...")}
       />
 
-      {imoveisFiltrados.length === 0 ? (
+      {imoveis.length === 0 ? (
         <p className="text-center text-gray-600 mt-4">Nenhum imóvel encontrado.</p>
       ) : (
         <table className="min-w-full divide-y divide-gray-200 mt-4">
@@ -80,9 +115,49 @@ const ImovelListagemCorretor: React.FC<ImovelListagemCorretorProps> = () => {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
                 Valor
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
-                Status
+
+              {/* Status */}
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider relative status-dropdown">
+                <button
+                  onClick={() => setIsDropdownOpen((prev) => !prev)}
+                  className="cursor-pointer inline-flex justify-center w-full bg-gray-100 rounded-md border border-gray-300 shadow-sm px-4 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none"
+                >
+                  Status
+                </button>
+
+                {isDropdownOpen && (
+                  <div className="absolute mt-2 w-32 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
+                    {["Disponivel", "Vendido", "Inativo"].map((status) => (
+                      <button
+                        key={status}
+                        onClick={() => {
+                          handleFiltrarStatus(status);
+                          setIsDropdownOpen(false);
+                        }}
+                        className={`block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 ${
+                          statusFiltro === status ? "bg-gray-200 font-semibold" : ""
+                        }`}
+                      >
+                        {status}
+                      </button>
+                    ))}
+
+                    {statusFiltro && (
+                      <button
+                        onClick={() => {
+                          setStatusFiltro(null);
+                          setIsDropdownOpen(false);
+                        }}
+                        className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                      >
+                        Limpar filtro
+                      </button>
+                    )}
+                  </div>
+                )}
               </th>
+
+              {/* Ações */}
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
                 Ações
                 <button
@@ -93,6 +168,7 @@ const ImovelListagemCorretor: React.FC<ImovelListagemCorretorProps> = () => {
                   <FiRefreshCw className="inline w-4 h-4" />
                 </button>
               </th>
+
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
                 Fotos
               </th>
@@ -100,7 +176,7 @@ const ImovelListagemCorretor: React.FC<ImovelListagemCorretorProps> = () => {
           </thead>
 
           <tbody className="bg-white divide-y divide-gray-200">
-            {imoveisFiltrados.map((imovel) => (
+            {currentImoveis.map((imovel) => (
               <tr key={imovel.id} className="hover:bg-gray-100 transition-colors">
                 <td className="px-6 py-4 text-sm text-gray-700 max-w-prose">
                   <div className="font-medium">{imovel.titulo}</div>
@@ -114,7 +190,10 @@ const ImovelListagemCorretor: React.FC<ImovelListagemCorretorProps> = () => {
                 </td>
 
                 <td className="text-gray-700 px-6 py-4 text-center text-sm font-bold">
-                  R$ {imovel.preco?.toLocaleString("pt-BR", { minimumFractionDigits: 2 }) ?? "0,00"}
+                  R${" "}
+                  {imovel.preco?.toLocaleString("pt-BR", {
+                    minimumFractionDigits: 2,
+                  }) ?? "0,00"}
                 </td>
 
                 <td className="px-6 py-4 text-center">
@@ -161,8 +240,9 @@ const ImovelListagemCorretor: React.FC<ImovelListagemCorretorProps> = () => {
                   <button
                     title="Ver Fotos"
                     className="p-1 rounded hover:bg-gray-200 cursor-pointer"
+                    onClick={() => handleVerFotos(imovel)}
                   >
-                    📷
+                    <Camera className="w-5 h-5 text-gray-700" />
                   </button>
                 </td>
               </tr>
@@ -187,6 +267,12 @@ const ImovelListagemCorretor: React.FC<ImovelListagemCorretorProps> = () => {
           onDeleteSuccess={handleDeleteSuccess}
         />
       )}
+      {fotosModalOpen && (
+        <VisualizarFotosModal fotos={fotosSelecionadas} onClose={() => setFotosModalOpen(false)} />
+      )}
+
+      {/* Paginação */}
+      <Paginacao currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
     </div>
   );
 };
