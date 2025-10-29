@@ -46,3 +46,7 @@ next-env.d.ts
 # Local Database
 /prisma/*.db
 /*.db
+
+# Ignorar imagens de uploads
+/public/uploads/*
+!/public/uploads/.gitkeep

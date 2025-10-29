@@ -8,19 +8,39 @@ datasource db {
 }
 
 model User {
-  id        String    @id @default(uuid())
-  email     String    @unique
+  id        String           @id @default(uuid())
+  email     String           @unique
   password  String
-  name      String?
-  role      String    @default("CORRETOR")
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  name      String
+  role      String           @default("CORRETOR")
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
   imoveis   Imovel[]
   sessions  Session[]
+  profile   CorretorProfile?
+}
+
+model CorretorProfile {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  creci           String?
+  slug            String   @unique
+  biografia       String?
+  avatarUrl       String?
+  bannerUrl       String?
+  instagram       String?
+  facebook        String?
+  linkedin        String?
+  whatsapp        String?
+  metaTitle       String?
+  metaDescription String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
 model Imovel {
-  id          String   @id @default(uuid())
+  id          String       @id @default(uuid())
   titulo      String
   descricao   String
   preco       Float
@@ -32,13 +52,13 @@ model Imovel {
   cep         String?
   tipo        String
   localizacao String
-  disponivel  Boolean  @default(true)
+  finalidade  Finalidade @default(VENDA) // VENDA | ALUGUEL
+  status      ImovelStatus @default(DISPONIVEL)// DISPONIVEL | VENDIDO | ALUGADO | INATIVO
   corretorId  String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
   fotos       Foto[]
-  corretor    User     @relation(fields: [corretorId], references: [id])
-  status      String   @default("Disponivel")
+  corretor    User         @relation(fields: [corretorId], references: [id])
 }
 
 model Session {
@@ -62,3 +82,16 @@ model Foto {
 
   @@index([imovelId])
 }
+
+enum Finalidade {
+  VENDA
+  ALUGUEL
+}
+
+enum ImovelStatus {
+  DISPONIVEL
+  VENDIDO
+  ALUGADO
+  INATIVO
+}
+

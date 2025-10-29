@@ -44,7 +44,7 @@ const handlePost = async (req: AuthApiRequest, res: NextApiResponse) => {
     uploadDir: path.join(process.cwd(), "public", "uploads"),
     keepExtensions: true,
     maxFiles: 10, // Limite de 10 arquivos
-    maxFileSize: 10 * 1024 * 1024, // 5MB por arquivo
+    maxFileSize: 10 * 1024 * 1024, // 10MB por arquivo
   });
 
   const { fields, files } = await new Promise<{
@@ -59,20 +59,32 @@ const handlePost = async (req: AuthApiRequest, res: NextApiResponse) => {
     });
   });
 
-  const { titulo, descricao, preco, tipo, cidade, estado, localizacao, bairro, rua, numero, cep } =
-    fields;
-
-  if (!titulo || !preco || !descricao || !cidade) {
-    return res.status(400).json({ message: "Campos obrigatórios faltando." });
-  }
-
   const getFieldValue = (field: string | string[] | undefined): string => {
     return Array.isArray(field) ? field[0] : (field ?? "");
   };
-  const numericValor = parseFloat(getFieldValue(preco));
 
-  // const precoValue = Array.isArray(preco) ? preco[0] : preco;
-  // const numericValor = parseFloat(precoValue ?? "0");
+  const {
+    titulo,
+    descricao,
+    preco,
+    tipo,
+    cidade,
+    estado,
+    localizacao,
+    bairro,
+    rua,
+    numero,
+    cep,
+    finalidade,
+  } = fields;
+
+  if (!titulo || !preco || !descricao) {
+    return res.status(400).json({ message: "Campos obrigatórios faltando." });
+  }
+
+  const finalidadeValue = getFieldValue(finalidade)?.toUpperCase() ?? "VENDA";
+  const finalidadeFinal = finalidadeValue === "ALUGUEL" ? "ALUGUEL" : "VENDA";
+  const numericValor = parseFloat(getFieldValue(preco));
 
   try {
     const novoImovel = await prisma.imovel.create({
@@ -89,12 +101,9 @@ const handlePost = async (req: AuthApiRequest, res: NextApiResponse) => {
         cep: getFieldValue(cep),
         // Garantia de que localizacao é string
         localizacao: getFieldValue(localizacao),
-        disponivel: getFieldValue(fields.disponivel) === "true",
+        finalidade: finalidadeFinal,
+        status: "DISPONIVEL",
         corretorId: corretorId,
-
-        fotos: {
-          create: [], // Inicialmente vazio, será preenchido depois
-        },
       },
     });
 

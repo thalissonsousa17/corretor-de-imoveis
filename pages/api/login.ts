@@ -1,61 +1,50 @@
-import type { NextApiRequest, NextApiResponse } from "next";
+import { NextApiRequest, NextApiResponse } from "next";
 import prisma from "../../lib/prisma";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
+import { v4 as uuidv4 } from "uuid";
 import * as cookie from "cookie";
 
-// Sessão expira em 1 dia (em segundos)
-const SESSION_EXPIRY_SECONDS = 60 * 60 * 24;
-
-export default async function handleLogin(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ message: "Método não permitido" });
-  }
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method !== "POST") return res.status(405).json({ message: "Método não permitido" });
 
   const { email, password } = req.body;
 
-  if (!email || !password) {
-    return res.status(400).json({ message: "Email e senha são obrigatórios." });
-  }
-
   try {
+    console.log("Buscando usuário:", email);
     const user = await prisma.user.findUnique({ where: { email } });
+    console.log("Usuário encontrado:", user);
+
+    if (!user) return res.status(401).json({ message: "Usuário não encontrado" });
+
+    const senhaValida = await bcrypt.compare(password, user.password);
+    console.log("Senha válida?", senhaValida);
 
     if (!user || !(await bcrypt.compare(password, user.password))) {
-      return res.status(401).json({ message: "Credenciais inválidas." });
+      return res.status(401).json({ message: "Credenciais inválidas" });
     }
+    const sessionId = uuidv4();
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
-    // 1. Criar a nova sessão no banco de dados
-    const expiresAt = new Date(Date.now() + SESSION_EXPIRY_SECONDS * 1000);
-
-    const session = await prisma.session.create({
-      data: {
-        userId: user.id,
-        expiresAt: expiresAt,
-      },
+    console.log("Criando sessão...");
+    await prisma.session.create({
+      data: { id: sessionId, userId: user.id, expiresAt },
     });
+    console.log("Sessão criada com sucesso");
 
-    // 2. Enviar o ID da sessão para o cliente via Cookie
-    const sessionCookie = cookie.serialize("sessionId", session.id, {
-      httpOnly: true, // Essencial para segurança (não acessível via JS)
-      secure: false,
-      sameSite: "lax",
-      maxAge: SESSION_EXPIRY_SECONDS,
-      path: "/",
-    });
+    res.setHeader(
+      "Set-Cookie",
+      cookie.serialize("sessionId", sessionId, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        path: "/",
+        maxAge: 60 * 60 * 24 * 7,
+      })
+    );
 
-    res.setHeader("Set-Cookie", sessionCookie);
-
-    // 3. Sucesso: Retornar dados básicos do usuário
-    return res.status(200).json({
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-      },
-    });
+    return res.status(200).json({ message: "Login realizado com sucesso!" });
   } catch (error) {
     console.error("Erro no login:", error);
-    return res.status(500).json({ message: "Erro interno no servidor." });
+    return res.status(500).json({ message: "Erro interno no servidor", error });
   }
 }

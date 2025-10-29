@@ -1,5 +1,7 @@
 // types/Imovel.ts
 
+import { Finalidade } from "@prisma/client";
+
 // Enum ou Union Type para os tipos de imóvel
 export type TipoImovel = "APARTAMENTO" | "CASA" | "TERRENO" | "COMERCIAL";
 
@@ -41,4 +43,5 @@ export interface Imovel {
   fotos: Foto[];
   corretor?: CorretorInfo;
   status?: Status;
+  finalidade?: Finalidade;
 }

@@ -4,9 +4,8 @@ import { AuthApiRequest, authorize } from "../../../lib/authMiddleware";
 import fs from "fs/promises";
 import path from "path";
 
-// ----------------------------------------------------------------------------------
 // Handler para DELEÇÃO (DELETE) - ROTA PROTEGIDA
-// ----------------------------------------------------------------------------------
+
 const handleDelete = async (req: AuthApiRequest, res: NextApiResponse): Promise<void> => {
   const { id } = req.query; // Pega o ID do imóvel da URL (id)
 
@@ -42,8 +41,6 @@ const handleDelete = async (req: AuthApiRequest, res: NextApiResponse): Promise<
     });
     await Promise.all(deletePromises);
 
-    // 3. Deleta o Imóvel (e as Fotos em cascata, se configurado no banco, mas fazemos manualmente para garantir)
-    // Se você não configurou a exclusão em cascata, você precisará deletar as Fotos primeiro:
     await prisma.foto.deleteMany({ where: { imovelId: id } });
     await prisma.imovel.delete({ where: { id } });
 
@@ -130,26 +127,9 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse): Promise<voi
       });
     }
 
-    // -----------------------------------------
-    //  Adiciona novas fotos (upload)
-    // -----------------------------------------
-    // ⚠️ Aqui depende se você está usando formData com multer/formidable.
-    // Caso esteja salvando os arquivos em `public/uploads`, pode adicionar aqui depois do upload.
-    // Exemplo genérico (após tratar upload):
-    // const novasFotos = req.files as Express.Multer.File[];
-    // if (novasFotos?.length) {
-    //   await prisma.foto.createMany({
-    //     data: novasFotos.map((f, index) => ({
-    //       url: `/uploads/${f.filename}`,
-    //       imovelId: id,
-    //       ordem: index,
-    //     })),
-    //   });
-    // }
-
-    // -----------------------------------------
     //  Atualiza imóvel
-    // -----------------------------------------
+    console.log("🧩 Dados recebidos para atualização:", data);
+
     const imovelAtualizado = await prisma.imovel.update({
       where: { id },
       data,
@@ -169,7 +149,7 @@ export default async function handleImovelById(req: AuthApiRequest, res: NextApi
   // O PUT e o DELETE são protegidos e requerem a role 'CORRETOR'
   if (req.method === "PATCH") {
     const { id } = req.query;
-    const { status } = req.body;
+    const { disponivel } = req.body;
 
     if (typeof id !== "string") {
       return res.status(400).json({ message: "ID do Imóvel Inválido." });
@@ -178,7 +158,8 @@ export default async function handleImovelById(req: AuthApiRequest, res: NextApi
     try {
       const imovelAtualizado = await prisma.imovel.update({
         where: { id },
-        data: { status },
+        data: { status: req.body.status },
+        include: { fotos: true },
       });
 
       return res.status(200).json(imovelAtualizado);
