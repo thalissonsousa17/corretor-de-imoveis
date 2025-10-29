@@ -4,7 +4,6 @@ import { authorize } from "../../../lib/authMiddleware";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
-import type { Express } from "express";
 
 export const config = {
   api: {
@@ -103,8 +102,7 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
         facebook,
         linkedin,
         whatsapp,
-        corPrimaria,
-        corSecundaria,
+
         metaTitle,
         metaDescription,
       } = (req.body || {}) as Record<string, string>;
@@ -159,8 +157,6 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
               facebook,
               linkedin,
               whatsapp,
-              corPrimaria,
-              corSecundaria,
               metaTitle,
               metaDescription,
               ...(avatarUrl && { avatarUrl }),
@@ -178,8 +174,6 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
               facebook,
               linkedin,
               whatsapp,
-              corPrimaria,
-              corSecundaria,
               metaTitle,
               metaDescription,
               avatarUrl,
