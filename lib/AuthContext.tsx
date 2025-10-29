@@ -21,9 +21,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
@@ -36,10 +34,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       await axios.post("/api/logout");
     } catch (error) {
-      console.error(
-        "Erro ao fazer logout no servidor, mas prosseguindo com o cliente:",
-        error
-      );
+      console.error("Erro ao fazer logout no servidor, mas prosseguindo com o cliente:", error);
     }
 
     setUser(null);
@@ -49,7 +44,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   useEffect(() => {
     const checkSession = async () => {
       try {
-        const response = await axios.get("/api/users/me");
+        const response = await axios.get("/api/users/me", { withCredentials: true });
         if (response.data.user) {
           setUser(response.data.user as User);
         }
@@ -64,9 +59,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   }, []);
 
   return (
-    <AuthContext.Provider
-      value={{ user, isLoggedIn: !!user, login, logout, isLoading }}
-    >
+    <AuthContext.Provider value={{ user, isLoggedIn: !!user, login, logout, isLoading }}>
       {children}
     </AuthContext.Provider>
   );

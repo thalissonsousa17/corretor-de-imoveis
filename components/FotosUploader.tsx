@@ -1,7 +1,6 @@
 import { Camera } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import ModalFotos from "./ModalFotos";
-import api from "@/lib/api";
 
 interface Foto {
   id?: string;
@@ -12,6 +11,7 @@ interface Foto {
 interface FotosUploaderProps {
   imovelId: string | null | undefined;
   existingPhotos?: { id: string; url: string }[];
+  fotosExternas?: FileList | null;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onDeleteExisting?: (id: string) => void;
 }
@@ -19,49 +19,60 @@ interface FotosUploaderProps {
 const FotosUploader: React.FC<FotosUploaderProps> = ({
   imovelId,
   existingPhotos = [],
+  fotosExternas,
   onChange,
   onDeleteExisting,
 }) => {
-  console.log("Enviando com imovelId:", imovelId); // deve mostrar o valor certo
+  console.log("Enviando com imovelId:", imovelId);
   const [fotos, setFotos] = useState<Foto[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
 
+  // carrega fotos já existentes (modo edição)
   useEffect(() => {
-    setFotos(existingPhotos.map((f) => ({ id: f.id, url: f.url })));
+    if (existingPhotos.length > 0) {
+      setFotos(existingPhotos.map((f) => ({ id: f.id, url: f.url })));
+    }
   }, [existingPhotos]);
 
+  // chamado ao escolher novas imagens
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    onChange(e); // ainda repassa para o pai
+    console.log("📸 FotosUploader: onChange chamado, files:", files);
 
     if (!files || files.length === 0) return;
 
-    // Apenas cria os previews locais
-    const newFotos = Array.from(files).map((file) => ({
+    // preview local
+    const previews = Array.from(files).map((file) => ({
       url: URL.createObjectURL(file),
       isNew: true,
     }));
+    setFotos((prev) => [...prev, ...previews]);
 
-    setFotos((prev) => [...prev, ...newFotos]);
+    // envia o evento original pro pai (sem limpar o input)
+    onChange(e);
   };
 
   const handleDeleteFoto = (foto: Foto) => {
-    if (foto.id && onDeleteExisting) {
-      onDeleteExisting(foto.id);
-    }
-    if (foto.isNew) {
-      setFotos((prev) => prev.filter((f) => f.url !== foto.url));
-    } else {
-      setFotos((prev) => prev.filter((f) => f.id !== foto.id));
-    }
+    if (foto.id && onDeleteExisting) onDeleteExisting(foto.id);
+    setFotos((prev) =>
+      foto.id ? prev.filter((f) => f.id !== foto.id) : prev.filter((f) => f.url !== foto.url)
+    );
   };
 
-  // Limpa URLs temporárias
+  // sincroniza fotos externas do pai (quando o estado muda lá)
+  useEffect(() => {
+    if (!fotosExternas) return;
+    const novas = Array.from(fotosExternas).map((f) => ({
+      url: URL.createObjectURL(f),
+      isNew: true,
+    }));
+    setFotos(novas);
+  }, [fotosExternas]);
+
+  // limpa URLs temporárias
   useEffect(() => {
     return () => {
-      fotos.forEach((foto) => {
-        if (foto.isNew) URL.revokeObjectURL(foto.url);
-      });
+      fotos.forEach((f) => f.isNew && URL.revokeObjectURL(f.url));
     };
   }, [fotos]);
 

@@ -23,7 +23,8 @@ const BuscaEndereco: React.FC<{ onEnderecoAchado: (endereco: Endereco, cep: stri
     setIsLoading(true);
 
     try {
-      const resposta = await axios.get(`https://viacep.com.br/ws/${cepLimpo}/json/`);
+      const resposta = await axios.get(`/api/cep?cep=${cepLimpo}`);
+
       const dados = resposta.data;
       if (dados.erro) {
         setErro("CEP não encontrado.");

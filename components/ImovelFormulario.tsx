@@ -6,6 +6,7 @@ import { Imovel, Foto } from "@/types/Imovel";
 import BuscaEndereco from "./BuscaEndereco";
 import { Endereco } from "../types/endereco";
 import FotosUploader from "./FotosUploader";
+//import { Finalidade } from "@prisma/client";
 
 // INTERFACES
 
@@ -21,7 +22,7 @@ interface FormState {
   cidade: string;
   estado: string;
   localizacao: string;
-  disponivel: boolean;
+  finalidade: "VENDA" | "ALUGUEL";
 }
 
 interface ExistingPhoto extends Foto {
@@ -51,10 +52,11 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
     cidade: "",
     estado: "",
     localizacao: "",
-    disponivel: true,
+    finalidade: "VENDA",
   });
 
   const [fotos, setFotos] = useState<FileList | null>(null);
+  const [fotosSelecionadas, setFotosSelecionadas] = useState<FileList | null>(null);
   const [existingPhotos, setExistingPhotos] = useState<ExistingPhoto[]>([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ text: string; type: "success" | "error" | "" }>({
@@ -102,7 +104,7 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
             cidade: imovel.cidade,
             estado: imovel.estado,
             localizacao: imovel.localizacao,
-            disponivel: imovel.disponivel,
+            finalidade: imovel.finalidade ?? "VENDA",
           });
           setCep(imovel.cep ?? "");
           setNumero(imovel.numero ?? "");
@@ -117,20 +119,30 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
     }
   }, [isEditMode, imovelId]);
 
-  const handleChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => {
-    const { name, value, type } = e.target;
+  // const handleChange = (
+  //   e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  // ) => {
+  //   const { name, value, type } = e.target;
 
-    const finalValue = type === "checkbox" ? (e.target as HTMLInputElement).checked : value;
+  //   const finalValue = type === "checkbox" ? (e.target as HTMLInputElement).checked : value;
 
-    setFormData((prev) => ({ ...prev, [name]: finalValue }));
-  };
-
+  //   setFormData((prev) => ({ ...prev, [name]: finalValue }));
+  // };
+  //Editando aqui
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setFotos(e.target.files);
+    const files = e.target.files;
+    console.log("📸 (ImovelFormulario) Recebendo arquivos do filho:", files);
+
+    if (!files || files.length === 0) {
+      console.warn("⚠️ Nenhum arquivo recebido.");
+      return;
     }
+
+    const fileArray = Array.from(files);
+    const dataTransfer = new DataTransfer();
+    fileArray.forEach((file) => dataTransfer.items.add(file));
+
+    setFotosSelecionadas(files); // <-- salva o FileList original
   };
 
   // Toggle para marcar/desmarcar foto para remoção
@@ -153,7 +165,6 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
     // 1. Anexa os dados do formulário
     Object.keys(formData).forEach((key) => {
       const value = formData[key as keyof FormState];
-
       data.append(key, typeof value === "boolean" ? String(value) : value || "");
     });
 
@@ -162,27 +173,39 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
     data.append("bairro", bairro);
     data.append("numero", numero);
 
-    // 2. Anexa as fotos a remover (apenas no modo edição)
+    // 2. Adiciona o imovelId (necessário para o upload backend)
+    if (imovelId) {
+      console.log("📦 Adicionando imovelId no FormData:", imovelId);
+      data.append("imovelId", imovelId);
+    }
+
+    // 3. Anexa as fotos a remover (apenas no modo edição)
     if (isEditMode) {
       const photosToDelete = existingPhotos.filter((f) => f.toBeDeleted).map((f) => f.id);
       if (photosToDelete.length > 0) {
         data.append("fotosRemover", JSON.stringify(photosToDelete));
+        console.log("🗑️ Fotos marcadas para remover:", photosToDelete);
       }
     }
 
-    // 3. Anexa as novas fotos
-    if (fotos) {
-      for (let i = 0; i < fotos.length; i++) {
-        data.append("fotos", fotos[i]);
+    // 4. Anexa as novas fotos
+    const fotosParaEnviar = fotosSelecionadas || fotos;
+    if (fotosParaEnviar && fotosParaEnviar.length > 0) {
+      for (let i = 0; i < fotosParaEnviar.length; i++) {
+        data.append("fotos", fotosParaEnviar[i]);
       }
-    } else if (!isEditMode && !fotos) {
-      // Bloqueia POST se não houver foto
+    } else if (!isEditMode) {
       setMessage({
         text: "Por favor, selecione pelo menos uma foto para o cadastro.",
         type: "error",
       });
       setLoading(false);
       return;
+    }
+
+    // Debug do que será enviado
+    for (const [key, value] of data.entries()) {
+      console.log("🧩 FormData:", key, value);
     }
 
     try {
@@ -205,7 +228,7 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
       });
       onSuccess();
 
-      // Limpa o formulário ou atualiza o estado de edição
+      // Limpa formulário após envio
       if (!isEditMode) {
         setFormData({
           titulo: "",
@@ -219,12 +242,11 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
           cidade: "",
           estado: "",
           localizacao: "",
-          disponivel: true,
+          finalidade: "VENDA",
         });
         setFotos(null);
-        (document.getElementById("fotos") as HTMLInputElement).value = "";
+        setFotosSelecionadas(null);
       } else {
-        // Atualiza o estado das fotos após a edição (para desmarcar as deletadas)
         const updatedImovel = response.data.imovel || response.data;
         setExistingPhotos(
           updatedImovel.fotos
@@ -299,7 +321,7 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
       </div>
 
       {/* Linha 3: Preço e Tipo */}
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div>
           <label htmlFor="preco" className="block text-sm font-medium text-gray-700">
             Valor (R$)
@@ -333,6 +355,24 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
             <option value="CASA">Casa</option>
             <option value="TERRENO">Terreno</option>
             <option value="COMERCIAL">Comercial</option>
+          </select>
+        </div>
+        <div>
+          <label htmlFor="finalidade" className="block text-sm font-medium text-gray-700">
+            Finalidade
+          </label>
+          <select
+            name="finalidade"
+            id="finalidade"
+            value={formData.finalidade}
+            onChange={(e) =>
+              setFormData({ ...formData, finalidade: e.target.value as "VENDA" | "ALUGUEL" })
+            }
+            required
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="VENDA">Venda</option>
+            <option value="ALUGUEL">Aluguel</option>
           </select>
         </div>
       </div>
@@ -474,7 +514,12 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
       )}
 
       {/* Linha de Upload de Fotos */}
-      <FotosUploader imovelId={imovelId} existingPhotos={[]} onChange={handleFileChange} />
+      <FotosUploader
+        imovelId={imovelId}
+        existingPhotos={existingPhotos}
+        onChange={handleFileChange}
+        fotosExternas={fotosSelecionadas}
+      />
 
       {/* Botão de Submissão */}
       <button

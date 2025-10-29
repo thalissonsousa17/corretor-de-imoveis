@@ -11,6 +11,9 @@ import FiltroImoveis from "./FiltroImoveis";
 import Paginacao from "./Paginacao";
 import VisualizarFotosModal from "@/components/VisualizarFotosModal";
 
+type Finalidade = "VENDA" | "ALUGUEL";
+type Status = "DISPONIVEL" | "VENDIDO" | "ALUGADO" | "INATIVO";
+
 interface ImovelListagemCorretorProps {
   onEdit: (imovelId: string) => void;
   onImovelChange: () => void;
@@ -112,53 +115,16 @@ const ImovelListagemCorretor: React.FC<ImovelListagemCorretorProps> = () => {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
                 Título / Endereço Completo
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
+              <th className="px-6 py-3 text-center text-xs font-medium text-gray-900 uppercase tracking-wider">
                 Valor
               </th>
-
-              {/* Status */}
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider relative status-dropdown">
-                <button
-                  onClick={() => setIsDropdownOpen((prev) => !prev)}
-                  className="cursor-pointer inline-flex justify-center w-full bg-gray-100 rounded-md border border-gray-300 shadow-sm px-4 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none"
-                >
-                  Status
-                </button>
-
-                {isDropdownOpen && (
-                  <div className="absolute mt-2 w-32 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
-                    {["Disponivel", "Vendido", "Inativo"].map((status) => (
-                      <button
-                        key={status}
-                        onClick={() => {
-                          handleFiltrarStatus(status);
-                          setIsDropdownOpen(false);
-                        }}
-                        className={`block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 ${
-                          statusFiltro === status ? "bg-gray-200 font-semibold" : ""
-                        }`}
-                      >
-                        {status}
-                      </button>
-                    ))}
-
-                    {statusFiltro && (
-                      <button
-                        onClick={() => {
-                          setStatusFiltro(null);
-                          setIsDropdownOpen(false);
-                        }}
-                        className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
-                      >
-                        Limpar filtro
-                      </button>
-                    )}
-                  </div>
-                )}
+              <th className="px-6 py-3 text-center text-xs font-medium text-gray-900 uppercase tracking-wider">
+                Finalidade
               </th>
-
-              {/* Ações */}
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
+              <th className="px-6 py-3 text-center text-xs font-medium text-gray-900 uppercase tracking-wider">
+                Mudar Status
+              </th>
+              <th className="px-6 py-3 text-center text-xs font-medium text-gray-900 uppercase tracking-wider">
                 Ações
                 <button
                   onClick={fetchImoveis}
@@ -168,8 +134,7 @@ const ImovelListagemCorretor: React.FC<ImovelListagemCorretorProps> = () => {
                   <FiRefreshCw className="inline w-4 h-4" />
                 </button>
               </th>
-
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
+              <th className="px-6 py-3 text-center text-xs font-medium text-gray-900 uppercase tracking-wider">
                 Fotos
               </th>
             </tr>
@@ -178,7 +143,8 @@ const ImovelListagemCorretor: React.FC<ImovelListagemCorretorProps> = () => {
           <tbody className="bg-white divide-y divide-gray-200">
             {currentImoveis.map((imovel) => (
               <tr key={imovel.id} className="hover:bg-gray-100 transition-colors">
-                <td className="px-6 py-4 text-sm text-gray-700 max-w-prose">
+                {/* Título / Endereço */}
+                <td className="px-6 py-4 text-sm text-gray-700">
                   <div className="font-medium">{imovel.titulo}</div>
                   <div className="text-xs text-gray-600">
                     {imovel.rua}, {imovel.numero} - {imovel.bairro}
@@ -186,9 +152,12 @@ const ImovelListagemCorretor: React.FC<ImovelListagemCorretorProps> = () => {
                   <div className="text-xs text-gray-600">
                     {imovel.cidade} - {imovel.estado} ({imovel.cep})
                   </div>
-                  <div className="text-xs text-gray-600">{imovel.descricao}</div>
+                  <div className="font-medium">
+                    {imovel.tipo ? `${imovel.tipo} - ${imovel.titulo}` : imovel.titulo}
+                  </div>
                 </td>
 
+                {/* Valor */}
                 <td className="text-gray-700 px-6 py-4 text-center text-sm font-bold">
                   R${" "}
                   {imovel.preco?.toLocaleString("pt-BR", {
@@ -196,25 +165,35 @@ const ImovelListagemCorretor: React.FC<ImovelListagemCorretorProps> = () => {
                   }) ?? "0,00"}
                 </td>
 
+                {/* Finalidade */}
                 <td className="px-6 py-4 text-center">
                   <span
                     className={`px-3 py-1 text-xs font-semibold rounded-full ${
-                      imovel.status === "Disponivel"
-                        ? "bg-green-100 text-green-800"
-                        : imovel.status === "Vendido"
-                          ? "bg-red-100 text-red-800"
-                          : "bg-yellow-100 text-yellow-800"
+                      imovel.finalidade === "VENDA"
+                        ? "bg-blue-100 text-blue-700"
+                        : "bg-purple-100 text-purple-700"
                     }`}
                   >
-                    {imovel.status || "Não Definido"}
+                    {imovel.finalidade === "VENDA" ? "Venda" : "Aluguel"}
                   </span>
                 </td>
 
+                {/* Status */}
+                <td className="px-6 py-4 text-center">
+                  <StatusDropdown
+                    imovelId={imovel.id}
+                    currentStatus={(imovel.status as Status) ?? "DISPONIVEL"}
+                    finalidade={imovel.finalidade as Finalidade}
+                    onUpdate={fetchImoveis}
+                  />
+                </td>
+
+                {/* Ações */}
                 <td className="px-6 py-4 text-center">
                   <div className="flex items-center justify-center gap-3">
                     <button
                       onClick={() => handleEdit(imovel)}
-                      className="text-blue-600 hover:text-blue-900 cursor-pointer"
+                      className="text-blue-600 hover:text-blue-900"
                       title="Editar Imóvel"
                     >
                       <Pencil className="w-5 h-5" />
@@ -222,24 +201,19 @@ const ImovelListagemCorretor: React.FC<ImovelListagemCorretorProps> = () => {
 
                     <button
                       onClick={() => handleDeleteClick(imovel)}
-                      className="text-red-600 hover:text-red-900 cursor-pointer"
+                      className="text-red-600 hover:text-red-900"
                       title="Excluir Imóvel"
                     >
                       🗑️
                     </button>
-
-                    <StatusDropdown
-                      imovelId={imovel.id}
-                      currentStatus={imovel.status ?? "Disponivel"}
-                      onUpdate={fetchImoveis}
-                    />
                   </div>
                 </td>
 
+                {/* Fotos */}
                 <td className="px-6 py-4 text-center">
                   <button
                     title="Ver Fotos"
-                    className="p-1 rounded hover:bg-gray-200 cursor-pointer"
+                    className="p-1 rounded hover:bg-gray-200"
                     onClick={() => handleVerFotos(imovel)}
                   >
                     <Camera className="w-5 h-5 text-gray-700" />

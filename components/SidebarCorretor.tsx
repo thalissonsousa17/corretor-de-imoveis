@@ -14,11 +14,6 @@ const navItems = [
 const SidebarCorretor: React.FC = () => {
   const router = useRouter();
 
-  // const handleLogout = () => {
-  //   // Lógica de logout aqui
-  //   router.push("/login");
-  // };
-
   const handleLogout = async () => {
     try {
       await axios.post("/api/logout");
@@ -41,7 +36,9 @@ const SidebarCorretor: React.FC = () => {
       {/* 2. Itens de Navegação */}
       <nav className="flex-grow p-4 space-y-2">
         {navItems.map((item) => {
-          const isActive = router.pathname.startsWith(item.href);
+          const isActive =
+            router.pathname === item.href ||
+            (item.href !== "/corretor/imoveis" && router.pathname.startsWith(item.href));
 
           return (
             <Link
