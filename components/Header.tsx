@@ -1,60 +1,68 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
+import Link from "next/link";
 
-import { useAuth } from "@/lib/AuthContext";
-import CorretorLayout from "./CorretorLayout";
+interface Corretor {
+  name?: string;
+  whatsapp?: string | null;
+  instagram?: string | null;
+  email?: string | null;
+}
 
-const Header: React.FC = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-  const { user } = useAuth();
-  const userName = user?.name || "Corretor(a)";
+export default function HeaderCorretor({ corretor }: { corretor: Corretor }) {
+  const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setIsMenuOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    const handleScroll = () => setIsScrolled(window.scrollY > 10);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   return (
-    <CorretorLayout>
-      <header className="flex justify-between items-center px-8 py-3 bg-white border-b border-gray-200 shadow-sm">
-        <div className="text-xl font-bold text-blue-600">Logo</div>
-        {/* canto direito - perfil e notificação */}
-        <div className="flex items-center space-x-5 relative" ref={menuRef}>
-          {/* sino notificação */}
-          <div className="text-xl cursor-pointer hover:text-gray-700 transition duration-150">
-            🔔
-          </div>
+    <header
+      className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${
+        isScrolled ? "bg-black/80 backdrop-blur-md shadow-md" : "bg-transparent"
+      }`}
+    >
+      {/* CONTAINER PRINCIPAL */}
+      <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
+        {/* ===== ESQUERDA: Nome do corretor ===== */}
+        <div className="flex items-center gap-3">
+          <h1 className="text-white text-lg font-semibold tracking-wide">{corretor.name}</h1>
+        </div>
 
-          {/* Avatar - E-mail do Perfil */}
-          {/* Botão Sair */}
-          <button
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold text-sm hover:bg-blue-600 focus:outline-none transition duration-150"
-            aria-label="Abrir menu do usuário"
-          >
-            {userName.charAt(0).toUpperCase()}
-          </button>
+        {/* ===== DIREITA: Navegação + WhatsApp ===== */}
+        <div className="flex items-center gap-6">
+          <nav className="flex items-center gap-6">
+            <Link href="#imoveis" className="text-white font-medium hover:text-gray-300 transition">
+              Imóveis
+            </Link>
+            <Link href="#perfil" className="text-white font-medium hover:text-gray-300 transition">
+              Perfil
+            </Link>
+            <Link href="#contato" className="text-white font-medium hover:text-gray-300 transition">
+              Contato
+            </Link>
+            <Link href="#contato" className="text-white font-medium hover:text-gray-300 transition">
+              {corretor.whatsapp}
+            </Link>
+            <Link href="#email" className="text-white font-medium hover:text-gray-300 transition">
+              {corretor.email}
+            </Link>
+          </nav>
 
-          {isMenuOpen && (
-            <div className="absolute right-0 top-10 mt-2 w-48 bg-white rounded-md shadow-lg py-1 ring-1 ring-black ring-opacity-5 z-10">
-              {/* E-mail do Usuário */}
-              <div className="px-4 py-2 text-sm text-gray-700 border-b border-gray-100 truncate">
-                {userName}
-              </div>
-            </div>
+          {/* Botão WhatsApp */}
+          {corretor.whatsapp && (
+            <a
+              href={`https://wa.me/${corretor.whatsapp.replace(/\D/g, "")}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-green-500 text-white px-4 py-2 rounded-full font-medium hover:bg-green-600 transition"
+            >
+              WhatsApp
+            </a>
           )}
         </div>
-      </header>
-    </CorretorLayout>
+      </div>
+    </header>
   );
-};
-
-export default Header;
+}
