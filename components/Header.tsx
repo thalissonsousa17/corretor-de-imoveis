@@ -45,9 +45,6 @@ export default function HeaderCorretor({ corretor }: { corretor: Corretor }) {
             <Link href="#contato" className="text-white font-medium hover:text-gray-300 transition">
               {corretor.whatsapp}
             </Link>
-            <Link href="#email" className="text-white font-medium hover:text-gray-300 transition">
-              {corretor.email}
-            </Link>
           </nav>
 
           {/* Botão WhatsApp */}

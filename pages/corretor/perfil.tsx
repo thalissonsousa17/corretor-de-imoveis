@@ -328,15 +328,49 @@ export default function PerfilPage() {
             {/* Biografia */}
             <div className="rounded-2xl bg-gray-50 p-6 shadow-sm border border-gray-100 hover:shadow-md transition">
               <h3 className="text-lg font-semibold text-gray-800 mb-3">📝 Biografia</h3>
+
               {isEditing ? (
-                <textarea
-                  name="biografia"
-                  value={perfil.biografia || ""}
-                  onChange={handleChange}
-                  className="w-full h-48 border border-gray-300 rounded-lg p-3 text-gray-700 bg-white overflow-y-auto resize-none focus:outline-none focus:ring-2 focus:ring-gray-400"
-                />
+                <div>
+                  <textarea
+                    name="biografia"
+                    value={perfil.biografia || ""}
+                    onChange={(e) => {
+                      if (e.target.value.length <= 1000) handleChange(e);
+                    }}
+                    className="
+          w-full 
+          min-h-[12rem] 
+          h-64 
+          border border-gray-300 
+          rounded-lg 
+          p-4 
+          text-gray-700 
+          bg-white 
+          overflow-y-auto 
+          resize-y 
+          focus:outline-none 
+          focus:ring-2 
+          focus:ring-gray-400
+        "
+                    placeholder="Escreva uma breve biografia profissional..."
+                  />
+                  <div className="flex justify-between text-sm mt-2">
+                    <span
+                      className={`${
+                        (perfil.biografia?.length || 0) >= 1000
+                          ? "text-red-500 font-medium"
+                          : "text-gray-500"
+                      }`}
+                    >
+                      Caracteres: {perfil.biografia?.length || 0} / 1000
+                    </span>
+                    {(perfil.biografia?.length || 0) >= 1000 && (
+                      <span className="text-red-500 font-medium">Limite máximo atingido!</span>
+                    )}
+                  </div>
+                </div>
               ) : (
-                <div className="w-full h-48 border border-gray-200 rounded-lg bg-white p-3 text-sm text-gray-700 overflow-y-auto leading-relaxed">
+                <div className="w-full min-h-48 border border-gray-200 rounded-lg bg-white p-3 text-sm text-gray-700 overflow-y-auto leading-relaxed whitespace-pre-wrap">
                   {perfil.biografia || "Adicione uma breve descrição sobre você."}
                 </div>
               )}

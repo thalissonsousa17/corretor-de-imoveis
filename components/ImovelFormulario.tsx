@@ -310,14 +310,53 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
         <label htmlFor="descricao" className="block text-sm font-medium text-gray-700">
           Descrição Detalhada
         </label>
+
         <textarea
           name="descricao"
           id="descricao"
-          rows={4}
-          value={formData.descricao}
-          onChange={(e) => setFormData({ ...formData, descricao: e.target.value })}
-          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500"
+          value={formData.descricao || ""}
+          onChange={(e) => {
+            if (e.target.value.length <= 2000) {
+              setFormData({ ...formData, descricao: e.target.value });
+            }
+          }}
+          className="
+      mt-1 
+      block 
+      w-full 
+      min-h-[12rem] 
+      h-64 
+      border 
+      border-gray-300 
+      rounded-md 
+      shadow-sm 
+      p-3 
+      text-gray-700 
+      bg-white 
+      resize-y 
+      overflow-y-auto 
+      focus:ring-blue-500 
+      focus:border-blue-500
+    "
+          placeholder="Descreva todos os detalhes do imóvel, área de lazer, diferenciais e informações de contato..."
         />
+
+        {/* Contador de caracteres */}
+        <div className="flex justify-between text-sm mt-2">
+          <span
+            className={`${
+              (formData.descricao?.length || 0) >= 3000
+                ? "text-red-500 font-medium"
+                : "text-gray-500"
+            }`}
+          >
+            Caracteres: {formData.descricao?.length || 0} / 3000
+          </span>
+
+          {(formData.descricao?.length || 0) >= 3000 && (
+            <span className="text-red-500 font-medium">Limite máximo atingido!</span>
+          )}
+        </div>
       </div>
 
       {/* Linha 3: Preço e Tipo */}
@@ -375,21 +414,6 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
             <option value="ALUGUEL">Aluguel</option>
           </select>
         </div>
-      </div>
-
-      {/* Linha 4: Localização (NOVO CAMPO) */}
-      <div>
-        <label htmlFor="localizacao" className="block text-sm font-medium text-gray-700">
-          Localização Detalhada
-        </label>
-        <input
-          type="text"
-          name="localizacao"
-          id="localizacao"
-          value={formData.localizacao}
-          onChange={(e) => setFormData({ ...formData, localizacao: e.target.value })}
-          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500"
-        />
       </div>
 
       {/* Linha 4.1 : Cep e Número */}

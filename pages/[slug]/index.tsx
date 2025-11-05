@@ -1,9 +1,10 @@
 import Head from "next/head";
-import type { GetServerSideProps } from "next";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toWaLink } from "@/lib/phone";
 import HeaderCorretor from "@/components/Header";
+import DOMPurify from "isomorphic-dompurify";
+import type { GetServerSidePropsContext, GetServerSidePropsResult } from "next";
 
 type Foto = { id: string; url: string };
 type Imovel = {
@@ -35,22 +36,36 @@ type Corretor = {
 interface PageProps {
   corretor: Corretor;
   imoveis: Imovel[];
+  texto?: string;
 }
 type Filtro = "VENDA" | "ALUGUEL" | "VENDIDO" | "ALUGADO" | "INATIVO";
 
-export const getServerSideProps: GetServerSideProps<PageProps> = async (ctx) => {
+export const getServerSideProps = async (
+  ctx: GetServerSidePropsContext
+): Promise<GetServerSidePropsResult<PageProps>> => {
   const slug = ctx.params?.slug as string;
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || `http://${ctx.req.headers.host}`;
   const res = await fetch(`${baseUrl}/api/public/corretor/${slug}`);
+
   if (!res.ok) return { notFound: true };
+
   const data = await res.json();
+
   return { props: { corretor: data.corretor, imoveis: data.imoveis } };
 };
 
-export default function CorretorHome({ corretor, imoveis }: PageProps) {
+export default function CorretorHome({ corretor, imoveis, texto }: PageProps) {
+  const [safeHtml, setSafeHtml] = useState("");
+
   const wa = toWaLink(corretor.whatsapp);
   const [filtro, setFiltro] = useState<Filtro>("VENDA");
   const [busca, setBusca] = useState("");
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && corretor.biografia) {
+      setSafeHtml(DOMPurify.sanitize(corretor.biografia));
+    }
+  }, [corretor.biografia]);
 
   const imoveisFiltrados = imoveis.filter((i) => {
     const passaFiltro =
@@ -135,7 +150,7 @@ export default function CorretorHome({ corretor, imoveis }: PageProps) {
       {/* SEÇÃO DE IMÓVEIS */}
       <div>
         <div>
-          <section className="bg-white py-16">
+          <section id="imoveis" className="bg-white py-16">
             <div className="max-w-6xl mx-auto px-4">
               <h2 className="text-2xl font-semibold text-gray-900 mb-6">Imóveis em destaque</h2>
 
@@ -241,7 +256,7 @@ export default function CorretorHome({ corretor, imoveis }: PageProps) {
         </div>
         <div>
           {/* HERO CLEAN */}
-          <section className="relative bg-gray-100 py-20">
+          <section id="perfil" className="relative bg-gray-100 py-20">
             <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-10 px-6">
               {/* Coluna texto */}
               <div className="flex-1 text-gray-700">
@@ -250,7 +265,22 @@ export default function CorretorHome({ corretor, imoveis }: PageProps) {
                   <p className="text-sm font-medium text-gray-600 mb-6">CRECI {corretor.creci}</p>
                 )}
                 {corretor.biografia && (
-                  <p className="text-lg leading-relaxed mb-8">{corretor.biografia}</p>
+                  <div
+                    className="
+      text-gray-800 
+      leading-relaxed 
+      whitespace-pre-wrap 
+      transition-all 
+      duration-300 
+      text-[clamp(0.9rem,1.2vw,1.1rem)] 
+      sm:text-[clamp(1rem,1.1vw,1.15rem)] 
+      md:text-[clamp(1rem,1vw,1.2rem)] 
+      lg:text-[1.125rem] 
+      xl:text-[1.15rem]
+    "
+                  >
+                    {corretor.biografia}
+                  </div>
                 )}
 
                 {/* Contatos */}

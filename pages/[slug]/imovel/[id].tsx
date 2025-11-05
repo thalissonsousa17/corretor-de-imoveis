@@ -1,7 +1,9 @@
 import type { GetServerSideProps } from "next";
 import { useEffect, useState, useCallback } from "react";
 import { toWaLink } from "@/lib/phone";
-import Link from "next/link";
+import Mapa from "@/components/Mapa";
+import DOMPurify from "isomorphic-dompurify";
+import Footer from "@/components/Footer";
 
 type Foto = { id: string; url: string };
 type Imovel = {
@@ -68,98 +70,114 @@ export default function ImovelDetalhe({ imovel, corretor, slug }: Props) {
     <div className="bg-gray-100">
       <>
         {/* Topo com banner */}
-        <section className=" bg-gray-200 ">
-          {/* {corretor?.bannerUrl && (
-            <div className="absolute inset-0">
-              <img src={corretor.bannerUrl} className="w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-black/40" />
-            </div>
-          )} */}
-          <div className="flex flex-col items-center justify-center p-10">
-            {/* {corretor?.avatarUrl && (
-              <img
-                src={corretor.avatarUrl}
-                className="w-14 h-14 rounded-full ring-2 ring-white/40 object-cover"
-              />
-            )} */}
-            <div className="text-gray-700">
-              {/* <h1 className="text-2xl font-bold">{imovel.titulo}</h1> */}
+        <section className=" py-4 px-6 bg-white rounded-2xl shadow border border-gray-100 p-6">
+          <div className="max-w-6xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-8">
+            {/* LADO ESQUERDO - Nome do corretor */}
+            <div className="text-gray-700 text-center lg:text-left">
               {corretor?.name && (
-                <p className="opacity-90 text-3xl ">
+                <p className="text-3xl font-semibold text-gray-800">
                   {corretor.name}
-                  {corretor.creci ? ` • CRECI ${corretor.creci}` : ""}
+                  {corretor.creci && (
+                    <span className="text-gray-500 text-lg font-normal">
+                      {" "}
+                      • CRECI {corretor.creci}
+                    </span>
+                  )}
                 </p>
               )}
             </div>
-            <div className="ml-auto flex gap-3 ">
-              <Link href={`/${slug}`} className="rounded-xl text-gray-500 bg-white/10 px-4 py-2">
-                Voltar
-              </Link>
-              {wa && (
-                <a href={wa} target="_blank" className="rounded-xl bg-emerald-600 px-4 py-2">
-                  WhatsApp
-                </a>
-              )}
-            </div>
-          </div>
-        </section>
 
-        <main className="mx-auto max-w-6xl px-4 py-10 bg-gray-200 rounded-2xl p-2 mt-4">
-          {/* Galeria */}
-          {fotos.length > 0 && (
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {fotos.map((f, i) => (
-                <button
-                  key={f.id}
-                  onClick={() => {
-                    setIdx(i);
-                    setOpen(true);
-                  }}
-                  className="group rounded-xl overflow-hidden "
-                >
-                  <img
-                    src={f.url}
-                    alt={`Foto ${i + 1}`}
-                    className="h-56 w-full object-cover group-hover:opacity-90 transition"
-                  />
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* Info */}
-          <div className="mt-8 grid lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2">
-              <h2 className="text-xl font-semibold">Descrição</h2>
-              <p className="mt-2 text-zinc-700">{imovel.descricao}</p>
-            </div>
-            <aside className="rounded-2xl border text-gray-700 bg-white p-5">
-              <p className="text-2xl font-semibold">
+            {/* LADO DIREITO - Bloco de informações e botão */}
+            <aside className="bg-white border border-gray-200 rounded-2xl shadow-sm p-6 w-full max-w-sm">
+              <p className="text-2xl font-semibold text-gray-900 mb-1">
                 {Number(imovel.preco).toLocaleString("pt-BR", {
                   style: "currency",
                   currency: "BRL",
                 })}
               </p>
-              <p className="text-zinc-700 mt-1">
+
+              <p className="text-gray-700">
                 {imovel.cidade} - {imovel.estado}
               </p>
+
               {(imovel.bairro || imovel.rua || imovel.numero) && (
-                <p className="text-zinc-600 mt-1">
+                <p className="text-gray-500 text-sm mt-1">
                   {[imovel.rua, imovel.numero, imovel.bairro].filter(Boolean).join(", ")}
                 </p>
               )}
+
               {wa && (
                 <a
                   href={wa}
                   target="_blank"
-                  className="mt-4 inline-block w-full text-center rounded-xl bg-black text-white py-2"
+                  rel="noopener noreferrer"
+                  className="mt-4 inline-block w-full text-center rounded-xl bg-black text-white py-2 font-medium hover:bg-gray-800 transition"
                 >
                   Tenho interesse
                 </a>
               )}
             </aside>
           </div>
+        </section>
+
+        {/* Info principal e descrição */}
+        <main className="flex-1 w-full max-w-8xl mx-auto px-4 py-12">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-10 items-start bg-white rounded-2xl shadow-md border border-gray-100 p-6">
+            {/* GALERIA DE IMAGENS */}
+            <div className="lg:pl-4">
+              {fotos.length > 0 && (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {fotos.map((f, i) => (
+                    <button
+                      key={f.id}
+                      onClick={() => {
+                        setIdx(i);
+                        setOpen(true);
+                      }}
+                      className="group rounded-xl overflow-hidden shadow-sm hover:shadow-md transition"
+                    >
+                      <img
+                        src={f.url}
+                        alt={`Foto ${i + 1}`}
+                        className="h-48 w-full object-cover group-hover:opacity-90 transition"
+                      />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* DESCRIÇÃO DETALHADA */}
+            <div className="lg:pr-4">
+              <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-6">
+                <h2 className="text-xl font-semibold text-gray-800 mb-4">Descrição</h2>
+                <div
+                  className="text-gray-700 leading-relaxed whitespace-pre-line"
+                  dangerouslySetInnerHTML={{
+                    __html: DOMPurify.sanitize(
+                      (imovel.descricao || "")
+                        .trim()
+                        .replace(/\n{2,}/g, "<br>")
+                        .replace(/\n/g, " ")
+                    ),
+                  }}
+                />
+              </div>
+            </div>
+          </div>
         </main>
+        <main className="px-40 py-10 ">
+          <section className="bg-white rounded-2xl shadow-md border border-gray-100 p-6">
+            <h1 className="text-2xl text-gray-700 font-semibold mb-6 ">📍 Localização</h1>
+            <Mapa
+              endereco={`${imovel.rua || ""}, ${imovel.numero || ""}, ${imovel.bairro || ""}, ${
+                imovel.cidade || ""
+              } - ${imovel.estado || ""}`}
+            />
+          </section>
+        </main>
+
+        <Footer />
 
         {/* Modal + Carrossel */}
         {open && (
@@ -178,11 +196,11 @@ export default function ImovelDetalhe({ imovel, corretor, slug }: Props) {
             </button>
             <img
               src={fotos[idx].url}
-              className="max-h-[85vh] max-w-[90vw] object-contain rounded-lg "
+              className="max-h-[85vh] max-w-[90vw] object-contain rounded-lg"
             />
             <button
               onClick={next}
-              className="absolute right-4 md:right-8 text-white text-3xl cursor-pointer border p-2 rounded-xl  hover:bg-gray-200 hover:text-gray-600"
+              className="absolute right-4 md:right-8 text-white text-3xl cursor-pointer border p-2 rounded-xl hover:bg-gray-200 hover:text-gray-600"
             >
               ›
             </button>
