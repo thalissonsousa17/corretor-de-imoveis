@@ -1,7 +1,8 @@
 import type { GetServerSideProps } from "next";
 import Link from "next/link";
-import DOMPurify from "isomorphic-dompurify";
 import Footer from "@/components/Footer";
+import LayoutCorretor from "@/components/LayoutCorretor";
+import type { CorretorProps } from "@/components/LayoutCorretor";
 
 type Foto = { id: string; url: string };
 type Imovel = {
@@ -13,56 +14,59 @@ type Imovel = {
   estado: string;
   fotos: Foto[];
 };
+
 type Props = {
   slug: string;
   imoveis: Imovel[];
-  bannerUrl?: string | null;
-  avatarUrl?: string | null;
-  name?: string | null;
+  corretor: CorretorProps | null;
 };
 
 export const getServerSideProps: GetServerSideProps<Props> = async (ctx) => {
   const slug = ctx.params?.slug as string;
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || `http://${ctx.req.headers.host}`;
-  // reaproveita a primeira rota pra pegar topo + outra pra pegar os 20
+
+  // Pegamos os dados do corretor e os imóveis
   const [topoRes, vendasRes] = await Promise.all([
     fetch(`${baseUrl}/api/public/corretor/${slug}`),
     fetch(`${baseUrl}/api/public/corretor/${slug}/vendas`),
   ]);
+
   if (!topoRes.ok || !vendasRes.ok) return { notFound: true };
+
   const topo = await topoRes.json();
   const vendas = await vendasRes.json();
+
   return {
     props: {
       slug,
       imoveis: vendas.imoveis,
-      bannerUrl: topo?.corretor?.bannerUrl ?? null,
-      avatarUrl: topo?.corretor?.avatarUrl ?? null,
-      name: topo?.corretor?.name ?? null,
+      corretor: topo?.corretor ?? null,
     },
   };
 };
 
-export default function Vendas({ slug, imoveis, bannerUrl, avatarUrl, name }: Props) {
+export default function Vendas({ slug, imoveis, corretor }: Props) {
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col">
+    <LayoutCorretor corretor={corretor}>
       {/* Banner */}
       <section className="relative">
-        {bannerUrl && (
+        {corretor?.bannerUrl && (
           <div className="absolute inset-0">
-            <img src={bannerUrl} className="w-full h-full object-cover" />
+            <img src={corretor.bannerUrl} className="w-full h-full object-cover" />
             <div className="absolute inset-0 bg-black/40" />
           </div>
         )}
 
         <div className="relative mx-auto max-w-6xl px-6 py-16 text-white flex items-center gap-4">
-          {avatarUrl && (
+          {corretor?.avatarUrl && (
             <img
-              src={avatarUrl}
+              src={corretor.avatarUrl}
               className="w-16 h-16 rounded-full ring-2 ring-white/40 object-cover"
             />
           )}
-          <h1 className="text-2xl font-semibold">{name ?? "Corretor"} • Imóveis à Venda</h1>
+          <h1 className="text-2xl font-semibold">
+            {corretor?.name ?? "Corretor"} • Imóveis à Venda
+          </h1>
         </div>
       </section>
 
@@ -84,17 +88,6 @@ export default function Vendas({ slug, imoveis, bannerUrl, avatarUrl, name }: Pr
                   {capa && <img src={capa} alt={i.titulo} className="h-48 w-full object-cover" />}
                   <div className="p-4 text-gray-700">
                     <h3 className="font-medium line-clamp-1">{i.titulo}</h3>
-                    {/* <div
-                      className="text-sm text-zinc-600 mt-1 overflow-hidden max-h-[3.2rem] leading-snug whitespace-pre-line"
-                      dangerouslySetInnerHTML={{
-                        __html: DOMPurify.sanitize(
-                          (i.descricao || "")
-                            .trim()
-                            .replace(/\n{2,}/g, "<br>")
-                            .replace(/\n/g, " ")
-                        ),
-                      }}
-                    /> */}
                     <p className="mt-2 font-semibold">
                       {Number(i.preco).toLocaleString("pt-BR", {
                         style: "currency",
@@ -117,7 +110,6 @@ export default function Vendas({ slug, imoveis, bannerUrl, avatarUrl, name }: Pr
           </div>
         )}
       </main>
-      <Footer />
-    </div>
+    </LayoutCorretor>
   );
 }

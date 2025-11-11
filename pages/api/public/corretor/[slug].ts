@@ -53,6 +53,7 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
       take: 50,
     });
 
+    // 🔹 Inclui logoUrl e os demais campos visuais
     res.json({
       corretor: {
         id: profile.userId,
@@ -60,6 +61,7 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
         creci: profile.creci,
         avatarUrl: profile.avatarUrl,
         bannerUrl: profile.bannerUrl,
+        logoUrl: profile.logoUrl, // ✅ agora vem no retorno!
         biografia: profile.biografia,
         instagram: profile.instagram,
         facebook: profile.facebook,

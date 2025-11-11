@@ -5,6 +5,7 @@ import { toWaLink } from "@/lib/phone";
 import HeaderCorretor from "@/components/Header";
 import DOMPurify from "isomorphic-dompurify";
 import type { GetServerSidePropsContext, GetServerSidePropsResult } from "next";
+import Footer from "@/components/Footer";
 
 type Foto = { id: string; url: string };
 type Imovel = {
@@ -25,6 +26,8 @@ type Corretor = {
   creci?: string | null;
   avatarUrl?: string | null;
   bannerUrl?: string | null;
+  logoUrl?: string | null;
+  email: string;
   biografia?: string | null;
   instagram?: string | null;
   facebook?: string | null;
@@ -88,7 +91,7 @@ export default function CorretorHome({ corretor, imoveis, texto }: PageProps) {
     <div>
       <HeaderCorretor corretor={corretor} />
       <Head>
-        <title>{corretor.name} • Imóveis</title>
+        <title>{`${corretor?.name ?? "Corretor"} • Imóveis`}</title>
         <meta name="description" content={`Conheça os imóveis disponíveis com ${corretor.name}.`} />
       </Head>
 
@@ -287,7 +290,7 @@ export default function CorretorHome({ corretor, imoveis, texto }: PageProps) {
                 <div className="space-y-2 text-sm">
                   {corretor.whatsapp && (
                     <p>
-                      <span className="font-medium">WhatsApp:</span>{" "}
+                      <span className="font-medium">WhatsApp:</span>
                       <a
                         href={wa || "#"}
                         target="_blank"
@@ -300,7 +303,7 @@ export default function CorretorHome({ corretor, imoveis, texto }: PageProps) {
                   )}
                   {corretor.linkedin && (
                     <p>
-                      <span className="font-medium">LinkedIn:</span>{" "}
+                      <span className="font-medium">LinkedIn:</span>
                       <a
                         href={`https://linkedin.com/in/${corretor.linkedin}`}
                         target="_blank"
@@ -308,6 +311,21 @@ export default function CorretorHome({ corretor, imoveis, texto }: PageProps) {
                         className="text-blue-600 hover:underline"
                       >
                         @{corretor.linkedin}
+                      </a>
+                    </p>
+                  )}
+                </div>
+                <div>
+                  {corretor.instagram && (
+                    <p>
+                      <span className="font-medium">Instagram: </span>
+                      <a
+                        href={`https://instagram.com/${corretor.instagram}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:underline"
+                      >
+                        @{corretor.instagram}
                       </a>
                     </p>
                   )}

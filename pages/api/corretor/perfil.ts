@@ -4,10 +4,11 @@ import { authorize } from "../../../lib/authMiddleware";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import type { Prisma } from "@prisma/client";
 
 export const config = {
   api: {
-    bodyParser: false,
+    bodyParser: false, // Obrigatório para multer
   },
 };
 
@@ -16,14 +17,17 @@ export interface AuthApiRequest extends NextApiRequest {
   files?: {
     avatar?: Express.Multer.File[];
     banner?: Express.Multer.File[];
+    logo?: Express.Multer.File[];
   };
 }
 
+// 🔹 Garante diretório public/uploads
 const uploadDir = path.join(process.cwd(), "public/uploads");
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
+// 🔹 Configuração do multer
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, uploadDir),
   filename: (_req, file, cb) => {
@@ -32,17 +36,13 @@ const storage = multer.diskStorage({
     cb(null, uniqueName);
   },
 });
-
 const upload = multer({ storage });
 
 export default authorize(async function handler(req: AuthApiRequest, res: NextApiResponse) {
   const userId = req.user?.id;
+  if (!userId) return res.status(401).json({ error: "Usuário não autenticado." });
 
-  if (!userId) {
-    return res.status(401).json({ error: "Usuário não autenticado." });
-  }
-
-  // ================== GET ==================
+  // ================== GET PERFIL ==================
   if (req.method === "GET") {
     try {
       const perfil = await prisma.corretorProfile.findUnique({
@@ -60,28 +60,36 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
 
       return res.status(200).json({ perfil });
     } catch (err) {
-      console.error("Erro ao buscar perfil:", err);
+      console.error("❌ Erro ao buscar perfil:", err);
       return res.status(500).json({ error: "Erro interno ao buscar perfil." });
     }
   }
 
-  // ================== POST ==================
+  // ================== POST (CREATE / UPDATE) ==================
   if (req.method === "POST") {
+    // Permite upload de avatar, banner e logo
     await new Promise<void>((resolve, reject) => {
       upload.fields([
         { name: "avatar", maxCount: 1 },
         { name: "banner", maxCount: 1 },
+        { name: "logo", maxCount: 1 },
       ])(
         req as unknown as Parameters<ReturnType<typeof upload.fields>>[0],
         res as unknown as Parameters<ReturnType<typeof upload.fields>>[1],
-        (err: unknown) => {
-          if (err) reject(err);
-          else resolve();
-        }
+        (err: unknown) => (err ? reject(err) : resolve())
       );
     });
 
-    // ✅ Garante que todos os valores do body sejam strings
+    // 🔍 Debug upload
+    console.log("===== DEBUG UPLOAD =====");
+    console.log("Body keys:", Object.keys(req.body || {}));
+    console.log("Files keys:", Object.keys(req.files || {}));
+    console.log("Avatar:", req.files?.avatar?.[0]?.filename);
+    console.log("Banner:", req.files?.banner?.[0]?.filename);
+    console.log("Logo:", req.files?.logo?.[0]?.filename);
+    console.log("=========================");
+
+    // 🔹 Normaliza body (garante strings)
     if (typeof req.body === "object" && req.body !== null) {
       for (const key of Object.keys(req.body)) {
         const value = req.body[key as keyof typeof req.body];
@@ -92,6 +100,7 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
     }
 
     try {
+      // Extrai campos textuais
       const {
         name,
         email,
@@ -102,27 +111,24 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
         facebook,
         linkedin,
         whatsapp,
-
         metaTitle,
         metaDescription,
       } = (req.body || {}) as Record<string, string>;
 
-      let avatarUrl: string | undefined;
-      let bannerUrl: string | undefined;
+      // 🔹 URLs dos arquivos
+      let avatarUrl: string | null | undefined = req.body.avatar || undefined;
+      let bannerUrl: string | null | undefined = req.body.banner || undefined;
+      let logoUrl: string | null | undefined = req.body.logo || undefined;
 
-      if (req.files?.avatar?.[0]) {
-        avatarUrl = `/uploads/${req.files.avatar[0].filename}`;
-      } else if (req.body.avatar) {
-        avatarUrl = req.body.avatar;
-      }
+      // Substitui se houver novos uploads
+      if (req.files?.avatar?.[0]) avatarUrl = `/uploads/${req.files.avatar[0].filename}`;
+      if (req.files?.banner?.[0]) bannerUrl = `/uploads/${req.files.banner[0].filename}`;
+      if (req.files?.logo?.[0]) logoUrl = `/uploads/${req.files.logo[0].filename}`;
 
-      if (req.files?.banner?.[0]) {
-        bannerUrl = `/uploads/${req.files.banner[0].filename}`;
-      } else if (req.body.banner) {
-        bannerUrl = req.body.banner;
-      }
+      // Se o front mandar "null" (string), transforma em null real
+      if (logoUrl === "null" || logoUrl === "undefined") logoUrl = null;
 
-      // ✅ Atualiza nome e email no user principal
+      // Atualiza nome e email do usuário principal
       await prisma.user.update({
         where: { id: userId },
         data: {
@@ -131,7 +137,7 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
         },
       });
 
-      // ✅ Garante slug único
+      // Garante slug único
       let finalSlug = slug?.trim().toLowerCase();
       if (finalSlug) {
         let existing = await prisma.corretorProfile.findUnique({ where: { slug: finalSlug } });
@@ -143,49 +149,64 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
         }
       }
 
-      // ✅ Cria ou atualiza perfil
+      // 🔹 Monta os dados pra salvar
+      const dataToSave: Prisma.CorretorProfileUpdateInput = {
+        creci,
+        slug: finalSlug,
+        biografia,
+        instagram,
+        facebook,
+        linkedin,
+        whatsapp,
+        metaTitle,
+        metaDescription,
+      };
+
+      if (avatarUrl !== undefined) dataToSave.avatarUrl = avatarUrl;
+      if (bannerUrl !== undefined) dataToSave.bannerUrl = bannerUrl;
+      if (logoUrl !== undefined) dataToSave.logoUrl = logoUrl;
+
+      console.log("🧠 Dados que serão salvos:", dataToSave);
+
       const existingPerfil = await prisma.corretorProfile.findUnique({ where: { userId } });
+      let perfil;
 
-      const perfil = existingPerfil
-        ? await prisma.corretorProfile.update({
-            where: { userId },
-            data: {
-              creci,
-              slug: finalSlug,
-              biografia,
-              instagram,
-              facebook,
-              linkedin,
-              whatsapp,
-              metaTitle,
-              metaDescription,
-              ...(avatarUrl && { avatarUrl }),
-              ...(bannerUrl && { bannerUrl }),
-            },
-            include: { user: true },
-          })
-        : await prisma.corretorProfile.create({
-            data: {
-              userId,
-              creci,
-              slug: finalSlug,
-              biografia,
-              instagram,
-              facebook,
-              linkedin,
-              whatsapp,
-              metaTitle,
-              metaDescription,
-              avatarUrl,
-              bannerUrl,
-            },
-            include: { user: true },
-          });
+      if (existingPerfil) {
+        perfil = await prisma.corretorProfile.update({
+          where: { userId },
+          data: dataToSave,
+          include: { user: true },
+        });
+      } else {
+        const createData: Prisma.CorretorProfileCreateInput = {
+          creci: creci || undefined,
+          slug: finalSlug || `corretor-${userId.slice(0, 6)}`,
+          biografia: biografia || undefined,
+          instagram: instagram || undefined,
+          facebook: facebook || undefined,
+          linkedin: linkedin || undefined,
+          whatsapp: whatsapp || undefined,
+          metaTitle: metaTitle || undefined,
+          metaDescription: metaDescription || undefined,
+          ...(avatarUrl !== undefined && { avatarUrl }),
+          ...(bannerUrl !== undefined && { bannerUrl }),
+          ...(logoUrl !== undefined && { logoUrl }),
+          user: {
+            connect: { id: userId },
+          },
+        };
 
+        perfil = await prisma.corretorProfile.create({
+          data: createData,
+          include: { user: true },
+        });
+      }
+
+      console.log("✅ Perfil salvo com sucesso!");
       return res.status(200).json({ perfil });
     } catch (err) {
-      console.error("Erro ao salvar perfil:", err);
-      return res.status(500).json({ error: "Erro interno ao salvar perfil." });
+      console.error("❌ Erro ao salvar perfil:", err);
+      return res.status(500).json({ error: String(err) });
     }
   }
 

@@ -29,6 +29,7 @@ model CorretorProfile {
   biografia       String?
   avatarUrl       String?
   bannerUrl       String?
+  logoUrl         String?
   instagram       String?
   facebook        String?
   linkedin        String?
