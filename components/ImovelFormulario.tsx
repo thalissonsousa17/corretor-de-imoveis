@@ -65,7 +65,7 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
   });
 
   const [cep, setCep] = useState("");
-  const [numero, setNumero] = useState("");
+  //const [numero, setNumero] = useState("");
   const [rua, setRua] = useState("");
   const [bairro, setBairro] = useState("");
 
@@ -79,7 +79,7 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
       bairro: endereco.bairro || "",
       cidade: endereco.localidade || prev.cidade,
       estado: endereco.uf || prev.estado,
-      numero: numero || prev.numero,
+      numero: prev.numero,
     }));
   };
 
@@ -107,7 +107,7 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
             finalidade: imovel.finalidade ?? "VENDA",
           });
           setCep(imovel.cep ?? "");
-          setNumero(imovel.numero ?? "");
+          //setNumero(imovel.numero ?? "");
 
           setExistingPhotos(imovel.fotos.map((f) => ({ ...f, toBeDeleted: false })));
         })
@@ -119,15 +119,6 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
     }
   }, [isEditMode, imovelId]);
 
-  // const handleChange = (
-  //   e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  // ) => {
-  //   const { name, value, type } = e.target;
-
-  //   const finalValue = type === "checkbox" ? (e.target as HTMLInputElement).checked : value;
-
-  //   setFormData((prev) => ({ ...prev, [name]: finalValue }));
-  // };
   //Editando aqui
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -171,7 +162,7 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
     data.append("cep", cep);
     data.append("rua", rua);
     data.append("bairro", bairro);
-    data.append("numero", numero);
+    data.append("numero", formData.numero ?? "");
 
     // 2. Adiciona o imovelId (necessário para o upload backend)
     if (imovelId) {
@@ -430,12 +421,11 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
               Número *
             </label>
             <input
-              type="text"
               name="numero"
               id="numero"
-              value={numero}
-              onChange={(e) => setNumero(e.target.value)}
-              readOnly={false}
+              value={formData.numero}
+              onChange={(e) => setFormData((prev) => ({ ...prev, numero: e.target.value }))}
+              required
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>

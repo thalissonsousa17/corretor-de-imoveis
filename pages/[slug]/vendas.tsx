@@ -1,8 +1,8 @@
 import type { GetServerSideProps } from "next";
 import Link from "next/link";
-import Footer from "@/components/Footer";
 import LayoutCorretor from "@/components/LayoutCorretor";
 import type { CorretorProps } from "@/components/LayoutCorretor";
+import { useRouter } from "next/router";
 
 type Foto = { id: string; url: string };
 type Imovel = {
@@ -46,32 +46,19 @@ export const getServerSideProps: GetServerSideProps<Props> = async (ctx) => {
 };
 
 export default function Vendas({ slug, imoveis, corretor }: Props) {
+  const router = useRouter();
   return (
     <LayoutCorretor corretor={corretor}>
-      {/* Banner */}
-      <section className="relative">
-        {corretor?.bannerUrl && (
-          <div className="absolute inset-0">
-            <img src={corretor.bannerUrl} className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-black/40" />
-          </div>
-        )}
-
-        <div className="relative mx-auto max-w-6xl px-6 py-16 text-white flex items-center gap-4">
-          {corretor?.avatarUrl && (
-            <img
-              src={corretor.avatarUrl}
-              className="w-16 h-16 rounded-full ring-2 ring-white/40 object-cover"
-            />
-          )}
-          <h1 className="text-2xl font-semibold">
-            {corretor?.name ?? "Corretor"} • Imóveis à Venda
-          </h1>
-        </div>
-      </section>
-
       {/* Listagem de imóveis */}
       <main className="flex-1 w-full max-w-8xl mx-auto px-4 py-12">
+        <div className="flex items-center justify-end mb-6 mt-4 gap-4">
+          <button
+            onClick={() => router.back()}
+            className="px-4 py-2 bg-[#1A2A4F] text-white hover:text-[#D4AC3A] hover:bg-[#1A2A4F] rounded-lg transition font-medium  "
+          >
+            ← Voltar
+          </button>
+        </div>
         {imoveis.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-[60vh] text-gray-500">
             <p>Nenhum imóvel encontrado.</p>
@@ -99,7 +86,7 @@ export default function Vendas({ slug, imoveis, corretor }: Props) {
                     </p>
                     <Link
                       href={`/${slug}/imovel/${i.id}`}
-                      className="mt-4 inline-block w-full text-center rounded-xl bg-black text-white py-2 hover:bg-zinc-800 transition"
+                      className="mt-4 inline-block w-full text-center rounded-xl bg-[#1A2A4F] text-white hover:text-[#D4AC3A] py-2 transition"
                     >
                       Ver detalhes
                     </Link>

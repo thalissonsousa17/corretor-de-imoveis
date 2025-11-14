@@ -3,9 +3,9 @@ import { useEffect, useState, useCallback } from "react";
 import { toWaLink } from "@/lib/phone";
 import Mapa from "@/components/Mapa";
 import DOMPurify from "isomorphic-dompurify";
-import Footer from "@/components/Footer";
 import LayoutCorretor from "@/components/LayoutCorretor";
 import type { CorretorProps } from "@/components/LayoutCorretor";
+import { useRouter } from "next/router";
 
 type Foto = { id: string; url: string };
 type Imovel = {
@@ -17,7 +17,7 @@ type Imovel = {
   estado: string;
   bairro?: string | null;
   rua?: string | null;
-  numero?: string | null;
+  numero: string;
   cep?: string | null;
   tipo: string;
   finalidade: "VENDA" | "ALUGUEL";
@@ -67,6 +67,7 @@ export default function ImovelDetalhe({ imovel, corretor, slug }: Props) {
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [open, prev, next]);
+  const router = useRouter();
 
   return (
     <LayoutCorretor corretor={corretor ?? undefined}>
@@ -74,19 +75,19 @@ export default function ImovelDetalhe({ imovel, corretor, slug }: Props) {
         <>
           {/* Topo com banner */}
           <section className=" py-4 px-6 bg-white rounded-2xl shadow border border-gray-100 p-6">
+            <div className="flex items-center justify-end mb-6 mt-4 gap-4">
+              <button
+                onClick={() => router.back()}
+                className="px-4 py-2 bg-[#1A2A4F] text-white hover:text-[#D4AC3A] hover:bg-[#1A2A4F] rounded-lg transition font-medium  "
+              >
+                ← Voltar
+              </button>
+            </div>
             <div className="max-w-6xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-8">
               {/* LADO ESQUERDO - Nome do corretor */}
               <div className="text-gray-700 text-center lg:text-left">
                 {corretor?.name && (
-                  <p className="text-3xl font-semibold text-gray-800">
-                    {corretor.name}
-                    {corretor.creci && (
-                      <span className="text-gray-500 text-lg font-normal">
-                        {" "}
-                        • CRECI {corretor.creci}
-                      </span>
-                    )}
-                  </p>
+                  <p className="text-4xl font-semibold text-[#1A2A4F]">{imovel.titulo}</p>
                 )}
               </div>
 
@@ -114,7 +115,7 @@ export default function ImovelDetalhe({ imovel, corretor, slug }: Props) {
                     href={wa}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="mt-4 inline-block w-full text-center rounded-xl bg-black text-white py-2 font-medium hover:bg-gray-800 transition"
+                    className="mt-4 inline-block w-full text-center rounded-xl bg-[#1A2A4F] text-white hover:text-[#D4AC3A] py-2 font-medium  transition"
                   >
                     Tenho interesse
                   </a>
@@ -166,16 +167,21 @@ export default function ImovelDetalhe({ imovel, corretor, slug }: Props) {
                     }}
                   />
                 </div>
+                <h2 className="bg-white rounded-2xl shadow-md border border-gray-100 p-6 mt-2 text-gray-700">
+                  <span className="font-bold">Endereço:</span>
+                  {imovel.rua}, {imovel.numero}, {imovel.bairro} -{imovel.cidade} - {imovel.estado}{" "}
+                  - CEP: {imovel.cep}
+                </h2>
               </div>
             </div>
           </main>
           <main className="px-40 py-10 ">
             <section className="bg-white rounded-2xl shadow-md border border-gray-100 p-6">
-              <h1 className="text-2xl text-gray-700 font-semibold mb-6 ">📍 Localização</h1>
+              <h1 className="text-2xl text-[#1A2A4F] font-semibold mb-6 ">📍 Localização</h1>
               <Mapa
-                endereco={`${imovel.rua || ""}, ${imovel.numero || ""}, ${imovel.bairro || ""}, ${
+                endereco={`${imovel.rua || ""} ${imovel.numero || ""}, ${imovel.bairro || ""}, ${
                   imovel.cidade || ""
-                } - ${imovel.estado || ""}`}
+                } - ${imovel.estado || ""}, Brasil`}
               />
             </section>
           </main>

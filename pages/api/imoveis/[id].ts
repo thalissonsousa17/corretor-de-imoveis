@@ -80,7 +80,20 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse): Promise<voi
     // -----------------------------------------
     //  Atualiza campos básicos
     // -----------------------------------------
-    const { titulo, descricao, preco, tipo, localizacao, disponivel } = req.body;
+    const {
+      titulo,
+      descricao,
+      preco,
+      tipo,
+      localizacao,
+      disponivel,
+      cidade,
+      estado,
+      bairro,
+      rua,
+      numero,
+      cep,
+    } = req.body;
     const data: Partial<{
       titulo: string;
       descricao: string;
@@ -88,6 +101,12 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse): Promise<voi
       tipo: string;
       localizacao: string;
       disponivel: boolean;
+      cidade: string;
+      estado: string;
+      bairro: string;
+      rua: string;
+      numero: string;
+      cep: string;
     }> = {};
     if (titulo) data.titulo = titulo;
     if (descricao) data.descricao = descricao;
@@ -95,6 +114,13 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse): Promise<voi
     if (tipo) data.tipo = tipo;
     if (localizacao) data.localizacao = localizacao;
     if (disponivel !== undefined) data.disponivel = disponivel === "true" || disponivel === true;
+
+    if (cidade) data.cidade = cidade;
+    if (estado) data.estado = estado;
+    if (bairro) data.bairro = bairro;
+    if (rua) data.rua = rua;
+    if (numero) data.numero = numero;
+    if (cep) data.cep = cep;
 
     // Remove fotos antigas (se enviadas)
 

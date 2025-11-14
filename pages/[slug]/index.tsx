@@ -98,26 +98,14 @@ export default function CorretorHome({ corretor, imoveis, texto }: PageProps) {
       {/* Banner  */}
 
       {corretor?.bannerUrl && (
-        <section className="realative w-full h-[530px] sm:h-screen overflow-hidden">
+        <section className="relative w-full h-[530px] sm:h-screen overflow-hidden">
           <img
             src={corretor.bannerUrl}
             alt="Banner do corretor"
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-black/40" />
+          <div className="absolute inset-0 bg-black/30" />
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-white ">
-            <div className="space-y-4 sm:space-y-6">
-              <h1 className="text-4xl sm:text-5xl font-bold mb-2 sm:mb-70 tracking-tight ">
-                {corretor.name}
-              </h1>
-              <h2 className="text-xl sm:text-2xl italic text-gray-200">
-                Transformando desafios em conquistas
-              </h2>
-              <p className="text-lg sm:text-xl text-gray-300 font-light">
-                <span className="text-white">Sonhos em realidade</span>
-              </p>
-            </div>
-
             <div className="mt-10 bg-white/90 backdrop-blur-md rounded-full flex items-center px-4 py-2 w-[90%] max-w-xl shadow-lg">
               <input
                 type="text"
@@ -131,7 +119,7 @@ export default function CorretorHome({ corretor, imoveis, texto }: PageProps) {
                   const section = document.getElementById("imoveis");
                   if (section) section.scrollIntoView({ behavior: "smooth" });
                 }}
-                className="bg-black text-white px-6 py-2 rounded-full hover:bg-gray-800 transition text-sm sm:text-base cursor-pointer"
+                className="bg-[#1A2A4F] text-white hover:text-[#D4AC3A] px-6 py-2 rounded-full hover:bg-gray-800 transition text-sm sm:text-base cursor-pointer"
               >
                 Buscar
               </button>
@@ -155,41 +143,9 @@ export default function CorretorHome({ corretor, imoveis, texto }: PageProps) {
         <div>
           <section id="imoveis" className="bg-white py-16">
             <div className="max-w-6xl mx-auto px-4">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-6">Imóveis em destaque</h2>
-
-              {/* Botões de filtro */}
-              <div className="flex gap-4 mb-10">
-                <button
-                  onClick={() => setFiltro("VENDA")}
-                  className={`px-6 py-2 rounded-full text-sm font-medium transition ${
-                    filtro === "VENDA"
-                      ? "bg-black text-white"
-                      : "bg-gray-100 text-gray-800 hover:bg-gray-200"
-                  }`}
-                >
-                  À Venda
-                </button>
-                <button
-                  onClick={() => setFiltro("ALUGUEL")}
-                  className={`px-6 py-2 rounded-full text-sm font-medium transition ${
-                    filtro === "ALUGUEL"
-                      ? "bg-black text-white"
-                      : "bg-gray-100 text-gray-800 hover:bg-gray-200"
-                  }`}
-                >
-                  Para Alugar
-                </button>
-                <button
-                  onClick={() => setFiltro("VENDIDO")}
-                  className={`px-6 py-2 rounded-full text-sm font-medium transition ${
-                    filtro === "VENDIDO"
-                      ? "bg-black text-white"
-                      : "bg-gray-100 text-gray-800 hover:bg-gray-200"
-                  }`}
-                >
-                  Vendidos
-                </button>
-              </div>
+              <h2 className="flex items-center justify-center  text-3xl font-semibold text-gray-900 mb-6">
+                Imóveis em destaque
+              </h2>
 
               {/* Listagem de cards */}
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -235,7 +191,7 @@ export default function CorretorHome({ corretor, imoveis, texto }: PageProps) {
 
                         <Link
                           href={`/${corretor.slug}/imovel/${imovel.id}`}
-                          className="mt-4 inline-block w-full text-center rounded-xl bg-black text-white py-2 text-sm font-medium hover:bg-gray-800"
+                          className="mt-4 inline-block w-full text-center rounded-xl bg-[#1A2A4F] text-white hover:text-[#D4AC3A] py-2 text-sm font-medium hover:bg-gray-800"
                         >
                           Ver detalhes
                         </Link>
@@ -249,7 +205,7 @@ export default function CorretorHome({ corretor, imoveis, texto }: PageProps) {
               <div className="flex justify-center mt-10">
                 <Link
                   href={`/${corretor.slug}/${filtro === "VENDA" ? "vendas" : "aluguel"}`}
-                  className="px-6 py-2 border border-black text-black rounded-full hover:bg-black hover:text-white transition"
+                  className="px-6 py-2 border border-[#1A2A4F] text-[#1A2A4F] rounded-full hover:bg-[#1A2A4F] hover:text-[#D4AC3A] transition"
                 >
                   Ver mais...
                 </Link>
@@ -257,7 +213,7 @@ export default function CorretorHome({ corretor, imoveis, texto }: PageProps) {
             </div>
           </section>
         </div>
-        <div>
+        <div className="bg-white">
           {/* HERO CLEAN */}
           <section id="perfil" className="relative bg-gray-100 py-20">
             <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-10 px-6">
@@ -346,6 +302,15 @@ export default function CorretorHome({ corretor, imoveis, texto }: PageProps) {
               </div>
             </div>
           </section>
+          <Footer
+            nome={corretor.name}
+            creci={corretor.creci}
+            whatsapp={corretor.whatsapp}
+            instagram={corretor.instagram}
+            linkedin={corretor.linkedin}
+            facebook={corretor.facebook}
+            logoUrl={corretor.logoUrl}
+          />
         </div>
       </div>
     </div>

@@ -1,3 +1,4 @@
+import GoogleMapsProvider from "@/components/GoogleMapsWrapper";
 import { AuthProvider } from "@/lib/AuthContext";
 import "@/styles/globals.css";
 import axios from "axios";
@@ -10,6 +11,7 @@ function MyApp({ Component, pageProps }: AppProps) {
 
   return (
     <AuthProvider>
+      <GoogleMapsProvider />
       <Component {...pageProps} />
       <Toaster position="top-right" />
     </AuthProvider>

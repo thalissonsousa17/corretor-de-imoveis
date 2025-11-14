@@ -183,13 +183,6 @@ const EditImovel: React.FC<EditImovelProps> = ({ imovel, onClose, onSave }) => {
           />
         </div>
 
-        {/*  Seção de fotos */}
-        {/* <FotosUploader
-        imovelId={imovel.id}
-          existingPhotos={fotosExistentes}
-          onChange={(files) => setNewFiles(files)}
-          onDeleteExisting={handleDeleteFotoDoBanco}
-        /> */}
         {imovel.id && (
           <FotosUploader
             imovelId={imovel.id}

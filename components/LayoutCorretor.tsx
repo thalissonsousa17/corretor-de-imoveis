@@ -26,7 +26,7 @@ export default function LayoutCorretor({
 }: LayoutCorretorProps) {
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
-      {corretor && <HeaderCorretor corretor={corretor} isTransparent={isTransparent} />}
+      {corretor && <HeaderCorretor corretor={corretor} />}
       <main className="flex-1 pt-20">{children}</main>
       <Footer />
     </div>
