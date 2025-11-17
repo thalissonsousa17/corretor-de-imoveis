@@ -96,7 +96,7 @@ export default function HeaderCorretor({ corretor }: HeaderCorretorProps) {
               <Link href={`/${corretor.slug}/vendidos`} className="hover:text-[#D4AC3A]">
                 Vendidos
               </Link>
-              <Link href="#perfil" className="hover:text-[#D4AC3A]">
+              <Link href={`/${corretor.slug}/perfil`} className="hover:text-[#D4AC3A]">
                 Perfil
               </Link>
             </nav>

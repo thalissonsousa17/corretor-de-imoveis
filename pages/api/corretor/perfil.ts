@@ -6,9 +6,17 @@ import path from "path";
 import fs from "fs";
 import type { Prisma } from "@prisma/client";
 
+function normalizeSlug(value: string): string {
+  return value
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]/g, "");
+}
+
 export const config = {
   api: {
-    bodyParser: false, // Obrigatório para multer
+    bodyParser: false,
   },
 };
 
@@ -21,13 +29,11 @@ export interface AuthApiRequest extends NextApiRequest {
   };
 }
 
-// 🔹 Garante diretório public/uploads
 const uploadDir = path.join(process.cwd(), "public/uploads");
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-// 🔹 Configuração do multer
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, uploadDir),
   filename: (_req, file, cb) => {
@@ -42,7 +48,6 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
   const userId = req.user?.id;
   if (!userId) return res.status(401).json({ error: "Usuário não autenticado." });
 
-  // ================== GET PERFIL ==================
   if (req.method === "GET") {
     try {
       const perfil = await prisma.corretorProfile.findUnique({
@@ -65,9 +70,7 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
     }
   }
 
-  // ================== POST (CREATE / UPDATE) ==================
   if (req.method === "POST") {
-    // Permite upload de avatar, banner e logo
     await new Promise<void>((resolve, reject) => {
       upload.fields([
         { name: "avatar", maxCount: 1 },
@@ -80,7 +83,6 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
       );
     });
 
-    // 🔍 Debug upload
     console.log("===== DEBUG UPLOAD =====");
     console.log("Body keys:", Object.keys(req.body || {}));
     console.log("Files keys:", Object.keys(req.files || {}));
@@ -100,7 +102,6 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
     }
 
     try {
-      // Extrai campos textuais
       const {
         name,
         email,
@@ -115,20 +116,16 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
         metaDescription,
       } = (req.body || {}) as Record<string, string>;
 
-      // 🔹 URLs dos arquivos
       let avatarUrl: string | null | undefined = req.body.avatar || undefined;
       let bannerUrl: string | null | undefined = req.body.banner || undefined;
       let logoUrl: string | null | undefined = req.body.logo || undefined;
 
-      // Substitui se houver novos uploads
       if (req.files?.avatar?.[0]) avatarUrl = `/uploads/${req.files.avatar[0].filename}`;
       if (req.files?.banner?.[0]) bannerUrl = `/uploads/${req.files.banner[0].filename}`;
       if (req.files?.logo?.[0]) logoUrl = `/uploads/${req.files.logo[0].filename}`;
 
-      // Se o front mandar "null" (string), transforma em null real
       if (logoUrl === "null" || logoUrl === "undefined") logoUrl = null;
 
-      // Atualiza nome e email do usuário principal
       await prisma.user.update({
         where: { id: userId },
         data: {
@@ -137,19 +134,19 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
         },
       });
 
-      // Garante slug único
-      let finalSlug = slug?.trim().toLowerCase();
+      let finalSlug = slug ? normalizeSlug(slug) : undefined;
+
       if (finalSlug) {
         let existing = await prisma.corretorProfile.findUnique({ where: { slug: finalSlug } });
         let suffix = 1;
+
         while (existing && existing.userId !== userId) {
-          finalSlug = `${slug}-${String(suffix).padStart(2, "0")}`;
+          finalSlug = normalizeSlug(slug + suffix.toString());
           existing = await prisma.corretorProfile.findUnique({ where: { slug: finalSlug } });
           suffix++;
         }
       }
 
-      // 🔹 Monta os dados pra salvar
       const dataToSave: Prisma.CorretorProfileUpdateInput = {
         creci,
         slug: finalSlug,
@@ -165,6 +162,15 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
       if (avatarUrl !== undefined) dataToSave.avatarUrl = avatarUrl;
       if (bannerUrl !== undefined) dataToSave.bannerUrl = bannerUrl;
       if (logoUrl !== undefined) dataToSave.logoUrl = logoUrl;
+      if (finalSlug !== undefined) dataToSave.slug = finalSlug;
+      if (creci !== undefined) dataToSave.creci = creci;
+      if (biografia !== undefined) dataToSave.biografia = biografia;
+      if (instagram !== undefined) dataToSave.instagram = instagram;
+      if (facebook !== undefined) dataToSave.facebook = facebook;
+      if (linkedin !== undefined) dataToSave.linkedin = linkedin;
+      if (whatsapp !== undefined) dataToSave.whatsapp = whatsapp;
+      if (metaTitle !== undefined) dataToSave.metaTitle = metaTitle;
+      if (metaDescription !== undefined) dataToSave.metaDescription = metaDescription;
 
       console.log("🧠 Dados que serão salvos:", dataToSave);
 

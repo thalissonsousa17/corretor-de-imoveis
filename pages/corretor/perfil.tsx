@@ -32,6 +32,14 @@ interface Perfil {
 
 type SocialField = keyof Pick<Perfil, "instagram" | "facebook" | "linkedin" | "whatsapp">;
 
+function slugify(value: string): string {
+  return value
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]/g, "");
+}
+
 export default function PerfilPage() {
   const [perfil, setPerfil] = useState<Perfil>({ logo: null });
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
@@ -43,7 +51,6 @@ export default function PerfilPage() {
   const [novaSenha, setNovaSenha] = useState("");
   const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
-  // 🔹 Buscar perfil
   useEffect(() => {
     const fetchPerfil = async () => {
       try {
@@ -61,13 +68,21 @@ export default function PerfilPage() {
     fetchPerfil();
   }, []);
 
-  // 🔹 Atualiza campos textuais
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
+
+    if (name === "slug") {
+      const novoSlug = value
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]/g, "");
+      setPerfil((prev) => ({ ...prev, slug: novoSlug }));
+      return;
+    }
     setPerfil((prev) => ({ ...prev, [name]: value }));
   };
 
-  // 🔹 Atualiza imagens (avatar, banner, logo)
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, files } = e.target;
     if (!files || files.length === 0) return;
@@ -81,13 +96,11 @@ export default function PerfilPage() {
     setPerfil((prev) => ({ ...prev, [name]: file as File }));
   };
 
-  // 🔹 Remover logo
   const handleRemoveLogo = () => {
     setLogoPreview(null);
     setPerfil((prev) => ({ ...prev, logo: null, logoUrl: null }));
   };
 
-  // 🔹 Alterar senha
   const handleAlterarSenha = async () => {
     try {
       await axios.post("/api/corretor/alterar-senha", { senhaAtual, novaSenha });
@@ -107,7 +120,6 @@ export default function PerfilPage() {
     }
   };
 
-  // 🔹 Submeter formulário
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -117,7 +129,6 @@ export default function PerfilPage() {
       if (perfil.name) formData.append("name", perfil.name);
       if (perfil.email) formData.append("email", perfil.email);
 
-      // 🚫 Evita enviar "logo" duplicado
       Object.entries(perfil).forEach(([key, value]) => {
         if (!value || key === "name" || key === "email" || key === "logo") return;
 
@@ -125,7 +136,6 @@ export default function PerfilPage() {
         else formData.append(key, value.toString());
       });
 
-      // ✅ Só aqui o campo "logo" é tratado
       if (perfil.logo instanceof File) {
         formData.append("logo", perfil.logo);
       } else if (perfil.logoUrl === null) {
@@ -155,7 +165,6 @@ export default function PerfilPage() {
     }
   };
 
-  // 🔹 Alternar modo de edição
   const handleBtnEditPerfil = async () => {
     if (isEditing) await handleSubmit(new Event("submit") as unknown as FormEvent);
     setIsEditing(!isEditing);
@@ -209,9 +218,34 @@ export default function PerfilPage() {
                   alt="Avatar"
                   className="w-24 h-24 rounded-full object-cover border"
                 />
-                <div>
-                  <h2 className="text-lg font-semibold text-gray-800">{perfil.name}</h2>
-                  <p className="text-gray-600 text-sm">{perfil.email}</p>
+                <div className="flex flex-col gap-1">
+                  {/* NOME */}
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      name="name"
+                      value={perfil.name || ""}
+                      onChange={handleChange}
+                      className="border rounded-md px-3 py-1 text-gray-700 text-sm w-64 focus:ring-2 focus:ring-gray-300"
+                      placeholder="Seu nome completo"
+                    />
+                  ) : (
+                    <h2 className="text-lg font-semibold text-gray-800">{perfil.name}</h2>
+                  )}
+
+                  {/* EMAIL */}
+                  {isEditing ? (
+                    <input
+                      type="email"
+                      name="email"
+                      value={perfil.email || ""}
+                      onChange={handleChange}
+                      className="border rounded-md px-3 py-1 text-gray-700 text-sm w-64 focus:ring-2 focus:ring-gray-300"
+                      placeholder="seuemail@exemplo.com"
+                    />
+                  ) : (
+                    <p className="text-gray-600 text-sm">{perfil.email}</p>
+                  )}
                 </div>
               </div>
 
@@ -369,6 +403,37 @@ export default function PerfilPage() {
                     </button>
                   )}
                 </div>
+              )}
+            </div>
+
+            {/* === Campo SLUG === */}
+            <div className="rounded-2xl bg-white p-6 shadow-sm border hover:shadow-md transition">
+              <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                🔗 Endereço da Página (Slug)
+              </h3>
+
+              {isEditing ? (
+                <div className="space-y-2">
+                  <input
+                    name="slug"
+                    value={perfil.slug || ""}
+                    onChange={handleChange}
+                    className="border rounded-md p-2 text-gray-600 w-full focus:ring-2 focus:ring-gray-400"
+                    placeholder="ex: thalissonsousa"
+                  />
+
+                  {/* Pré-visualização da URL */}
+                  <p className="text-sm text-gray-500">
+                    URL da sua página:{" "}
+                    <span className="font-medium text-gray-700">
+                      https://seusite.com/{perfil.slug || "meu-slug"}
+                    </span>
+                  </p>
+                </div>
+              ) : (
+                <p className="text-gray-700">
+                  <span className="font-medium">URL:</span> https://seusite.com/{perfil.slug}
+                </p>
               )}
             </div>
           </section>

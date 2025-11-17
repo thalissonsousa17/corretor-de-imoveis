@@ -69,10 +69,10 @@ export default function ImovelDetalhe({ imovel, corretor, slug }: Props) {
         <>
           {/* Topo com banner */}
           <section className=" py-4 px-6 bg-white rounded-2xl shadow border border-gray-100 p-6">
-            <div className="flex items-center justify-end mb-6 mt-4 gap-4">
+            <div className="flex items-center justify-end  mt-10 gap-4">
               <button
                 onClick={() => router.back()}
-                className="px-4 py-2 bg-[#1A2A4F] text-white hover:text-[#D4AC3A] hover:bg-[#1A2A4F] rounded-lg transition font-medium  "
+                className="px-4 py-2 bg-[#1A2A4F] text-white hover:text-[#D4AC3A] hover:bg-[#1A2A4F] rounded-lg transition font-medium"
               >
                 ← Voltar
               </button>
