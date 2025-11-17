@@ -32,6 +32,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             creci: profile.creci,
             slug: profile.slug,
             avatarUel: profile.avatarUrl,
+            logoUrl: profile.logoUrl,
             bannerUrl: profile.bannerUrl,
             whatsapp: profile.whatsapp,
             instagram: profile.instagram,
