@@ -24,15 +24,8 @@ type Imovel = {
   status: "DISPONIVEL" | "VENDIDO" | "ALUGADO" | "INATIVO";
   fotos: Foto[];
 };
-type Corretor = {
-  name?: string | null;
-  creci?: string | null;
-  slug: string;
-  avatarUrl?: string | null;
-  bannerUrl?: string | null;
-  whatsapp?: string | null;
-};
-type Props = { imovel: Imovel; corretor: CorretorProps | null; slug: string };
+
+type Props = { imovel: Imovel; corretor: CorretorProps; slug: string };
 
 export const getServerSideProps: GetServerSideProps<Props> = async (ctx) => {
   const slug = ctx.params?.slug as string;
@@ -41,6 +34,7 @@ export const getServerSideProps: GetServerSideProps<Props> = async (ctx) => {
   const res = await fetch(`${baseUrl}/api/public/imovel/${id}`);
   if (!res.ok) return { notFound: true };
   const data = await res.json();
+
   return { props: { imovel: data.imovel, corretor: data.corretor, slug } };
 };
 
@@ -70,7 +64,7 @@ export default function ImovelDetalhe({ imovel, corretor, slug }: Props) {
   const router = useRouter();
 
   return (
-    <LayoutCorretor corretor={corretor ?? undefined}>
+    <LayoutCorretor corretor={corretor}>
       <div className="bg-gray-100">
         <>
           {/* Topo com banner */}
@@ -92,30 +86,30 @@ export default function ImovelDetalhe({ imovel, corretor, slug }: Props) {
               </div>
 
               {/* LADO DIREITO - Bloco de informações e botão */}
-              <aside className="bg-white border border-gray-200 rounded-2xl shadow-sm p-6 w-full max-w-sm">
-                <p className="text-2xl font-semibold text-gray-900 mb-1">
+              <aside className="bg-[#1A2A4F] border border-gray-200 rounded-3xl shadow-sm p-6 w-full max-w-sm">
+                <p className="text-2xl font-bold text-[#D4AC3A] mb-1">
                   {Number(imovel.preco).toLocaleString("pt-BR", {
                     style: "currency",
                     currency: "BRL",
                   })}
                 </p>
 
-                <p className="text-gray-700">
+                <p className="text-[#D4AC3A] font-medium">
                   {imovel.cidade} - {imovel.estado}
                 </p>
 
-                {(imovel.bairro || imovel.rua || imovel.numero) && (
+                {/* {(imovel.bairro || imovel.rua || imovel.numero) && (
                   <p className="text-gray-500 text-sm mt-1">
                     {[imovel.rua, imovel.numero, imovel.bairro].filter(Boolean).join(", ")}
                   </p>
-                )}
+                )} */}
 
                 {wa && (
                   <a
                     href={wa}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="mt-4 inline-block w-full text-center rounded-xl bg-[#1A2A4F] text-white hover:text-[#D4AC3A] py-2 font-medium  transition"
+                    className="mt-4 inline-block w-full text-center rounded-xl bg-[#D4AC3A] text-[#1A2A4F] hover:text-white py-2 font-medium  transition"
                   >
                     Tenho interesse
                   </a>

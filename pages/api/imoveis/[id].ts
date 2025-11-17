@@ -1,23 +1,20 @@
 import type { NextApiResponse } from "next";
-import prisma from "../../../lib/prisma"; // Use o caminho relativo corrigido
+import prisma from "../../../lib/prisma";
 import { AuthApiRequest, authorize } from "../../../lib/authMiddleware";
 import fs from "fs/promises";
 import path from "path";
 
-// Handler para DELEÇÃO (DELETE) - ROTA PROTEGIDA
-
 const handleDelete = async (req: AuthApiRequest, res: NextApiResponse): Promise<void> => {
-  const { id } = req.query; // Pega o ID do imóvel da URL (id)
+  const { id } = req.query;
 
   if (typeof id !== "string") {
     return res.status(400).json({ message: "ID do imóvel inválido." });
   }
 
   try {
-    // 1. Verifica se o imóvel existe e se o corretor logado é o dono
     const imovel = await prisma.imovel.findUnique({
       where: { id },
-      include: { fotos: true }, // Inclui fotos para exclusão
+      include: { fotos: true },
     });
 
     if (!imovel) {
@@ -30,11 +27,10 @@ const handleDelete = async (req: AuthApiRequest, res: NextApiResponse): Promise<
       });
     }
 
-    // 2. Exclui os arquivos físicos das fotos
     const uploadDir = path.join(process.cwd(), "public");
     const deletePromises = imovel.fotos.map((foto: { url: string }) => {
       const filePath = path.join(uploadDir, foto.url);
-      // Remove o arquivo, ignorando erros se o arquivo já não existir
+
       return fs
         .unlink(filePath)
         .catch((err) => console.warn(`Falha ao deletar arquivo: ${filePath}`, err.message));
@@ -44,14 +40,12 @@ const handleDelete = async (req: AuthApiRequest, res: NextApiResponse): Promise<
     await prisma.foto.deleteMany({ where: { imovelId: id } });
     await prisma.imovel.delete({ where: { id } });
 
-    res.status(204).end(); // 204 No Content para deleção bem-sucedida
+    res.status(204).end();
   } catch (error) {
     console.error("Erro ao deletar imóvel:", error);
     return res.status(500).json({ message: "Erro interno ao deletar imóvel." });
   }
 };
-
-// Handler para ATUALIZAÇÃO (PUT) - ROTA PROTEGIDA
 
 const handlePut = async (req: AuthApiRequest, res: NextApiResponse): Promise<void> => {
   const { id } = req.query;
@@ -61,7 +55,6 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse): Promise<voi
   }
 
   try {
-    // Verifica se o corretor é o dono
     const imovel = await prisma.imovel.findUnique({
       where: { id },
       include: { fotos: true },
@@ -77,9 +70,6 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse): Promise<voi
       });
     }
 
-    // -----------------------------------------
-    //  Atualiza campos básicos
-    // -----------------------------------------
     const {
       titulo,
       descricao,
@@ -122,8 +112,6 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse): Promise<voi
     if (numero) data.numero = numero;
     if (cep) data.cep = cep;
 
-    // Remove fotos antigas (se enviadas)
-
     let fotosRemover: string[] = [];
     if (req.body.fotosRemover) {
       try {
@@ -153,7 +141,6 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse): Promise<voi
       });
     }
 
-    //  Atualiza imóvel
     console.log("🧩 Dados recebidos para atualização:", data);
 
     const imovelAtualizado = await prisma.imovel.update({
@@ -169,10 +156,7 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse): Promise<voi
   }
 };
 
-// Função Principal que Roteia as Requisições
-
 export default async function handleImovelById(req: AuthApiRequest, res: NextApiResponse) {
-  // O PUT e o DELETE são protegidos e requerem a role 'CORRETOR'
   if (req.method === "PATCH") {
     const { id } = req.query;
     const { disponivel } = req.body;
@@ -195,8 +179,6 @@ export default async function handleImovelById(req: AuthApiRequest, res: NextApi
     }
   }
 
-  //Put - Atualização geral (rota protegida)
-
   if (req.method === "PUT") {
     return authorize(handlePut, "CORRETOR")(req, res);
   }
@@ -205,7 +187,6 @@ export default async function handleImovelById(req: AuthApiRequest, res: NextApi
     return authorize(handleDelete, "CORRETOR")(req, res);
   }
 
-  // O GET - Busca imóvel especifico
   if (req.method === "GET") {
     const handleGetById = async (req: AuthApiRequest, res: NextApiResponse) => {
       const { id } = req.query;
@@ -218,17 +199,40 @@ export default async function handleImovelById(req: AuthApiRequest, res: NextApi
         const imovel = await prisma.imovel.findUnique({
           where: { id },
           include: {
-            corretor: {
-              select: {
-                name: true,
-                email: true,
-              },
-            },
             fotos: {
               orderBy: { ordem: "asc" },
             },
           },
         });
+
+        const profile = await prisma.corretorProfile.findUnique({
+          where: { userId: imovel?.corretorId },
+          include: {
+            user: true,
+          },
+        });
+
+        if (!profile) {
+          return res.status(404).json({ message: "Perfil do corretor não encontrado." });
+        }
+
+        const corretor = {
+          id: profile.userId,
+          name: profile.user.name,
+          email: profile.user.email,
+          creci: profile.creci,
+          avatarUrl: profile.avatarUrl,
+          bannerUrl: profile.bannerUrl,
+          logoUrl: profile.logoUrl,
+          biografia: profile.biografia,
+          instagram: profile.instagram,
+          facebook: profile.facebook,
+          linkedin: profile.linkedin,
+          whatsapp: profile.whatsapp,
+          slug: profile.slug,
+        };
+
+        return res.status(200).json({ imovel, corretor });
 
         if (!imovel) {
           return res.status(404).json({ message: "Imóvel não encontrado ou não disponível." });

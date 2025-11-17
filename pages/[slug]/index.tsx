@@ -5,7 +5,7 @@ import { toWaLink } from "@/lib/phone";
 import HeaderCorretor from "@/components/Header";
 import DOMPurify from "isomorphic-dompurify";
 import type { GetServerSidePropsContext, GetServerSidePropsResult } from "next";
-import Footer from "@/components/Footer";
+import LayoutCorretor from "@/components/LayoutCorretor";
 
 type Foto = { id: string; url: string };
 type Imovel = {
@@ -88,144 +88,152 @@ export default function CorretorHome({ corretor, imoveis, texto }: PageProps) {
   });
 
   return (
-    <div>
-      <HeaderCorretor corretor={corretor} />
-      <Head>
-        <title>{`${corretor?.name ?? "Corretor"} • Imóveis`}</title>
-        <meta name="description" content={`Conheça os imóveis disponíveis com ${corretor.name}.`} />
-      </Head>
-
-      {/* Banner  */}
-
-      {corretor?.bannerUrl && (
-        <section className="relative w-full h-[530px] sm:h-screen overflow-hidden">
-          <img
-            src={corretor.bannerUrl}
-            alt="Banner do corretor"
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-black/30" />
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-white ">
-            <div className="mt-10 bg-white/90 backdrop-blur-md rounded-full flex items-center px-4 py-2 w-[90%] max-w-xl shadow-lg">
-              <input
-                type="text"
-                value={busca}
-                onChange={(e) => setBusca(e.target.value)}
-                placeholder="Buscar imóvel, cidade, bairro..."
-                className="flex-1 bg-transparent text-gray-700 placeholder-gray-500 focus:outline-none text-sm sm:text-base"
-              />
-              <button
-                onClick={() => {
-                  const section = document.getElementById("imoveis");
-                  if (section) section.scrollIntoView({ behavior: "smooth" });
-                }}
-                className="bg-[#1A2A4F] text-white hover:text-[#D4AC3A] px-6 py-2 rounded-full hover:bg-gray-800 transition text-sm sm:text-base cursor-pointer"
-              >
-                Buscar
-              </button>
-            </div>
-
-            {corretor.avatarUrl && (
-              <div className="absolute bottom-0 right-6 md:right-12">
-                <img
-                  src={corretor.avatarUrl ?? ""}
-                  alt={corretor.name}
-                  className="w-[300px] sm:w-[400px] md:w-[480px]  h-auto "
-                />
-              </div>
-            )}
-          </div>
-        </section>
-      )}
-
-      {/* SEÇÃO DE IMÓVEIS */}
+    <LayoutCorretor corretor={corretor}>
       <div>
-        <div>
-          <section id="imoveis" className="bg-white py-16">
-            <div className="max-w-6xl mx-auto px-4">
-              <h2 className="flex items-center justify-center  text-3xl font-semibold text-gray-900 mb-6">
-                Imóveis em destaque
-              </h2>
+        <HeaderCorretor corretor={corretor} />
+        <Head>
+          <title>{`${corretor?.name ?? "Corretor"} • Imóveis`}</title>
+          <meta
+            name="description"
+            content={`Conheça os imóveis disponíveis com ${corretor.name}.`}
+          />
+        </Head>
 
-              {/* Listagem de cards */}
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {imoveisFiltrados.slice(0, 9).map((imovel) => {
-                  const capa = imovel.fotos?.[0]?.url;
-                  return (
-                    <article
-                      key={imovel.id}
-                      className="bg-white border rounded-2xl overflow-hidden shadow hover:shadow-lg transition"
-                    >
-                      {capa && (
-                        <img src={capa} alt={imovel.titulo} className="h-56 w-full object-cover" />
-                      )}
-                      <div className="p-4">
-                        <span
-                          className={`inline-block text-xs font-semibold px-3 py-1 rounded-full mb-2 ${
-                            imovel.status === "VENDIDO"
-                              ? "bg-red-100 text-red-700"
-                              : imovel.finalidade === "VENDA"
-                                ? "bg-green-100 text-green-700"
-                                : "bg-blue-100 text-blue-700"
-                          }`}
-                        >
-                          {imovel.status === "VENDIDO"
-                            ? "VENDIDOS"
-                            : imovel.finalidade === "VENDA"
-                              ? "À VENDA"
-                              : "PARA ALUGAR"}
-                        </span>
+        {/* Banner  */}
 
-                        <h3 className="font-semibold text-gray-900 line-clamp-1">
-                          {imovel.titulo}
-                        </h3>
-                        <p className="text-sm text-gray-600 line-clamp-2">
-                          {imovel.cidade} - {imovel.estado}
-                        </p>
-                        <p className="text-lg font-semibold mt-2 text-gray-900">
-                          {Number(imovel.preco).toLocaleString("pt-BR", {
-                            style: "currency",
-                            currency: "BRL",
-                          })}
-                        </p>
-
-                        <Link
-                          href={`/${corretor.slug}/imovel/${imovel.id}`}
-                          className="mt-4 inline-block w-full text-center rounded-xl bg-[#1A2A4F] text-white hover:text-[#D4AC3A] py-2 text-sm font-medium hover:bg-gray-800"
-                        >
-                          Ver detalhes
-                        </Link>
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
-
-              {/* Botão "Ver mais..." */}
-              <div className="flex justify-center mt-10">
-                <Link
-                  href={`/${corretor.slug}/${filtro === "VENDA" ? "vendas" : "aluguel"}`}
-                  className="px-6 py-2 border border-[#1A2A4F] text-[#1A2A4F] rounded-full hover:bg-[#1A2A4F] hover:text-[#D4AC3A] transition"
+        {corretor?.bannerUrl && (
+          <section className="relative w-full h-[530px] sm:h-screen overflow-hidden">
+            <img
+              src={corretor.bannerUrl}
+              alt="Banner do corretor"
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-black/30" />
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-white ">
+              <div className="mt-10 bg-white/90 backdrop-blur-md rounded-full flex items-center px-4 py-2 w-[90%] max-w-xl shadow-lg">
+                <input
+                  type="text"
+                  value={busca}
+                  onChange={(e) => setBusca(e.target.value)}
+                  placeholder="Buscar imóvel, cidade, bairro..."
+                  className="flex-1 bg-transparent text-gray-700 placeholder-gray-500 focus:outline-none text-sm sm:text-base"
+                />
+                <button
+                  onClick={() => {
+                    const section = document.getElementById("imoveis");
+                    if (section) section.scrollIntoView({ behavior: "smooth" });
+                  }}
+                  className="bg-[#1A2A4F] text-white hover:text-[#D4AC3A] px-6 py-2 rounded-full hover:bg-gray-800 transition text-sm sm:text-base cursor-pointer"
                 >
-                  Ver mais...
-                </Link>
+                  Buscar
+                </button>
               </div>
+
+              {corretor.avatarUrl && (
+                <div className="absolute bottom-0 right-6 md:right-12">
+                  <img
+                    src={corretor.avatarUrl ?? ""}
+                    alt={corretor.name}
+                    className="w-[300px] sm:w-[400px] md:w-[480px]  h-auto "
+                  />
+                </div>
+              )}
             </div>
           </section>
-        </div>
-        <div className="bg-white">
-          {/* HERO CLEAN */}
-          <section id="perfil" className="relative bg-gray-100 py-20">
-            <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-10 px-6">
-              {/* Coluna texto */}
-              <div className="flex-1 text-gray-700">
-                <h1 className="text-4xl font-bold mb-2">{corretor.name}</h1>
-                {corretor.creci && (
-                  <p className="text-sm font-medium text-gray-600 mb-6">CRECI {corretor.creci}</p>
-                )}
-                {corretor.biografia && (
-                  <div
-                    className="
+        )}
+
+        {/* SEÇÃO DE IMÓVEIS */}
+        <div>
+          <div>
+            <section id="imoveis" className="bg-white py-16">
+              <div className="max-w-6xl mx-auto px-4">
+                <h2 className="flex items-center justify-center  text-3xl font-semibold text-gray-900 mb-6">
+                  Imóveis em destaque
+                </h2>
+
+                {/* Listagem de cards */}
+                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                  {imoveisFiltrados.slice(0, 9).map((imovel) => {
+                    const capa = imovel.fotos?.[0]?.url;
+                    return (
+                      <article
+                        key={imovel.id}
+                        className="bg-white border rounded-2xl overflow-hidden shadow hover:shadow-lg transition"
+                      >
+                        {capa && (
+                          <img
+                            src={capa}
+                            alt={imovel.titulo}
+                            className="h-56 w-full object-cover"
+                          />
+                        )}
+                        <div className="p-4">
+                          <span
+                            className={`inline-block text-xs font-semibold px-3 py-1 rounded-full mb-2 ${
+                              imovel.status === "VENDIDO"
+                                ? "bg-red-100 text-red-700"
+                                : imovel.finalidade === "VENDA"
+                                  ? "bg-green-100 text-green-700"
+                                  : "bg-blue-100 text-blue-700"
+                            }`}
+                          >
+                            {imovel.status === "VENDIDO"
+                              ? "VENDIDOS"
+                              : imovel.finalidade === "VENDA"
+                                ? "À VENDA"
+                                : "PARA ALUGAR"}
+                          </span>
+
+                          <h3 className="font-semibold text-gray-900 line-clamp-1">
+                            {imovel.titulo}
+                          </h3>
+                          <p className="text-sm text-gray-600 line-clamp-2">
+                            {imovel.cidade} - {imovel.estado}
+                          </p>
+                          <p className="text-lg font-semibold mt-2 text-gray-900">
+                            {Number(imovel.preco).toLocaleString("pt-BR", {
+                              style: "currency",
+                              currency: "BRL",
+                            })}
+                          </p>
+
+                          <Link
+                            href={`/${corretor.slug}/imovel/${imovel.id}`}
+                            className="mt-4 inline-block w-full text-center rounded-xl bg-[#1A2A4F] text-white hover:text-[#D4AC3A] py-2 text-sm font-medium hover:bg-gray-800"
+                          >
+                            Ver detalhes
+                          </Link>
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+
+                {/* Botão "Ver mais..." */}
+                <div className="flex justify-center mt-10">
+                  <Link
+                    href={`/${corretor.slug}/${filtro === "VENDA" ? "vendas" : "aluguel"}`}
+                    className="px-6 py-2 border border-[#1A2A4F] text-[#1A2A4F] rounded-full hover:bg-[#1A2A4F] hover:text-[#D4AC3A] transition"
+                  >
+                    Ver mais...
+                  </Link>
+                </div>
+              </div>
+            </section>
+          </div>
+          <div className="bg-white">
+            {/* HERO CLEAN */}
+            <section id="perfil" className="relative bg-gray-100 py-20">
+              <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-10 px-6">
+                {/* Coluna texto */}
+                <div className="flex-1 text-gray-700">
+                  <h1 className="text-4xl font-bold mb-2">{corretor.name}</h1>
+                  {corretor.creci && (
+                    <p className="text-sm font-medium text-gray-600 mb-6">CRECI {corretor.creci}</p>
+                  )}
+                  {corretor.biografia && (
+                    <div
+                      className="
       text-gray-800 
       leading-relaxed 
       whitespace-pre-wrap 
@@ -237,82 +245,74 @@ export default function CorretorHome({ corretor, imoveis, texto }: PageProps) {
       lg:text-[1.125rem] 
       xl:text-[1.15rem]
     "
-                  >
-                    {corretor.biografia}
+                    >
+                      {corretor.biografia}
+                    </div>
+                  )}
+
+                  {/* Contatos */}
+                  <div className="space-y-2 text-sm">
+                    {corretor.whatsapp && (
+                      <p>
+                        <span className="font-medium">WhatsApp:</span>
+                        <a
+                          href={wa || "#"}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:underline"
+                        >
+                          {corretor.whatsapp}
+                        </a>
+                      </p>
+                    )}
+                    {corretor.linkedin && (
+                      <p>
+                        <span className="font-medium">LinkedIn:</span>
+                        <a
+                          href={`https://linkedin.com/in/${corretor.linkedin}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:underline"
+                        >
+                          @{corretor.linkedin}
+                        </a>
+                      </p>
+                    )}
                   </div>
-                )}
-
-                {/* Contatos */}
-                <div className="space-y-2 text-sm">
-                  {corretor.whatsapp && (
-                    <p>
-                      <span className="font-medium">WhatsApp:</span>
-                      <a
-                        href={wa || "#"}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:underline"
-                      >
-                        {corretor.whatsapp}
-                      </a>
-                    </p>
-                  )}
-                  {corretor.linkedin && (
-                    <p>
-                      <span className="font-medium">LinkedIn:</span>
-                      <a
-                        href={`https://linkedin.com/in/${corretor.linkedin}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:underline"
-                      >
-                        @{corretor.linkedin}
-                      </a>
-                    </p>
-                  )}
+                  <div>
+                    {corretor.instagram && (
+                      <p>
+                        <span className="font-medium">Instagram: </span>
+                        <a
+                          href={`https://instagram.com/${corretor.instagram}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:underline"
+                        >
+                          @{corretor.instagram}
+                        </a>
+                      </p>
+                    )}
+                  </div>
                 </div>
-                <div>
-                  {corretor.instagram && (
-                    <p>
-                      <span className="font-medium">Instagram: </span>
-                      <a
-                        href={`https://instagram.com/${corretor.instagram}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:underline"
-                      >
-                        @{corretor.instagram}
-                      </a>
-                    </p>
+
+                {/* Coluna avatar */}
+                <div className="flex-1 flex justify-center md:justify-end">
+                  {corretor.avatarUrl ? (
+                    <img
+                      src={corretor.avatarUrl}
+                      alt={corretor.name}
+                      className="w-80 h-auto rounded-xl object-cover shadow-lg"
+                    />
+                  ) : (
+                    <div className="w-80 h-96 bg-gray-300 rounded-xl" />
                   )}
                 </div>
               </div>
-
-              {/* Coluna avatar */}
-              <div className="flex-1 flex justify-center md:justify-end">
-                {corretor.avatarUrl ? (
-                  <img
-                    src={corretor.avatarUrl}
-                    alt={corretor.name}
-                    className="w-80 h-auto rounded-xl object-cover shadow-lg"
-                  />
-                ) : (
-                  <div className="w-80 h-96 bg-gray-300 rounded-xl" />
-                )}
-              </div>
-            </div>
-          </section>
-          <Footer
-            nome={corretor.name}
-            creci={corretor.creci}
-            whatsapp={corretor.whatsapp}
-            instagram={corretor.instagram}
-            linkedin={corretor.linkedin}
-            facebook={corretor.facebook}
-            logoUrl={corretor.logoUrl}
-          />
+            </section>
+          </div>
         </div>
       </div>
-    </div>
+    </LayoutCorretor>
   );
 }

@@ -3,32 +3,49 @@ import HeaderCorretor from "./Header";
 import Footer from "./Footer";
 
 export interface CorretorProps {
-  name?: string;
-  whatsapp?: string | null;
-  instagram?: string | null;
-  email?: string | null;
+  name: string;
   creci?: string | null;
-  slug?: string;
+  email?: string | null;
   avatarUrl?: string | null;
   bannerUrl?: string | null;
   logoUrl?: string | null;
+  biografia?: string | null;
+  instagram?: string | null;
+  facebook?: string | null;
+  linkedin?: string | null;
+  whatsapp?: string | null;
+  slug: string;
 }
+
 interface LayoutCorretorProps {
   corretor?: CorretorProps | null;
   children: ReactNode;
-  isTransparent?: boolean;
 }
 
-export default function LayoutCorretor({
-  corretor,
-  children,
-  isTransparent = false,
-}: LayoutCorretorProps) {
+export default function LayoutCorretor({ corretor, children }: LayoutCorretorProps) {
+  const safeCorretor = corretor ?? {
+    name: "Corretor",
+    slug: "",
+    creci: "",
+    instagram: "",
+    facebook: "",
+    linkedin: "",
+    whatsapp: "",
+    logoUrl: "",
+  };
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
       {corretor && <HeaderCorretor corretor={corretor} />}
       <main className="flex-1 pt-20">{children}</main>
-      <Footer />
+      <Footer
+        nome={safeCorretor.name}
+        creci={safeCorretor.creci}
+        whatsapp={safeCorretor.whatsapp}
+        instagram={safeCorretor.instagram}
+        linkedin={safeCorretor.linkedin}
+        facebook={safeCorretor.facebook}
+        logoUrl={safeCorretor.logoUrl}
+      />
     </div>
   );
 }

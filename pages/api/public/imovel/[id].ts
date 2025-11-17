@@ -34,6 +34,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             avatarUel: profile.avatarUrl,
             bannerUrl: profile.bannerUrl,
             whatsapp: profile.whatsapp,
+            instagram: profile.instagram,
+            facebook: profile.facebook,
+            linkedin: profile.linkedin,
           }
         : null,
     });

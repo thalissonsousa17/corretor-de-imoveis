@@ -90,7 +90,7 @@ export default function HeaderCorretor({ corretor }: HeaderCorretorProps) {
               <Link href={`/${corretor.slug}/vendas`} className="hover:text-[#D4AC3A]">
                 Comprar
               </Link>
-              <Link href={`/${corretor.slug}/alugar`} className="hover:text-[#D4AC3A]">
+              <Link href={`/${corretor.slug}/aluguel`} className="hover:text-[#D4AC3A]">
                 Alugar
               </Link>
               <Link href={`/${corretor.slug}/vendidos`} className="hover:text-[#D4AC3A]">

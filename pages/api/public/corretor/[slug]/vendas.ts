@@ -8,6 +8,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const profile = await prisma.corretorProfile.findUnique({
       where: { slug },
+      include: { user: true },
     });
     if (!profile) return res.status(404).json({ message: "Corretor não encontrado" });
 
@@ -28,7 +29,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
       },
     });
-    res.json({ imoveis });
+    res.json({
+      corretor: {
+        id: profile.userId,
+        name: profile.user.name,
+        creci: profile.creci,
+        slug: profile.slug,
+        avatarUrl: profile.avatarUrl,
+        bannerUrl: profile.bannerUrl,
+        whatsapp: profile.whatsapp,
+        instagram: profile.instagram,
+        facebook: profile.facebook,
+        linkedin: profile.linkedin,
+        logoUrl: profile.logoUrl,
+      },
+      imoveis,
+    });
   } catch (e) {
     console.error(e);
     res.status(500).json({ message: "Erro interno" });
