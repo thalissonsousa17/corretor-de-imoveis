@@ -83,20 +83,74 @@ export default function HeaderCorretor({ corretor }: HeaderCorretorProps) {
               borderTopRightRadius: "1.5rem",
             }}
           >
-            <nav className="flex gap-8 text-base font-medium text-white ">
-              <Link href={`/${corretor.slug ?? ""}`} className=" hover:text-[#D4AC3A]">
+            <nav className="flex gap-8 text-base font-medium">
+              {/* INÍCIO */}
+              <Link
+                href={`/${corretor.slug ?? ""}`}
+                className={`
+      relative transition 
+      ${router.asPath === `/${corretor.slug}` ? "text-[#D4AC3A] font-semibold" : "text-white hover:text-[#D4AC3A]"}
+      after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:bg-[#D4AC3A]
+      after:transition-all after:duration-300
+      ${router.asPath === `/${corretor.slug}` ? "after:w-full" : "after:w-0 hover:after:w-full"}
+    `}
+              >
                 Início
               </Link>
-              <Link href={`/${corretor.slug}/vendas`} className="hover:text-[#D4AC3A]">
+
+              {/* COMPRAR */}
+              <Link
+                href={`/${corretor.slug}/vendas`}
+                className={`
+      relative transition 
+      ${router.asPath.includes("/vendas") ? "text-[#D4AC3A] font-semibold" : "text-white hover:text-[#D4AC3A]"}
+      after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:bg-[#D4AC3A]
+      after:transition-all after:duration-300
+      ${router.asPath.includes("/vendas") ? "after:w-full" : "after:w-0 hover:after:w-full"}
+    `}
+              >
                 Comprar
               </Link>
-              <Link href={`/${corretor.slug}/aluguel`} className="hover:text-[#D4AC3A]">
+
+              {/* ALUGAR */}
+              <Link
+                href={`/${corretor.slug}/aluguel`}
+                className={`
+      relative transition 
+      ${router.asPath.includes("/aluguel") ? "text-[#D4AC3A] font-semibold" : "text-white hover:text-[#D4AC3A]"}
+      after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:bg-[#D4AC3A]
+      after:transition-all after:duration-300
+      ${router.asPath.includes("/aluguel") ? "after:w-full" : "after:w-0 hover:after:w-full"}
+    `}
+              >
                 Alugar
               </Link>
-              <Link href={`/${corretor.slug}/vendidos`} className="hover:text-[#D4AC3A]">
+
+              {/* VENDIDOS */}
+              <Link
+                href={`/${corretor.slug}/vendidos`}
+                className={`
+      relative transition 
+      ${router.asPath.includes("/vendidos") ? "text-[#D4AC3A] font-semibold" : "text-white hover:text-[#D4AC3A]"}
+      after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:bg-[#D4AC3A]
+      after:transition-all after:duration-300
+      ${router.asPath.includes("/vendidos") ? "after:w-full" : "after:w-0 hover:after:w-full"}
+    `}
+              >
                 Vendidos
               </Link>
-              <Link href={`/${corretor.slug}/perfil`} className="hover:text-[#D4AC3A]">
+
+              {/* PERFIL */}
+              <Link
+                href={`/${corretor.slug}/perfil`}
+                className={`
+      relative transition 
+      ${router.asPath.includes("/perfil") ? "text-[#D4AC3A] font-semibold" : "text-white hover:text-[#D4AC3A]"}
+      after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:bg-[#D4AC3A]
+      after:transition-all after:duration-300
+      ${router.asPath.includes("/perfil") ? "after:w-full" : "after:w-0 hover:after:w-full"}
+    `}
+              >
                 Perfil
               </Link>
             </nav>

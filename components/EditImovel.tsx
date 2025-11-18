@@ -69,10 +69,8 @@ const EditImovel: React.FC<EditImovelProps> = ({ imovel, onClose, onSave }) => {
     }
   };
 
-  //  Salvar alterações (inclui upload se houver novas fotos)
   const handleSave = async () => {
     try {
-      // 1️ Atualiza dados do imóvel
       const res = await fetch(`/api/imoveis/${imovel.id}`, {
         method: "PUT",
         headers: { "Content-type": "application/json" },
@@ -80,7 +78,6 @@ const EditImovel: React.FC<EditImovelProps> = ({ imovel, onClose, onSave }) => {
       });
       if (!res.ok) throw new Error("Erro ao atualizar imóvel");
 
-      // 2️ Upload de novas fotos, se houver
       if (newFiles && newFiles.length > 0) {
         const formDataUpload = new FormData();
         Array.from(newFiles).forEach((file) => {
@@ -95,12 +92,36 @@ const EditImovel: React.FC<EditImovelProps> = ({ imovel, onClose, onSave }) => {
         if (!uploadRes.ok) throw new Error("Erro ao enviar novas fotos");
       }
 
-      const data = await res.json();
-      onSave(data);
+      const atualizarImovel = await fetch(`/api/imoveis/${imovel.id}`);
+      const imovelAtualizado = await atualizarImovel.json();
+
+      onSave(imovelAtualizado);
       onClose();
     } catch (error) {
       console.error(error);
       alert("Erro ao salvar alterações.");
+    }
+  };
+
+  const recarregarFotos = async () => {
+    if (!imovel.id) return;
+
+    try {
+      const res = await fetch(`/api/imoveis/${imovel.id}`);
+      if (!res.ok) throw new Error("Erro ao buscar fotos");
+
+      const data = await res.json();
+
+      if (data?.fotos) {
+        setFotosExistentes(
+          data.fotos.map((foto: { id: string; url: string }) => ({
+            id: foto.id,
+            url: foto.url,
+          }))
+        );
+      }
+    } catch (err) {
+      console.error("Erro ao recarregar fotos:", err);
     }
   };
 
@@ -187,6 +208,7 @@ const EditImovel: React.FC<EditImovelProps> = ({ imovel, onClose, onSave }) => {
           <FotosUploader
             imovelId={imovel.id}
             existingPhotos={fotosExistentes}
+            recarregarFotos={recarregarFotos}
             onChange={(e) => setNewFiles(e.target.files)}
             onDeleteExisting={handleDeleteFotoDoBanco}
           />

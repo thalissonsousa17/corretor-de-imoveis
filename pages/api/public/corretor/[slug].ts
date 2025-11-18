@@ -57,6 +57,7 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
       corretor: {
         id: profile.userId,
         name: profile.user.name,
+        email: profile.user.email,
         creci: profile.creci,
         avatarUrl: profile.avatarUrl,
         bannerUrl: profile.bannerUrl,

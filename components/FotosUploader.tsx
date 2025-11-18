@@ -14,6 +14,7 @@ interface FotosUploaderProps {
   fotosExternas?: FileList | null;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onDeleteExisting?: (id: string) => void;
+  recarregarFotos?: () => void;
 }
 
 const FotosUploader: React.FC<FotosUploaderProps> = ({
@@ -22,33 +23,30 @@ const FotosUploader: React.FC<FotosUploaderProps> = ({
   fotosExternas,
   onChange,
   onDeleteExisting,
+  recarregarFotos,
 }) => {
-  console.log("Enviando com imovelId:", imovelId);
   const [fotos, setFotos] = useState<Foto[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
 
-  // carrega fotos já existentes (modo edição)
+  // Carrega fotos já existentes (edição)
   useEffect(() => {
     if (existingPhotos.length > 0) {
       setFotos(existingPhotos.map((f) => ({ id: f.id, url: f.url })));
     }
   }, [existingPhotos]);
 
-  // chamado ao escolher novas imagens
+  // Handle alteração dos arquivos
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    console.log("📸 FotosUploader: onChange chamado, files:", files);
-
     if (!files || files.length === 0) return;
 
-    // preview local
     const previews = Array.from(files).map((file) => ({
       url: URL.createObjectURL(file),
       isNew: true,
     }));
+
     setFotos((prev) => [...prev, ...previews]);
 
-    // envia o evento original pro pai (sem limpar o input)
     onChange(e);
   };
 
@@ -59,35 +57,21 @@ const FotosUploader: React.FC<FotosUploaderProps> = ({
     );
   };
 
-  // sincroniza fotos externas do pai (quando o estado muda lá)
-  useEffect(() => {
-    if (!fotosExternas) return;
-    const novas = Array.from(fotosExternas).map((f) => ({
-      url: URL.createObjectURL(f),
-      isNew: true,
-    }));
-    setFotos(novas);
-  }, [fotosExternas]);
-
-  // limpa URLs temporárias
-  useEffect(() => {
-    return () => {
-      fotos.forEach((f) => f.isNew && URL.revokeObjectURL(f.url));
-    };
-  }, [fotos]);
-
   return (
-    <div className="border rounded-md bg-gray-50 mt-6 p-4 text-center">
-      <h3 className="text-lg font-semibold text-gray-800 mb-2">Fotos do Imóvel</h3>
+    <div className="border border-gray-300 rounded-xl bg-white mt-6 p-6 text-center shadow-sm">
+      <h3 className="text-xl font-semibold text-gray-900 mb-4">Fotos do Imóvel</h3>
 
-      <div className="flex flex-col items-center justify-center space-y-2">
-        <label
-          htmlFor="fotos"
-          className="cursor-pointer flex flex-col items-center justify-center text-blue-600 hover:text-blue-800"
-        >
-          <Camera className="w-10 h-10 mb-1" />
-          <span>Selecionar fotos (máx. 10)</span>
-        </label>
+      {/* Área central */}
+      <label
+        htmlFor="fotos"
+        className="group cursor-pointer flex flex-col items-center justify-center p-6 rounded-xl 
+        border border-dashed border-gray-300 hover:border-blue-500 transition-all"
+      >
+        <Camera className="w-10 h-10 text-blue-500 mb-2 group-hover:scale-110 transition-transform" />
+
+        <span className="text-blue-600 text-base font-medium group-hover:underline">
+          Selecionar fotos (máx. 10)
+        </span>
 
         <input
           id="fotos"
@@ -98,7 +82,7 @@ const FotosUploader: React.FC<FotosUploaderProps> = ({
           className="hidden"
         />
 
-        <p className="text-sm text-gray-700">
+        <p className="text-sm text-gray-600 mt-2">
           {fotos.length > 0
             ? `${fotos.length} foto${fotos.length > 1 ? "s" : ""} selecionada${fotos.length > 1 ? "s" : ""}`
             : "Nenhuma foto selecionada"}
@@ -108,17 +92,21 @@ const FotosUploader: React.FC<FotosUploaderProps> = ({
           <button
             type="button"
             onClick={() => setModalOpen(true)}
-            className="text-blue-600 hover:text-blue-800 text-sm cursor-pointer"
+            className="text-blue-600 hover:underline text-sm mt-2"
           >
             Ver fotos
           </button>
         )}
-      </div>
+      </label>
 
       {modalOpen && (
         <ModalFotos
           fotos={fotos}
-          onClose={() => setModalOpen(false)}
+          imovelId={imovelId}
+          onClose={() => {
+            setModalOpen(false);
+            recarregarFotos?.();
+          }}
           onDeleteFoto={handleDeleteFoto}
         />
       )}

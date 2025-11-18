@@ -205,8 +205,12 @@ export default async function handleImovelById(req: AuthApiRequest, res: NextApi
           },
         });
 
+        if (!imovel) {
+          return res.status(404).json({ message: "Imóvel não encontrado." });
+        }
+
         const profile = await prisma.corretorProfile.findUnique({
-          where: { userId: imovel?.corretorId },
+          where: { userId: imovel.corretorId },
           include: {
             user: true,
           },
@@ -232,12 +236,7 @@ export default async function handleImovelById(req: AuthApiRequest, res: NextApi
           slug: profile.slug,
         };
 
-        return res.status(200).json({ imovel, corretor });
-
-        if (!imovel) {
-          return res.status(404).json({ message: "Imóvel não encontrado ou não disponível." });
-        }
-        return res.status(200).json(imovel);
+        return res.status(200).json({ ...imovel, corretor });
       } catch (error) {
         console.error("Erro ao buscar imóvel:", error);
         return res.status(500).json({ message: "Erro interno ao buscar imóvel." });

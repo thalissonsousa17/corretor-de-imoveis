@@ -1,6 +1,7 @@
 import LayoutCorretor from "@/components/LayoutCorretor";
 import type { GetServerSideProps } from "next";
 import Head from "next/head";
+import CarrosselDestaques from "@/components/CarrosselDestaques";
 import {
   RiInstagramLine,
   RiFacebookCircleLine,
@@ -24,8 +25,22 @@ type Corretor = {
   slug: string;
 };
 
+type Foto = { id: string; url: string };
+
+type ImovelCompleto = {
+  id: string;
+  titulo: string;
+  descricao: string;
+  preco: number;
+  finalidade: string;
+  cidade: string;
+  estado: string;
+  status: string;
+  fotos: Foto[];
+};
 interface Props {
   corretor: Corretor;
+  todos: ImovelCompleto[];
 }
 
 // Função que monta corretamente a URL da rede social
@@ -54,20 +69,26 @@ export const getServerSideProps: GetServerSideProps<Props> = async (ctx) => {
   const slug = ctx.params?.slug as string;
 
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || `http://${ctx.req.headers.host}`;
-  const res = await fetch(`${baseUrl}/api/public/corretor/${slug}`);
 
-  if (!res.ok) return { notFound: true };
+  const [corretorRes, todosRes] = await Promise.all([
+    fetch(`${baseUrl}/api/public/corretor/${slug}`),
+    fetch(`${baseUrl}/api/public/corretor/${slug}/todos`),
+  ]);
 
-  const data = await res.json();
+  if (!corretorRes.ok) return { notFound: true };
+
+  const corretorJson = await corretorRes.json();
+  const todosJson = todosRes.ok ? await todosRes.json() : { imoveis: [] };
 
   return {
     props: {
-      corretor: data.corretor,
+      corretor: corretorJson.corretor,
+      todos: todosJson.imoveis,
     },
   };
 };
 
-export default function PerfilProfissional({ corretor }: Props) {
+export default function PerfilProfissional({ corretor, todos }: Props) {
   const instagramUrl = buildSocialUrl(corretor.instagram, "instagram");
   const facebookUrl = buildSocialUrl(corretor.facebook, "facebook");
   const linkedinUrl = buildSocialUrl(corretor.linkedin, "linkedin");
@@ -169,6 +190,8 @@ export default function PerfilProfissional({ corretor }: Props) {
             </div>
           </div>
         </div>
+
+        <CarrosselDestaques imoveis={todos} />
       </LayoutCorretor>
     </>
   );
