@@ -1,6 +1,6 @@
 import type { NextApiResponse } from "next";
 import { AuthApiRequest, authorize } from "@/lib/authMiddleware";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import formidable from "formidable";
 import path from "path";
 import fs from "fs";

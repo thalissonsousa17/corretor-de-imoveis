@@ -2,7 +2,7 @@
 
 import { NextApiResponse } from "next";
 // Ajuste o caminho para o seu arquivo prisma.ts se for diferente
-import prisma from "../../../../lib/prisma";
+import { prisma } from "../../../../lib/prisma";
 // Ajuste o caminho para o seu arquivo authMiddleware.ts se for diferente
 import { AuthApiRequest, authorize } from "../../../../lib/authMiddleware";
 

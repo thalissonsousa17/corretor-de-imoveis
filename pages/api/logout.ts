@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import * as cookie from "cookie";
-import prisma from "../../lib/prisma";
+import { prisma } from "../../lib/prisma";
 
 export default async function handleLougout(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {

@@ -1,11 +1,12 @@
+
 generator client {
   provider = "prisma-client-js"
+  engineType = "client"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
+  }
 
 model User {
   id        String           @id @default(uuid())
@@ -18,14 +19,41 @@ model User {
   imoveis   Imovel[]
   sessions  Session[]
   profile   CorretorProfile?
+
+  stripeCustomerId String?
+}
+
+enum PlanoTipo {
+  GRATUITO
+  MENSAL
+  SEMESTRAL
+  ANUAL
+}
+
+
+enum PlanoStatus {
+  INATIVO
+  ATIVO
+  CANCELADO
+  EXPIRADO
 }
 
 model CorretorProfile {
   id              String   @id @default(cuid())
   userId          String   @unique
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  creci           String?
+
+  
+  plano           PlanoTipo      @default(MENSAL)
+  planoStatus     PlanoStatus    @default(ATIVO)
+  stripeSubscriptionId  String?     
+  stripeCustomerId      String?     
+  stripeCurrentPeriodEnd DateTime?   
+  planoCanceladoEm      DateTime?   
+
+  
   slug            String   @unique
+  creci           String?
   biografia       String?
   avatarUrl       String?
   bannerUrl       String?
@@ -39,6 +67,8 @@ model CorretorProfile {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
+
+
 
 model Imovel {
   id          String       @id @default(uuid())

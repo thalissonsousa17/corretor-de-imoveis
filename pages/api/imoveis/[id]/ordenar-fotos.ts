@@ -1,5 +1,5 @@
 // pages/api/imoveis/[id]/ordenar-fotos.ts
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { NextApiResponse } from "next";
 import { AuthApiRequest, authorize } from "@/lib/authMiddleware";
 

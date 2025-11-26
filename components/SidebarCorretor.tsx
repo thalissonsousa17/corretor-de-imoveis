@@ -2,6 +2,8 @@ import React from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import { FiHome, FiUser, FiPlusSquare, FiList, FiLogOut } from "react-icons/fi";
+import { FaSignature } from "react-icons/fa";
+import { AiOutlineFileText } from "react-icons/ai";
 import axios from "axios";
 
 const navItems = [
@@ -9,6 +11,7 @@ const navItems = [
   { href: "/corretor/perfil", icon: FiUser, label: "Perfil" },
   { href: "/corretor/imoveis/cadastrar", icon: FiPlusSquare, label: "Cadastrar Imóvel" },
   { href: "/corretor/imoveis", icon: FiList, label: "Gerenciar Imóveis" },
+  { href: "/corretor/assinaturas", icon: AiOutlineFileText, label: "Gerenciar Assinaturas" },
 ];
 
 const SidebarCorretor: React.FC = () => {

@@ -1,6 +1,6 @@
 // pages/api/imoveis/fotos/[id].ts
 import type { NextApiRequest, NextApiResponse } from "next";
-import prisma from "../../../lib/prisma";
+import { prisma } from "../../../lib/prisma";
 import fs from "fs";
 import path from "path";
 

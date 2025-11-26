@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import prisma from "../../../lib/prisma";
+import { prisma } from "../../../lib/prisma";
 import { authorize } from "../../../lib/authMiddleware";
 import multer from "multer";
 import path from "path";

@@ -1,6 +1,6 @@
 import type { NextApiResponse } from "next";
-import prisma from "../../../lib/prisma";
-import { authorize, AuthApiRequest } from "../../../lib/authMiddleware";
+import { prisma } from "@/lib/prisma";
+import { authorize, AuthApiRequest } from "@/lib/authMiddleware";
 import { ImovelStatus } from "@prisma/client";
 
 export default authorize(async function handler(req: AuthApiRequest, res: NextApiResponse) {

@@ -1,7 +1,7 @@
 import type { NextApiResponse } from "next";
 import type { AuthApiRequest } from "../../../lib/authMiddleware";
 import { authorize } from "../../../lib/authMiddleware";
-import prisma from "../../../lib/prisma";
+import { prisma } from "../../../lib/prisma";
 import bcrypt from "bcryptjs";
 
 export default authorize(async function handler(req: AuthApiRequest, res: NextApiResponse) {

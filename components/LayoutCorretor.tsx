@@ -42,7 +42,6 @@ export default function LayoutCorretor({ corretor, children }: LayoutCorretorPro
         creci={safeCorretor.creci}
         whatsapp={safeCorretor.whatsapp}
         instagram={safeCorretor.instagram}
-        linkedin={safeCorretor.linkedin}
         facebook={safeCorretor.facebook}
         logoUrl={safeCorretor.logoUrl}
       />

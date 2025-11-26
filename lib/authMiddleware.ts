@@ -1,12 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import prisma from "./prisma";
+import { prisma } from "@/lib/prisma";
 import * as cookie from "cookie";
-
-console.log("cookie importado:", cookie);
-
-export const config = {
-  runtime: "nodejs",
-};
 
 export interface AuthPayload {
   id: string;
@@ -26,24 +20,27 @@ export const authorize =
     requiredRole?: AllowedRole
   ) =>
   async (req: AuthApiRequest, res: NextApiResponse) => {
-    const cookies = cookie.parse(req.headers.cookie || "");
-    const sessionId = cookies.sessionId;
-
-    if (!sessionId) {
-      return res.status(401).json({ message: "Acesso negado. Sessão não iniciada." });
-    }
-
     try {
+      const cookies = cookie.parse(req.headers.cookie || "");
+      const sessionId = cookies.sessionId;
+
+      if (!sessionId) {
+        return res.status(401).json({ error: "Sessão não iniciada." });
+      }
+
       const session = await prisma.session.findUnique({
         where: { id: sessionId },
         include: { user: true },
       });
 
-      if (!session || session.expiresAt < new Date()) {
-        if (session) await prisma.session.delete({ where: { id: sessionId } });
+      if (!session) {
+        return res.status(401).json({ error: "Sessão inválida." });
+      }
 
+      if (session.expiresAt < new Date()) {
+        await prisma.session.delete({ where: { id: sessionId } });
         res.setHeader("Set-Cookie", cookie.serialize("sessionId", "", { maxAge: 0, path: "/" }));
-        return res.status(401).json({ message: "Sessão inválida ou expirada." });
+        return res.status(401).json({ error: "Sessão expirada." });
       }
 
       req.user = {
@@ -53,11 +50,37 @@ export const authorize =
       };
 
       if (requiredRole && req.user.role !== requiredRole) {
-        return res.status(403).json({ message: " Acesso negado, Permissão insulficiente" });
+        return res.status(403).json({ error: "Acesso negado." });
       }
+
+      // --------------------------------------------------
+      // 🟢 GARANTE QUE O CORRETOR TEM UM corretorProfile
+      // --------------------------------------------------
+
+      if (req.user.role === "CORRETOR") {
+        let perfil = await prisma.corretorProfile.findUnique({
+          where: { userId: req.user.id },
+        });
+
+        if (!perfil) {
+          perfil = await prisma.corretorProfile.create({
+            data: {
+              userId: req.user.id,
+              slug: req.user.email.split("@")[0],
+              plano: "GRATUITO",
+              planoStatus: "INATIVO",
+            },
+          });
+
+          console.log("Perfil criado automaticamente:", perfil);
+        }
+      }
+
+      // --------------------------------------------------
+
       return handler(req, res);
     } catch (error) {
-      console.error("Erro de autorização:", error);
-      return res.status(500).json({ message: "Erro interno no servidor." });
+      console.error("ERRO NO AUTHORIZE:", error);
+      return res.status(500).json({ error: "Erro interno." });
     }
   };

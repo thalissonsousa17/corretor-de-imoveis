@@ -1,5 +1,5 @@
 import type { NextApiResponse } from "next";
-import prisma from "../../../lib/prisma";
+import { prisma } from "../../../lib/prisma";
 import { AuthApiRequest, authorize } from "../../../lib/authMiddleware";
 import fs from "fs/promises";
 import path from "path";

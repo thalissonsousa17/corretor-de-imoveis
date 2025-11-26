@@ -1,7 +1,7 @@
 import type { NextApiResponse } from "next";
 import type { AuthApiRequest } from "../../../lib/authMiddleware";
 import bcrypt from "bcryptjs";
-import prisma from "../../../lib/prisma";
+import { prisma } from "../../../lib/prisma";
 import { authorize } from "../../../lib/authMiddleware";
 
 // Configuração padrão do Next.js API route
