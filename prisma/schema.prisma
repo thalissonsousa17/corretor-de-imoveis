@@ -21,6 +21,8 @@ model User {
   profile   CorretorProfile?
 
   stripeCustomerId String?
+
+
 }
 
 enum PlanoTipo {
@@ -50,6 +52,9 @@ model CorretorProfile {
   stripeCustomerId      String?     
   stripeCurrentPeriodEnd DateTime?   
   planoCanceladoEm      DateTime?   
+
+   assinaturaCriadaEm    DateTime?
+  ultimoPagamentoEm     DateTime?
 
   
   slug            String   @unique
