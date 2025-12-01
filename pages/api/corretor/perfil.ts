@@ -52,18 +52,67 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
     try {
       const perfil = await prisma.corretorProfile.findUnique({
         where: { userId },
-        include: { user: true },
+        include: {
+          user: {
+            select: {
+              name: true,
+              email: true,
+              stripeCustomerId: true,
+            },
+          },
+        },
       });
 
+      // 1) Se NÃO existir perfil
       if (!perfil) {
         const user = await prisma.user.findUnique({
           where: { id: userId },
           select: { name: true, email: true },
         });
-        return res.status(200).json({ perfil: { user } });
+
+        return res.status(200).json({
+          plano: "GRATUITO",
+          planoStatus: "INATIVO",
+          stripeCurrentPeriodEnd: null,
+          assinaturaCriadaEm: null,
+          ultimoPagamentoEm: null,
+          stripeCustomerId: null,
+          user,
+        });
       }
 
-      return res.status(200).json({ perfil });
+      // 2) Detecta se É assinatura manual
+      const assinaturaManual = perfil.plano !== "GRATUITO" && !perfil.stripeSubscriptionId;
+
+      return res.status(200).json({
+        plano: perfil.plano,
+        planoStatus: assinaturaManual ? "ATIVO" : perfil.planoStatus,
+
+        stripeCurrentPeriodEnd: assinaturaManual ? null : perfil.stripeCurrentPeriodEnd,
+
+        assinaturaCriadaEm: assinaturaManual ? perfil.createdAt : perfil.assinaturaCriadaEm,
+
+        ultimoPagamentoEm: assinaturaManual ? perfil.createdAt : perfil.ultimoPagamentoEm,
+
+        stripeCustomerId: assinaturaManual ? null : (perfil.user.stripeCustomerId ?? null),
+
+        // Dados gerais do perfil
+        creci: perfil.creci,
+        slug: perfil.slug,
+        biografia: perfil.biografia,
+        instagram: perfil.instagram,
+        facebook: perfil.facebook,
+        linkedin: perfil.linkedin,
+        whatsapp: perfil.whatsapp,
+        metaTitle: perfil.metaTitle,
+        metaDescription: perfil.metaDescription,
+        avatarUrl: perfil.avatarUrl,
+        bannerUrl: perfil.bannerUrl,
+        logoUrl: perfil.logoUrl,
+
+        name: perfil.user.name,
+        email: perfil.user.email,
+      });
     } catch (err) {
       console.error("❌ Erro ao buscar perfil:", err);
       return res.status(500).json({ error: "Erro interno ao buscar perfil." });
@@ -209,7 +258,7 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
       }
 
       console.log("✅ Perfil salvo com sucesso!");
-      return res.status(200).json({ perfil });
+      return res.status(200).json(perfil);
     } catch (err) {
       console.error("❌ Erro ao salvar perfil:", err);
       return res.status(500).json({ error: String(err) });

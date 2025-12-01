@@ -273,7 +273,10 @@ export default function Home() {
           {/* PLANO MENSAL */}
           <div className="shadow-xl p-10 rounded-2xl bg-white hover:scale-[1.03] transition">
             <h3 className="text-2xl font-bold">Mensal</h3>
-            <p className="text-4xl font-extrabold mt-4">R$ 299,90</p>
+            <p className="text-4xl font-extrabold mt-4">
+              R$ 299,90
+              <span className="flex items-center justify-end text-[20px]">Por mês</span>
+            </p>
             <ul className="mt-6 text-left text-[#1A2A4F] space-y-3">
               <li>• Página de vendas personalizada</li>
               <li>• Cadastro ilimitado de imóveis</li>
@@ -292,8 +295,11 @@ export default function Home() {
 
           {/* PLANO SEMESTRAL */}
           <div className="shadow-2xl p-10 rounded-2xl bg-white border-4 border-[#1A2A4F] scale-[1.05] hover:scale-[1.10]">
-            <h3 className="text-2xl font-bold text-[#1A2A4F]">Semestral • MAIS POPULAR</h3>
-            <p className="text-4xl font-extrabold mt-4 text-[#1A2A4F]">R$ 249,90</p>
+            <h3 className="text-2xl font-bold text-[#1A2A4F]">Semestral • MAIS POPULAR </h3>
+            <p className="text-4xl font-extrabold mt-4 text-[#1A2A4F]">
+              R$ 249,90
+              <span className="flex items-center justify-end text-[20px]">Por mês</span>
+            </p>
             <ul className="mt-6 text-left text-gray-700 space-y-3">
               <li>• Tudo do plano Mensal</li>
               <li>• Suporte Prioritário</li>
@@ -313,7 +319,10 @@ export default function Home() {
           {/* PLANO ANUAL */}
           <div className="shadow-xl p-10 rounded-2xl bg-white hover:scale-[1.03] transition">
             <h3 className="text-2xl font-bold">Anual</h3>
-            <p className="text-4xl font-extrabold mt-4">R$ 199,00</p>
+            <p className="text-4xl font-extrabold mt-4">
+              R$ 199,00
+              <span className="flex items-center justify-end text-[20px]">Por mês</span>
+            </p>
             <ul className="mt-6 text-left text-gray-700 space-y-3">
               <li>• Tudo do plano Semestral</li>
               <li>• Economia máxima</li>

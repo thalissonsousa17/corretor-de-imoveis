@@ -144,7 +144,7 @@ export default function CorretorHome({ corretor, imoveis, texto }: PageProps) {
                   <img
                     src={corretor.avatarUrl ?? ""}
                     alt={corretor.name}
-                    className="w-[300px] sm:w-[400px] md:w-[480px]  h-auto "
+                    className="w-[300px] sm:w-[400px] md:w-[280px]  h-auto "
                   />
                 </div>
               )}

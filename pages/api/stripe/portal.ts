@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import Stripe from "stripe";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-  apiVersion: "2025-11-17.clover", // mesma versão usada no webhook.ts
+  apiVersion: "2025-11-17.clover",
 });
 
 export default authorize(async (req: AuthApiRequest, res: NextApiResponse) => {
@@ -19,31 +19,32 @@ export default authorize(async (req: AuthApiRequest, res: NextApiResponse) => {
       return res.status(401).json({ error: "Usuário não autenticado." });
     }
 
-    // Buscar o perfil do corretor
-    const profile = await prisma.corretorProfile.findUnique({
-      where: { userId },
+    // Buscar o user + profile
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        stripeCustomerId: true,
+      },
     });
 
-    if (!profile) {
-      return res.status(404).json({ error: "Perfil não encontrado." });
+    if (!user) {
+      return res.status(404).json({ error: "Usuário não encontrado." });
     }
 
-    const stripeCustomerId = profile.stripeCustomerId;
-
-    if (!stripeCustomerId) {
+    if (!user.stripeCustomerId) {
       return res.status(400).json({
-        error: "Este usuário ainda não possui um cliente Stripe cadastrado.",
+        error: "Este usuário não possui cliente Stripe cadastrado.",
       });
     }
 
     // Criar sessão do portal
     const portalSession = await stripe.billingPortal.sessions.create({
-      customer: stripeCustomerId,
+      customer: user.stripeCustomerId,
       return_url: `${process.env.NEXT_PUBLIC_BASE_URL}/corretor/assinatura`,
     });
 
     return res.status(200).json({ url: portalSession.url });
-  } catch (error: unknown) {
+  } catch (error) {
     console.error("Erro ao gerar portal Stripe:", error);
     return res.status(500).json({ error: "Erro interno ao criar portal." });
   }

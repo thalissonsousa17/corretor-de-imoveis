@@ -17,6 +17,7 @@ import {
   PieLabelRenderProps,
 } from "recharts";
 import CorretorLayout from "@/components/CorretorLayout";
+import api from "@/lib/api";
 
 interface Stats {
   total: number;
@@ -43,7 +44,7 @@ export default function DashboardCorretor() {
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
-        const res = await axios.get("/api/corretor/dashboard", { withCredentials: true });
+        const res = await api.get("/corretor/dashboard", { withCredentials: true });
         setStats(res.data.stats);
         setImoveisRecentes(res.data.recentes);
         setBarData(res.data.graficoTipos || []);

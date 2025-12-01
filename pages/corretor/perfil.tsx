@@ -1,14 +1,7 @@
 import React, { useEffect, useState, ChangeEvent, FormEvent, ReactElement } from "react";
 import axios, { AxiosError } from "axios";
 import CorretorLayout from "@/components/CorretorLayout";
-import {
-  FiBriefcase,
-  FiFacebook,
-  FiInstagram,
-  FiLinkedin,
-  FiMapPin,
-  FiPhone,
-} from "react-icons/fi";
+import { FiFacebook, FiInstagram, FiLinkedin, FiPhone } from "react-icons/fi";
 
 interface Perfil {
   name?: string;
@@ -24,68 +17,73 @@ interface Perfil {
   facebook?: string;
   linkedin?: string;
   whatsapp?: string;
-  corPrimaria?: string;
-  corSecundaria?: string;
   metaTitle?: string;
   metaDescription?: string;
 }
 
 type SocialField = keyof Pick<Perfil, "instagram" | "facebook" | "linkedin" | "whatsapp">;
 
-function slugify(value: string): string {
-  return value
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]/g, "");
-}
-
 export default function PerfilPage() {
-  const [perfil, setPerfil] = useState<Perfil>({ logo: null });
+  const [perfil, setPerfil] = useState<Perfil>({});
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [bannerPreview, setBannerPreview] = useState<string | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
+
   const [loading, setLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+
   const [senhaAtual, setSenhaAtual] = useState("");
   const [novaSenha, setNovaSenha] = useState("");
+
   const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
+  // =========================================
+  // CARREGAR PERFIL (VERSÃO FINAL)
+  // =========================================
   useEffect(() => {
     const fetchPerfil = async () => {
       try {
         const res = await axios.get("/api/corretor/perfil", { withCredentials: true });
-        const data = res.data.perfil;
+        const data = res.data;
+
         setPerfil({
           ...data,
-          name: data.user?.name || data.name || "",
-          email: data.user?.email || data.email || "",
+          name: data.name ?? data.user?.name ?? "",
+          email: data.email ?? data.user?.email ?? "",
         });
       } catch (err) {
         console.error("Erro ao carregar perfil:", err);
       }
     };
+
     fetchPerfil();
   }, []);
+
+  // =========================================
+  // HANDLERS
+  // =========================================
 
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
 
     if (name === "slug") {
-      const novoSlug = value
+      const slug = value
         .toLowerCase()
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "")
         .replace(/[^a-z0-9]/g, "");
-      setPerfil((prev) => ({ ...prev, slug: novoSlug }));
+
+      setPerfil((prev) => ({ ...prev, slug }));
       return;
     }
+
     setPerfil((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, files } = e.target;
-    if (!files || files.length === 0) return;
+    if (!files?.length) return;
+
     const file = files[0];
     const preview = URL.createObjectURL(file);
 
@@ -93,7 +91,7 @@ export default function PerfilPage() {
     if (name === "banner") setBannerPreview(preview);
     if (name === "logo") setLogoPreview(preview);
 
-    setPerfil((prev) => ({ ...prev, [name]: file as File }));
+    setPerfil((prev) => ({ ...prev, [name]: file }));
   };
 
   const handleRemoveLogo = () => {
@@ -104,12 +102,12 @@ export default function PerfilPage() {
   const handleAlterarSenha = async () => {
     try {
       await axios.post("/api/corretor/alterar-senha", { senhaAtual, novaSenha });
+
       setToast({ type: "success", message: "Senha atualizada com sucesso!" });
-      setTimeout(() => {
-        setSenhaAtual("");
-        setNovaSenha("");
-        setToast(null);
-      }, 2000);
+      setSenhaAtual("");
+      setNovaSenha("");
+
+      setTimeout(() => setToast(null), 2000);
     } catch (error) {
       const err = error as AxiosError<{ error?: string }>;
       setToast({
@@ -126,14 +124,14 @@ export default function PerfilPage() {
 
     try {
       const formData = new FormData();
+
       if (perfil.name) formData.append("name", perfil.name);
       if (perfil.email) formData.append("email", perfil.email);
 
       Object.entries(perfil).forEach(([key, value]) => {
         if (!value || key === "name" || key === "email" || key === "logo") return;
-
         if (value instanceof File) formData.append(key, value);
-        else formData.append(key, value.toString());
+        else formData.append(key, String(value));
       });
 
       if (perfil.logo instanceof File) {
@@ -147,17 +145,16 @@ export default function PerfilPage() {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      const data = res.data.perfil;
+      const data = res.data;
       setPerfil({
         ...data,
-        name: data.user?.name || data.name || "",
-        email: data.user?.email || data.email || "",
+        name: data.name ?? data.user?.name ?? "",
+        email: data.email ?? data.user?.email ?? "",
       });
 
       setToast({ type: "success", message: "Perfil atualizado com sucesso!" });
     } catch (error) {
       const err = error as AxiosError<{ error?: string }>;
-      console.error("Erro ao salvar perfil:", error);
       setToast({ type: "error", message: err.response?.data?.error || "Erro ao salvar perfil." });
     } finally {
       setLoading(false);
@@ -166,9 +163,15 @@ export default function PerfilPage() {
   };
 
   const handleBtnEditPerfil = async () => {
-    if (isEditing) await handleSubmit(new Event("submit") as unknown as FormEvent);
+    if (isEditing) {
+      await handleSubmit(new Event("submit") as unknown as FormEvent);
+    }
     setIsEditing(!isEditing);
   };
+
+  // =========================================
+  // REDES SOCIAIS
+  // =========================================
 
   const socialItems: ReadonlyArray<{
     field: SocialField;
@@ -181,8 +184,13 @@ export default function PerfilPage() {
     { field: "whatsapp", label: "WhatsApp", icon: <FiPhone className="text-green-600" /> },
   ];
 
+  // =========================================
+  // RENDER
+  // =========================================
+
   return (
     <CorretorLayout>
+      {/* TOAST */}
       {toast && (
         <div
           className={`fixed top-6 right-6 px-4 py-3 rounded-lg shadow-lg text-white transition-all ${
@@ -193,55 +201,75 @@ export default function PerfilPage() {
         </div>
       )}
 
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 py-10 px-6">
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 py-10 px-6 text-[#1A2A4F]">
         <div className="max-w-6xl mx-auto mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-3">
+          <h1 className="text-3xl font-bold flex items-center gap-3">
             👤 <span>Meu Perfil</span>
           </h1>
-          <p className="text-gray-500 text-sm mt-1">
-            Gerencie suas informações, redes sociais e SEO da sua página.
-          </p>
-          <div className="border-b border-gray-200 mt-4"></div>
         </div>
 
         <div className="max-w-6xl mx-auto space-y-10">
-          {/* === Seção de perfil === */}
-          <section className="rounded-2xl bg-white p-8 shadow-md border border-gray-100 hover:shadow-lg transition-all duration-300">
-            <div className="flex flex-col sm:flex-row items-start justify-between gap-8">
+          {/* =======================================================
+               SEÇÃO PERFIL (avatar + nome + email + botão editar)
+          ========================================================= */}
+          <section className="rounded-2xl bg-white p-8 shadow-md border">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+              {/* FOTO + NOME */}
               <div className="flex items-center gap-4">
-                <img
-                  src={
-                    avatarPreview ||
-                    perfil.avatarUrl ||
-                    "https://via.placeholder.com/120?text=Avatar"
-                  }
-                  alt="Avatar"
-                  className="w-24 h-24 rounded-full object-cover border"
-                />
+                {/* AVATAR */}
+                <div className="relative">
+                  <img
+                    src={
+                      avatarPreview ||
+                      perfil.avatarUrl ||
+                      "https://via.placeholder.com/120?text=Avatar"
+                    }
+                    alt="Avatar"
+                    className="w-24 h-24 rounded-full object-cover border"
+                  />
+
+                  {/* BOTÃO TROCAR AVATAR */}
+                  {isEditing && (
+                    <label
+                      htmlFor="avatar"
+                      className="absolute bottom-0 right-0 bg-[#2563EB] hover:bg-[#1E3A8A] text-white text-xs px-2 py-1 rounded-md cursor-pointer shadow"
+                    >
+                      trocar
+                      <input
+                        id="avatar"
+                        type="file"
+                        name="avatar"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleFileChange}
+                      />
+                    </label>
+                  )}
+                </div>
+
+                {/* CAMPOS */}
                 <div className="flex flex-col gap-1">
-                  {/* NOME */}
                   {isEditing ? (
                     <input
+                      id="name"
                       type="text"
                       name="name"
                       value={perfil.name || ""}
                       onChange={handleChange}
-                      className="border rounded-md px-3 py-1 text-gray-700 text-sm w-64 focus:ring-2 focus:ring-gray-300"
-                      placeholder="Seu nome completo"
+                      className="border rounded-md px-3 py-1 text-sm w-64 focus:ring-2 focus:ring-[#2563EB]"
                     />
                   ) : (
-                    <h2 className="text-lg font-semibold text-gray-800">{perfil.name}</h2>
+                    <h2 className="text-lg font-semibold">{perfil.name}</h2>
                   )}
 
-                  {/* EMAIL */}
                   {isEditing ? (
                     <input
+                      id="email"
                       type="email"
                       name="email"
                       value={perfil.email || ""}
                       onChange={handleChange}
-                      className="border rounded-md px-3 py-1 text-gray-700 text-sm w-64 focus:ring-2 focus:ring-gray-300"
-                      placeholder="seuemail@exemplo.com"
+                      className="border rounded-md px-3 py-1 text-sm w-64 focus:ring-2 focus:ring-[#2563EB]"
                     />
                   ) : (
                     <p className="text-gray-600 text-sm">{perfil.email}</p>
@@ -249,14 +277,14 @@ export default function PerfilPage() {
                 </div>
               </div>
 
+              {/* BOTÃO EDITAR */}
               <button
-                type="button"
                 onClick={handleBtnEditPerfil}
                 disabled={loading}
-                className={`px-5 py-2 rounded-full text-sm font-medium shadow-sm transition-all ${
+                className={`px-5 py-2 rounded-full text-sm font-medium shadow-sm transition ${
                   isEditing
-                    ? "bg-gray-900 text-white hover:bg-gray-800"
-                    : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-100"
+                    ? "bg-black text-white hover:bg-gray-800"
+                    : "bg-white border border-gray-300 hover:bg-gray-100"
                 }`}
               >
                 {loading ? "Salvando..." : isEditing ? "Salvar Alterações" : "Editar Perfil"}
@@ -264,16 +292,21 @@ export default function PerfilPage() {
             </div>
           </section>
 
-          {/* === Biografia e Banner === */}
+          {/* =======================================================
+                BIOGRAFIA + BANNER
+          ========================================================= */}
           <section className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* BIO */}
             <div className="rounded-2xl bg-white p-6 shadow-sm border hover:shadow-md transition">
-              <h3 className="text-lg font-semibold text-gray-800 mb-3">📝 Biografia</h3>
+              <h3 className="text-lg font-semibold text-[#1A2A4F] mb-3">📝 Biografia</h3>
+
               {isEditing ? (
                 <textarea
+                  id="biografia"
                   name="biografia"
                   value={perfil.biografia || ""}
                   onChange={handleChange}
-                  className="w-full min-h-[12rem] border rounded-lg p-4 text-gray-700 focus:ring-2 focus:ring-gray-400"
+                  className="w-full min-h-[12rem] border rounded-lg p-4 text-gray-700 focus:ring-2 focus:ring-[#2563EB]"
                   placeholder="Escreva uma breve biografia profissional..."
                 />
               ) : (
@@ -283,10 +316,14 @@ export default function PerfilPage() {
               )}
             </div>
 
+            {/* BANNER */}
             <div className="rounded-2xl bg-white p-6 shadow-sm border hover:shadow-md transition">
-              <h3 className="text-lg font-semibold text-gray-800 mb-3">📸 Banner</h3>
+              <h3 className="text-lg font-semibold text-[#1E3A8A] mb-3">📸 Banner</h3>
+
+              {/* Botão upload */}
               {isEditing && (
-                <label className="cursor-pointer text-sm font-medium text-white bg-black hover:bg-gray-800 px-4 py-2 rounded-md mb-3 transition">
+                <label className="cursor-pointer text-sm font-medium text-white bg-[#2563EB] hover:bg-[#1E3A8A] px-4 py-2 rounded-md mb-3 transition inline-block">
+                  Selecionar imagem
                   <input
                     type="file"
                     name="banner"
@@ -294,9 +331,9 @@ export default function PerfilPage() {
                     className="hidden"
                     onChange={handleFileChange}
                   />
-                  Selecionar imagem
                 </label>
               )}
+
               <div className="flex justify-center w-full max-w-[650px] h-[250px] border rounded-md overflow-hidden bg-gray-50">
                 {bannerPreview || perfil.bannerUrl ? (
                   <img
@@ -313,154 +350,135 @@ export default function PerfilPage() {
             </div>
           </section>
 
-          {/* === Redes Sociais e Logo === */}
+          {/* =======================================================
+              REDES SOCIAIS + LOGO
+          ========================================================= */}
           <section className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="rounded-2xl bg-white p-6 shadow-md border hover:shadow-lg transition">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">🌐 Redes Sociais</h3>
-              <ul className="divide-y divide-gray-100">
+            {/* REDES */}
+            <div className="rounded-2xl bg-white p-6 shadow-sm border hover:shadow-md transition">
+              <h3 className="text-lg font-semibold text-[#1A2A4F] mb-4">🌐 Redes Sociais</h3>
+
+              <ul className="divide-y">
                 {socialItems.map(({ icon, field, label }) => (
                   <li key={field} className="flex items-center justify-between py-3">
                     <div className="flex items-center gap-3">
                       {icon}
-                      <span className="font-medium text-gray-700">{label}</span>
+                      <span>{label}</span>
                     </div>
+
                     {isEditing ? (
                       <input
+                        id={field}
                         name={field}
-                        value={String(perfil[field as keyof typeof perfil] || "")}
+                        value={String(perfil[field] || "")}
                         onChange={handleChange}
-                        className="border rounded-md p-1 text-sm text-gray-600 w-48 focus:ring-2 focus:ring-gray-300"
+                        className="border rounded-md p-1 text-sm w-48 focus:ring-2 focus:ring-[#2563EB]"
                       />
                     ) : (
-                      <span className="text-gray-800 text-sm">
-                        {String(perfil[field as keyof typeof perfil] || "-")}
-                      </span>
+                      <span className="text-[#1A2A4F]">{perfil[field] || "-"}</span>
                     )}
                   </li>
                 ))}
               </ul>
             </div>
 
-            <div className="rounded-2xl bg-white p-6 shadow-md border hover:shadow-lg transition">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">🏢 Logo da Imobiliária</h3>
+            {/* LOGO */}
+            <div className="rounded-2xl bg-white p-6 shadow-sm border hover:shadow-md transition text-[#1A2A4F]">
+              <h3 className="text-lg font-semibold mb-4">🏢 Logo da Imobiliária</h3>
 
-              {/* Logo ou Placeholder */}
               <div className="relative w-28 h-28 flex items-center justify-center border rounded-lg bg-gray-50 shadow-sm mb-3">
                 {logoPreview ? (
-                  <img
-                    src={logoPreview}
-                    alt="Preview da logo"
-                    className="object-contain w-full h-full p-2"
-                  />
+                  <img src={logoPreview} className="object-contain w-full h-full p-2" />
                 ) : perfil.logoUrl ? (
-                  <img
-                    src={perfil.logoUrl}
-                    alt="Logo atual"
-                    className="object-contain w-full h-full p-2"
-                  />
+                  <img src={perfil.logoUrl} className="object-contain w-full h-full p-2" />
                 ) : (
-                  <div className="text-gray-400 text-xs text-center flex flex-col items-center justify-center gap-1">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="w-8 h-8 opacity-60"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={1.5}
-                        d="M4 16l4-4 4 4m4-4l4 4M4 8l4-4 4 4m4-4l4 4"
-                      />
-                    </svg>
-                    Sem logo
-                  </div>
+                  <span className="text-gray-400 text-xs">Sem logo</span>
                 )}
               </div>
 
-              {/* Upload e remover */}
               {isEditing && (
                 <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-                  <label className="block w-full">
-                    <input
-                      type="file"
-                      name="logo"
-                      accept="image/*"
-                      onChange={handleFileChange}
-                      className="block w-full text-sm text-gray-600 file:mr-3 file:py-2 file:px-4 file:rounded-md 
-            file:border-0 file:text-sm file:font-medium file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200"
-                    />
-                  </label>
+                  <input
+                    id="logo"
+                    type="file"
+                    name="logo"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className="text-sm"
+                  />
 
                   {perfil.logoUrl && (
                     <button
                       type="button"
                       onClick={handleRemoveLogo}
-                      className="text-red-600 text-sm hover:underline"
+                      className="text-red-600 text-sm underline"
                     >
-                      Remover logo atual
+                      Remover logo
                     </button>
                   )}
                 </div>
               )}
             </div>
-
-            {/* === Campo SLUG === */}
-            <div className="rounded-2xl bg-white p-6 shadow-sm border hover:shadow-md transition">
-              <h3 className="text-lg font-semibold text-gray-800 mb-3">
-                🔗 Endereço da Página (Slug)
-              </h3>
-
-              {isEditing ? (
-                <div className="space-y-2">
-                  <input
-                    name="slug"
-                    value={perfil.slug || ""}
-                    onChange={handleChange}
-                    className="border rounded-md p-2 text-gray-600 w-full focus:ring-2 focus:ring-gray-400"
-                    placeholder="ex: thalissonsousa"
-                  />
-
-                  {/* Pré-visualização da URL */}
-                  <p className="text-sm text-gray-500">
-                    URL da sua página:{" "}
-                    <span className="font-medium text-gray-700">
-                      https://seusite.com/{perfil.slug || "meu-slug"}
-                    </span>
-                  </p>
-                </div>
-              ) : (
-                <p className="text-gray-700">
-                  <span className="font-medium">URL:</span> https://seusite.com/{perfil.slug}
-                </p>
-              )}
-            </div>
           </section>
 
-          {/* === Alterar senha === */}
-          <section className="rounded-2xl bg-white p-8 shadow-md border hover:shadow-lg transition">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">🔒 Alterar Senha</h3>
+          {/* =======================================================
+                SLUG
+          ========================================================= */}
+          <section className="rounded-2xl bg-white p-8 shadow-md border text-[#1A2A4F]">
+            <h3 className="text-lg font-semibold mb-3">🔗 Endereço da Página (Slug)</h3>
+
+            {isEditing ? (
+              <div className="space-y-2">
+                <input
+                  id="slug"
+                  name="slug"
+                  value={perfil.slug || ""}
+                  onChange={handleChange}
+                  className="border rounded-md p-2 w-full focus:ring-2 focus:ring-[#2563EB]"
+                />
+
+                <p className="text-sm text-gray-600">
+                  URL da sua página:{" "}
+                  <span className="font-medium">https://seusite.com/{perfil.slug}</span>
+                </p>
+              </div>
+            ) : (
+              <p>
+                URL: <span className="font-medium">https://seusite.com/{perfil.slug}</span>
+              </p>
+            )}
+          </section>
+
+          {/* =======================================================
+               ALTERAR SENHA
+          ========================================================= */}
+          <section className="rounded-2xl bg-white p-8 shadow-md border text-[#1A2A4F]">
+            <h3 className="text-lg font-semibold mb-4">🔒 Alterar Senha</h3>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">Senha Atual:</label>
+                <label htmlFor="senhaAtual" className="block text-sm font-medium text-gray-700">
+                  Senha Atual:
+                </label>
                 <input
+                  id="senhaAtual"
                   type="password"
-                  name="senhaAtual"
                   value={senhaAtual}
                   onChange={(e) => setSenhaAtual(e.target.value)}
-                  className="w-full border rounded-md p-2 text-gray-600"
+                  className="w-full border rounded-md p-2 focus:ring-2 focus:ring-[#2563EB]"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">Nova Senha:</label>
+                <label htmlFor="novaSenha" className="block text-sm font-medium text-gray-700">
+                  Nova Senha:
+                </label>
                 <input
+                  id="novaSenha"
                   type="password"
-                  name="novaSenha"
                   value={novaSenha}
                   onChange={(e) => setNovaSenha(e.target.value)}
-                  className="w-full border rounded-md p-2 text-gray-600"
+                  className="w-full border rounded-md p-2 focus:ring-2 focus:ring-[#2563EB]"
                 />
               </div>
             </div>

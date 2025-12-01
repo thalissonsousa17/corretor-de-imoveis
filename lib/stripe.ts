@@ -1,15 +1,16 @@
 import Stripe from "stripe";
+import { PlanoTipo } from "@prisma/client";
 
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  typescript: true,
+  apiVersion: "2025-11-17.clover",
 });
 
-export function mapPriceToPlano(priceId: string): "MENSAL" | "SEMESTRAL" | "ANUAL" {
-  const map: Record<string, "MENSAL" | "SEMESTRAL" | "ANUAL"> = {
-    [process.env.NEXT_PUBLIC_PRICE_MENSAL!]: "MENSAL",
-    [process.env.NEXT_PUBLIC_PRICE_SEMESTRAL!]: "SEMESTRAL",
-    [process.env.NEXT_PUBLIC_PRICE_ANUAL!]: "ANUAL",
+export function mapPriceToPlano(priceId: string): PlanoTipo {
+  const map: Record<string, PlanoTipo> = {
+    [process.env.NEXT_PUBLIC_PRICE_START!]: PlanoTipo.START,
+    [process.env.NEXT_PUBLIC_PRICE_PRO!]: PlanoTipo.PRO,
+    [process.env.NEXT_PUBLIC_PRICE_EXPERT!]: PlanoTipo.EXPERT,
   };
 
-  return map[priceId] ?? "MENSAL";
+  return map[priceId] ?? PlanoTipo.GRATUITO;
 }

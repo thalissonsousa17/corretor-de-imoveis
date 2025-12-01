@@ -15,7 +15,7 @@ export default authorize(async (req: AuthApiRequest, res: NextApiResponse) => {
   try {
     const { priceId, planoTipo } = req.body as {
       priceId?: string;
-      planoTipo?: "GRATUITO" | "MENSAL" | "SEMESTRAL" | "ANUAL";
+      planoTipo?: "GRATUITO" | "START" | "PRO" | "EXPERT";
     };
 
     if (!priceId || !planoTipo) {

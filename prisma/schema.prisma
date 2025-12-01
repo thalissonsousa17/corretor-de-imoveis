@@ -1,133 +1,121 @@
-
 generator client {
-  provider = "prisma-client-js"
-  engineType = "client"
+  provider   = "prisma-client-js"
+  engineType = "client"
 }
 
 datasource db {
-  provider = "postgresql"
-  }
+  provider = "postgresql"
+}
 
 model User {
-  id        String           @id @default(uuid())
-  email     String           @unique
-  password  String
-  name      String
-  role      String           @default("CORRETOR")
-  createdAt DateTime         @default(now())
-  updatedAt DateTime         @updatedAt
-  imoveis   Imovel[]
-  sessions  Session[]
-  profile   CorretorProfile?
-
-  stripeCustomerId String?
-
-
-}
-
-enum PlanoTipo {
-  GRATUITO
-  MENSAL
-  SEMESTRAL
-  ANUAL
-}
-
-
-enum PlanoStatus {
-  INATIVO
-  ATIVO
-  CANCELADO
-  EXPIRADO
+  id               String           @id @default(uuid())
+  email            String           @unique
+  password         String
+  name             String
+  role             String           @default("CORRETOR")
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  stripeCustomerId String?
+  profile          CorretorProfile?
+  imoveis          Imovel[]
+  sessions         Session[]
 }
 
 model CorretorProfile {
-  id              String   @id @default(cuid())
-  userId          String   @unique
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  
-  plano           PlanoTipo      @default(MENSAL)
-  planoStatus     PlanoStatus    @default(ATIVO)
-  stripeSubscriptionId  String?     
-  stripeCustomerId      String?     
-  stripeCurrentPeriodEnd DateTime?   
-  planoCanceladoEm      DateTime?   
-
-   assinaturaCriadaEm    DateTime?
-  ultimoPagamentoEm     DateTime?
-
-  
-  slug            String   @unique
-  creci           String?
-  biografia       String?
-  avatarUrl       String?
-  bannerUrl       String?
-  logoUrl         String?
-  instagram       String?
-  facebook        String?
-  linkedin        String?
-  whatsapp        String?
-  metaTitle       String?
-  metaDescription String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id                     String      @id @default(cuid())
+  userId                 String      @unique
+  creci                  String?
+  slug                   String      @unique
+  whatsapp               String?
+  instagram              String?
+  facebook               String?
+  linkedin               String?
+  createdAt              DateTime    @default(now())
+  updatedAt              DateTime    @updatedAt
+  avatarUrl              String?
+  bannerUrl              String?
+  metaDescription        String?
+  metaTitle              String?
+  biografia              String?
+  logoUrl                String?
+  plano                  PlanoTipo   @default(GRATUITO)
+  planoCanceladoEm       DateTime?
+  planoStatus            PlanoStatus @default(INATIVO)
+  stripeCurrentPeriodEnd DateTime?
+  stripeCustomerId       String?
+  stripeSubscriptionId   String?
+  ultimos4               String?  
+  assinaturaCriadaEm     DateTime?
+  ultimoPagamentoEm      DateTime?
+  user                   User        @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-
-
 model Imovel {
-  id          String       @id @default(uuid())
-  titulo      String
-  descricao   String
-  preco       Float
-  cidade      String
-  estado      String
-  bairro      String?
-  rua         String?
-  numero      String?
-  cep         String?
-  tipo        String
-  localizacao String
-  finalidade  Finalidade @default(VENDA) // VENDA | ALUGUEL
-  status      ImovelStatus @default(DISPONIVEL)// DISPONIVEL | VENDIDO | ALUGADO | INATIVO
-  corretorId  String
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  fotos       Foto[]
-  corretor    User         @relation(fields: [corretorId], references: [id])
+  id          String       @id @default(uuid())
+  titulo      String
+  descricao   String
+  preco       Float
+  tipo        String
+  localizacao String
+  corretorId  String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  cidade      String
+  estado      String
+  bairro      String?
+  cep         String?
+  numero      String?
+  rua         String?
+  finalidade  Finalidade   @default(VENDA)
+  status      ImovelStatus @default(DISPONIVEL)
+  fotos       Foto[]
+  corretor    User         @relation(fields: [corretorId], references: [id], onDelete: Cascade)
 }
 
 model Session {
-  id        String   @id @default(uuid())
-  userId    String
-  expiresAt DateTime
-  createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id])
+  id        String   @id @default(uuid())
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([userId])
+  @@index([userId])
 }
 
 model Foto {
-  id        String   @id @default(uuid())
-  url       String
-  principal Boolean  @default(false)
-  ordem     Int      @default(0)
-  imovelId  String
-  createdAt DateTime @default(now())
-  imovel    Imovel   @relation(fields: [imovelId], references: [id])
+  id        String   @id @default(uuid())
+  url       String
+  ordem     Int      @default(0)
+  imovelId  String
+  createdAt DateTime @default(now())
+  principal Boolean  @default(false)
+  imovel    Imovel   @relation(fields: [imovelId], references: [id], onDelete: Cascade)
 
-  @@index([imovelId])
+  @@index([imovelId])
+}
+
+enum PlanoTipo {
+  GRATUITO
+  PRO
+  START
+  EXPERT
+}
+
+enum PlanoStatus {
+  ATIVO
+  CANCELADO
+  EXPIRADO
+  INATIVO
 }
 
 enum Finalidade {
-  VENDA
-  ALUGUEL
+  VENDA
+  ALUGUEL
 }
 
 enum ImovelStatus {
-  DISPONIVEL
-  VENDIDO
-  ALUGADO
-  INATIVO
+  DISPONIVEL
+  VENDIDO
+  ALUGADO
+  INATIVO
 }
-
