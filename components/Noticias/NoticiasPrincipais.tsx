@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import CardNoticia from "./CardNoticia";
 import Link from "next/link";
+import { useRouter } from "next/router";
 
 interface Noticia {
   titulo: string;
@@ -15,6 +16,8 @@ interface Noticia {
 export default function NoticiasPrincipais() {
   const [noticias, setNoticias] = useState<Noticia[]>([]);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
+  const { slug } = router.query;
 
   useEffect(() => {
     const fetchNoticias = async () => {
@@ -49,7 +52,7 @@ export default function NoticiasPrincipais() {
 
       {/* Botão Ver Mais */}
       <div className="text-right mt-4">
-        <Link href="/noticias" className="font-semibold text-[#1A2A4F] hover:underline">
+        <Link href={`${slug}/noticias`} className="font-semibold text-[#1A2A4F] hover:underline">
           Ver mais →
         </Link>
       </div>

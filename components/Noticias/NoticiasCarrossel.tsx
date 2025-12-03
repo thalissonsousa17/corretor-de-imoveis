@@ -1,25 +1,37 @@
 import { useEffect, useState } from "react";
 import CardNoticia from "./CardNoticia";
 import Link from "next/link";
+import { useRouter } from "next/router";
+
+// Swiper
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Autoplay } from "swiper/modules";
+import "swiper/css";
 
 interface Noticia {
   titulo: string;
   data: string;
-  thumbnail: string;
-  resumo: string;
+  thumbnail?: string;
+  resumo?: string;
   link: string;
 }
 
 export default function NoticiasCarrossel() {
   const [noticias, setNoticias] = useState<Noticia[]>([]);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
+  const { slug } = router.query;
 
   useEffect(() => {
     const fetchNoticias = async () => {
       try {
         const r = await fetch("/api/noticias-externas");
         const data = await r.json();
-        setNoticias(data.slice(4, 10)); // 6 notícias seguintes
+
+        // Caso venha no formato { noticias: [] }
+        const lista = Array.isArray(data) ? data : data.noticias || [];
+
+        setNoticias(lista.slice(4, 10));
       } catch (error) {
         console.error("Erro ao carregar carrossel:", error);
       } finally {
@@ -30,24 +42,39 @@ export default function NoticiasCarrossel() {
     fetchNoticias();
   }, []);
 
-  if (loading) return null;
-  if (noticias.length === 0) return null;
+  if (loading || noticias.length === 0) return null;
 
   return (
     <section className="mt-12">
-      <h2 className="text-xl font-bold text-[#1A2A4F] mb-4">Mais notícias sobre financiamento</h2>
+      <h2 className="text-xl font-bold  text-[#1A2A4F] mb-4">Mais notícias sobre financiamento</h2>
 
-      <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-[#1A2A4F]/40">
+      {/* CARROSSEL ANIMADO */}
+      <Swiper
+        modules={[Autoplay]}
+        autoplay={{ delay: 2500, disableOnInteraction: false }}
+        loop={true}
+        spaceBetween={20}
+        grabCursor={true}
+        breakpoints={{
+          0: { slidesPerView: 1.2 },
+          480: { slidesPerView: 1.4 },
+          640: { slidesPerView: 2.2 },
+          1024: { slidesPerView: 3.2 },
+        }}
+        className="pb-4"
+      >
         {noticias.map((n, i) => (
-          <div key={i} className="min-w-[280px] max-w-[280px] flex-shrink-0">
-            <CardNoticia {...n} />
-          </div>
+          <SwiperSlide key={i} className="flex justify-center">
+            <div className="min-w-[280px] max-w-[280px] ">
+              <CardNoticia {...n} />
+            </div>
+          </SwiperSlide>
         ))}
-      </div>
+      </Swiper>
 
       {/* Botão Ver Mais */}
       <div className="text-right mt-4">
-        <Link href="/noticias" className="font-semibold text-[#1A2A4F] hover:underline">
+        <Link href={`/${slug}/noticias`} className="font-semibold text-[#1A2A4F] hover:underline">
           Ver mais →
         </Link>
       </div>

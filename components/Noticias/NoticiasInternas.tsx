@@ -31,7 +31,6 @@ export default function NoticiasInternas({ noticias = [] }: { noticias: NoticiaI
           titulo={n.titulo}
           data={new Date(n.data).toLocaleDateString("pt-BR")}
           link={n.link ?? "#"}
-          thumbnail={n.thumbnail}
           resumo={n.resumo}
         />
       ))}

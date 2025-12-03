@@ -8,13 +8,14 @@ import type { GetServerSidePropsContext, GetServerSidePropsResult } from "next";
 import LayoutCorretor from "@/components/LayoutCorretor";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Navigation } from "swiper/modules";
-
 import { FaWhatsapp, FaInstagram, FaFacebook, FaGlobeAmericas } from "react-icons/fa";
-
 import { MdEmail } from "react-icons/md";
-
 import "swiper/css";
 import "swiper/css/navigation";
+
+import NoticiasPrincipais from "@/components/Noticias/NoticiasPrincipais";
+import NoticiasCarrossel from "@/components/Noticias/NoticiasCarrossel";
+import NoticiasAutomatizadas from "@/components/Noticias/NoticiasAutomatizadas";
 
 type Foto = { id: string; url: string };
 type Imovel = {
@@ -490,6 +491,15 @@ export default function CorretorHome({ corretor, imoveis, texto }: PageProps) {
                 </Swiper>
               </div>
             </section>
+            {/* NOTÍCIAS PRINCIPAIS */}
+            <div className="max-w-6xl mx-auto px-4">
+              <NoticiasPrincipais />
+            </div>
+
+            {/* CARROSSEL DE NOTÍCIAS */}
+            <div className="max-w-6xl mx-auto px-4 mt-12">
+              <NoticiasCarrossel />
+            </div>
           </div>
         </div>
       </div>

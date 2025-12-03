@@ -25,6 +25,8 @@ export default function HeaderCorretor({ corretor }: HeaderCorretorProps) {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const slug = corretor?.slug;
+
   const logoSrc =
     corretor.logoUrl && corretor.logoUrl.trim() !== ""
       ? corretor.logoUrl.startsWith("http")
@@ -40,26 +42,24 @@ export default function HeaderCorretor({ corretor }: HeaderCorretorProps) {
         isScrolled ? "shadow-md bg-white/95 backdrop-blur-sm" : "bg-white"
       }`}
     >
-      {/* CONTAINER PRINCIPAL */}
       <div className="w-full">
-        {/* FAIXA SUPERIOR */}
+        {/* TOPO */}
         <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-2 text-[#D4AC3A]">
-          {/* LOGO */}
           <div className="flex items-center gap-3">
             {logoSrc ? (
               <img
                 src={logoSrc}
-                alt={corretor.name || "Logo da Imobiliária"}
-                className="h-14 w-auto object-contain "
+                alt={corretor.name || "Logo"}
+                className="h-14 w-auto object-contain"
               />
             ) : (
-              <h1 className="text-[#hover:text-[#D4AC3A] text-xl font-semibold tracking-wide">
+              <h1 className="text-xl font-semibold tracking-wide text-[#1A2A4F]">
                 {corretor.name}
               </h1>
             )}
           </div>
 
-          {/* CONTATOS */}
+          {/* WHATS */}
           <div className="flex items-center gap-6 text-[#1A2A4F] font-bold">
             {corretor.whatsapp && (
               <a
@@ -74,86 +74,85 @@ export default function HeaderCorretor({ corretor }: HeaderCorretorProps) {
           </div>
         </div>
 
-        {/* FAIXA INFERIOR (MENU) */}
+        {/* MENU */}
         <div className="bg-[#1A2A4F] w-full mt-1">
           <div
-            className="max-w-7xl mx-auto flex justify-center  py-3 rounded-t-[1rem]"
+            className="max-w-7xl mx-auto flex justify-center py-3 rounded-t-[1rem]"
             style={{
               borderTopLeftRadius: "1.5rem",
               borderTopRightRadius: "1.5rem",
             }}
           >
-            <nav className="flex gap-8 text-base font-medium">
-              {/* INÍCIO */}
-              <Link
-                href={`/${corretor.slug ?? ""}`}
-                className={`
-      relative transition 
-      ${router.asPath === `/${corretor.slug}` ? "text-[#D4AC3A] font-semibold" : "text-white hover:text-[#D4AC3A]"}
-      after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:bg-[#D4AC3A]
-      after:transition-all after:duration-300
-      ${router.asPath === `/${corretor.slug}` ? "after:w-full" : "after:w-0 hover:after:w-full"}
-    `}
-              >
-                Início
-              </Link>
+            {/* ❗ NÃO RENDERIZAR MENU ATÉ O SLUG EXISTIR */}
+            {!slug ? null : (
+              <nav className="flex gap-8 text-base font-medium">
+                <Link
+                  href={`/${slug}`}
+                  className={`relative transition ${
+                    router.asPath === `/${slug}`
+                      ? "text-[#D4AC3A] font-semibold"
+                      : "text-white hover:text-[#D4AC3A]"
+                  }`}
+                >
+                  Início
+                </Link>
 
-              {/* COMPRAR */}
-              <Link
-                href={`/${corretor.slug}/vendas`}
-                className={`
-      relative transition 
-      ${router.asPath.includes("/vendas") ? "text-[#D4AC3A] font-semibold" : "text-white hover:text-[#D4AC3A]"}
-      after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:bg-[#D4AC3A]
-      after:transition-all after:duration-300
-      ${router.asPath.includes("/vendas") ? "after:w-full" : "after:w-0 hover:after:w-full"}
-    `}
-              >
-                Comprar
-              </Link>
+                <Link
+                  href={`/${slug}/vendas`}
+                  className={`relative transition ${
+                    router.asPath.includes("/vendas")
+                      ? "text-[#D4AC3A] font-semibold"
+                      : "text-white hover:text-[#D4AC3A]"
+                  }`}
+                >
+                  Comprar
+                </Link>
 
-              {/* ALUGAR */}
-              <Link
-                href={`/${corretor.slug}/aluguel`}
-                className={`
-      relative transition 
-      ${router.asPath.includes("/aluguel") ? "text-[#D4AC3A] font-semibold" : "text-white hover:text-[#D4AC3A]"}
-      after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:bg-[#D4AC3A]
-      after:transition-all after:duration-300
-      ${router.asPath.includes("/aluguel") ? "after:w-full" : "after:w-0 hover:after:w-full"}
-    `}
-              >
-                Alugar
-              </Link>
+                <Link
+                  href={`/${slug}/aluguel`}
+                  className={`relative transition ${
+                    router.asPath.includes("/aluguel")
+                      ? "text-[#D4AC3A] font-semibold"
+                      : "text-white hover:text-[#D4AC3A]"
+                  }`}
+                >
+                  Alugar
+                </Link>
 
-              {/* VENDIDOS */}
-              <Link
-                href={`/${corretor.slug}/vendidos`}
-                className={`
-      relative transition 
-      ${router.asPath.includes("/vendidos") ? "text-[#D4AC3A] font-semibold" : "text-white hover:text-[#D4AC3A]"}
-      after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:bg-[#D4AC3A]
-      after:transition-all after:duration-300
-      ${router.asPath.includes("/vendidos") ? "after:w-full" : "after:w-0 hover:after:w-full"}
-    `}
-              >
-                Vendidos
-              </Link>
+                <Link
+                  href={`/${slug}/vendidos`}
+                  className={`relative transition ${
+                    router.asPath.includes("/vendidos")
+                      ? "text-[#D4AC3A] font-semibold"
+                      : "text-white hover:text-[#D4AC3A]"
+                  }`}
+                >
+                  Vendidos
+                </Link>
 
-              {/* PERFIL */}
-              <Link
-                href={`/${corretor.slug}/perfil`}
-                className={`
-      relative transition 
-      ${router.asPath.includes("/perfil") ? "text-[#D4AC3A] font-semibold" : "text-white hover:text-[#D4AC3A]"}
-      after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:bg-[#D4AC3A]
-      after:transition-all after:duration-300
-      ${router.asPath.includes("/perfil") ? "after:w-full" : "after:w-0 hover:after:w-full"}
-    `}
-              >
-                Perfil
-              </Link>
-            </nav>
+                <Link
+                  href={`/${slug}/perfil`}
+                  className={`relative transition ${
+                    router.asPath.includes("/perfil")
+                      ? "text-[#D4AC3A] font-semibold"
+                      : "text-white hover:text-[#D4AC3A]"
+                  }`}
+                >
+                  Perfil
+                </Link>
+
+                <Link
+                  href={`/${slug}/noticias`}
+                  className={`relative transition ${
+                    router.asPath.includes("/noticias")
+                      ? "text-[#D4AC3A] font-semibold"
+                      : "text-white hover:text-[#D4AC3A]"
+                  }`}
+                >
+                  Notícias
+                </Link>
+              </nav>
+            )}
           </div>
         </div>
       </div>
