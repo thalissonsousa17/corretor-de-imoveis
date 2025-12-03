@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
@@ -13,7 +13,6 @@ import {
 } from "@dnd-kit/core";
 
 import { SortableContext, useSortable, arrayMove, rectSortingStrategy } from "@dnd-kit/sortable";
-
 import { CSS } from "@dnd-kit/utilities";
 
 interface Foto {
@@ -88,7 +87,7 @@ function SortableFoto({
           e.stopPropagation();
           onDeleteFoto(foto);
         }}
-        className="absolute top-2 right-2 bg-red-600 text-white rounded-full p-1 hover:bg-red-700 shadow"
+        className="cursor-pointer absolute top-2 right-2 bg-red-600 text-white rounded-full p-1 hover:bg-red-700 shadow"
       >
         <X size={14} />
       </button>
@@ -100,7 +99,7 @@ function SortableFoto({
             e.stopPropagation();
             onSetPrincipal();
           }}
-          className="absolute bottom-2 right-2 bg-white/85 text-[11px] text-gray-800 px-2 py-1 rounded-full hover:bg-white shadow"
+          className="cursor-pointer absolute bottom-2 right-2 bg-white/85 text-[11px] text-gray-800 px-2 py-1 rounded-full hover:bg-white shadow"
         >
           Definir principal
         </button>
@@ -114,6 +113,10 @@ const ModalFotos: React.FC<ModalFotosProps> = ({ fotos, imovelId, onClose, onDel
   const [isSaving, setIsSaving] = useState(false);
   const [feedback, setFeedback] = useState<Feedback>(null);
 
+  useEffect(() => {
+    setLista(fotos);
+  }, [fotos]);
+
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: { distance: 5 },
@@ -122,6 +125,7 @@ const ModalFotos: React.FC<ModalFotosProps> = ({ fotos, imovelId, onClose, onDel
 
   const salvarOrdem = async (novaLista: Foto[]) => {
     if (!imovelId) return;
+
     const payload = novaLista
       .filter((foto): foto is FotoComId => typeof foto.id === "string")
       .map((foto, index) => ({
@@ -169,15 +173,22 @@ const ModalFotos: React.FC<ModalFotosProps> = ({ fotos, imovelId, onClose, onDel
     await salvarOrdem(novaLista);
   };
 
-  // clique em "Definir principal" -> move foto clicada para posição 0
   const handleSetPrincipal = async (foto: Foto) => {
     const indexAtual = lista.findIndex((f) => (f.id || f.url) === (foto.id || foto.url));
-    if (indexAtual <= 0) return; // já é principal ou não achou
+    if (indexAtual <= 0) return;
 
     const novaLista = arrayMove(lista, indexAtual, 0);
     setLista(novaLista);
 
     await salvarOrdem(novaLista);
+  };
+
+  const handleDeleteLocal = (foto: Foto) => {
+    // Remove visualmente do modal
+    setLista((prev) => prev.filter((f) => (f.id || f.url) !== (foto.id || foto.url)));
+
+    // Chama delete real no componente pai
+    onDeleteFoto(foto);
   };
 
   return (
@@ -195,7 +206,7 @@ const ModalFotos: React.FC<ModalFotosProps> = ({ fotos, imovelId, onClose, onDel
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="bg-white rounded-2xl p-6 max-w-4xl w-full shadow-2xl relative"
+          className="bg-white rounded-2xl p-6 max-w-4xl w-full max-h-[90vh] overflow-hidden shadow-2xl relative"
         >
           <button
             type="button"
@@ -242,16 +253,18 @@ const ModalFotos: React.FC<ModalFotosProps> = ({ fotos, imovelId, onClose, onDel
           >
             <SortableContext items={lista.map((f) => f.id || f.url)} strategy={rectSortingStrategy}>
               {lista.length > 0 ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-4">
-                  {lista.map((foto, i) => (
-                    <SortableFoto
-                      key={foto.id || foto.url}
-                      foto={foto}
-                      index={i}
-                      onDeleteFoto={onDeleteFoto}
-                      onSetPrincipal={() => handleSetPrincipal(foto)}
-                    />
-                  ))}
+                <div className="max-h-[60vh] overflow-y-auto pr-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-4">
+                    {lista.map((foto, i) => (
+                      <SortableFoto
+                        key={foto.id || foto.url}
+                        foto={foto}
+                        index={i}
+                        onDeleteFoto={handleDeleteLocal}
+                        onSetPrincipal={() => handleSetPrincipal(foto)}
+                      />
+                    ))}
+                  </div>
                 </div>
               ) : (
                 <div className="border border-dashed border-gray-300 rounded-xl py-10 text-center text-sm text-gray-500">
@@ -270,7 +283,7 @@ const ModalFotos: React.FC<ModalFotosProps> = ({ fotos, imovelId, onClose, onDel
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 text-sm rounded-lg border border-gray-300 text-gray-700 bg-white hover:bg-gray-50"
+                className="cursor-pointer px-4 py-2 text-sm rounded-lg border border-gray-300 text-gray-700 bg-white hover:text-gray-100 hover:bg-gray-700"
               >
                 Fechar
               </button>

@@ -35,9 +35,7 @@ interface ImovelFormularioProps {
 }
 
 const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess }) => {
-  // ----------------------------------------------------------------------------------
   // ESTADOS
-  // ----------------------------------------------------------------------------------
   const isEditMode = !!imovelId;
 
   const [formData, setFormData] = useState<FormState>({
@@ -122,10 +120,10 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
   //Editando aqui
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    console.log("📸 (ImovelFormulario) Recebendo arquivos do filho:", files);
+    console.log(" (ImovelFormulario) Recebendo arquivos do filho:", files);
 
     if (!files || files.length === 0) {
-      console.warn("⚠️ Nenhum arquivo recebido.");
+      console.warn(" Nenhum arquivo recebido.");
       return;
     }
 
@@ -133,7 +131,7 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
     const dataTransfer = new DataTransfer();
     fileArray.forEach((file) => dataTransfer.items.add(file));
 
-    setFotosSelecionadas(files); // <-- salva o FileList original
+    setFotosSelecionadas(files);
   };
 
   // Toggle para marcar/desmarcar foto para remoção
@@ -166,7 +164,7 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
 
     // 2. Adiciona o imovelId (necessário para o upload backend)
     if (imovelId) {
-      console.log("📦 Adicionando imovelId no FormData:", imovelId);
+      console.log(" Adicionando imovelId no FormData:", imovelId);
       data.append("imovelId", imovelId);
     }
 
@@ -175,7 +173,7 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
       const photosToDelete = existingPhotos.filter((f) => f.toBeDeleted).map((f) => f.id);
       if (photosToDelete.length > 0) {
         data.append("fotosRemover", JSON.stringify(photosToDelete));
-        console.log("🗑️ Fotos marcadas para remover:", photosToDelete);
+        console.log(" Fotos marcadas para remover:", photosToDelete);
       }
     }
 
@@ -196,7 +194,7 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
 
     // Debug do que será enviado
     for (const [key, value] of data.entries()) {
-      console.log("🧩 FormData:", key, value);
+      console.log(" FormData:", key, value);
     }
 
     try {
@@ -235,15 +233,19 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
           localizacao: "",
           finalidade: "VENDA",
         });
+
         setFotos(null);
         setFotosSelecionadas(null);
+        setExistingPhotos([]);
       } else {
         const updatedImovel = response.data.imovel || response.data;
+
         setExistingPhotos(
           updatedImovel.fotos
             ? updatedImovel.fotos.map((f: Foto) => ({ ...f, toBeDeleted: false }))
             : []
         );
+
         setFotos(null);
       }
     } catch (error: unknown) {

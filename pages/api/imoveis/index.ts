@@ -9,6 +9,7 @@ import path from "path";
 export const config = {
   api: {
     bodyParser: false,
+    sizeLimit: "100mb",
   },
 };
 
@@ -37,14 +38,17 @@ const handleGet = async (req: AuthApiRequest, res: NextApiResponse) => {
 // POST - Cadastra novo Imóvel
 
 const handlePost = async (req: AuthApiRequest, res: NextApiResponse) => {
-  const corretorId = req.user!.id; // ID do corretor logado
+  const corretorId = req.user!.id;
 
   // Configuração do Formidable para lidar com upload de arquivos
   const form = formidable({
     uploadDir: path.join(process.cwd(), "public", "uploads"),
     keepExtensions: true,
-    maxFiles: 10, // Limite de 10 arquivos
-    maxFileSize: 10 * 1024 * 1024, // 10MB por arquivo
+    maxFiles: 20,
+    maxFileSize: 15 * 1024 * 1024, // 15MB por arquivo
+    maxTotalFileSize: 200 * 1024 * 1024, // 200 no Total
+    allowEmptyFiles: false,
+    multiples: true,
   });
 
   const { fields, files } = await new Promise<{

@@ -28,14 +28,14 @@ const FotosUploader: React.FC<FotosUploaderProps> = ({
   const [fotos, setFotos] = useState<Foto[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
 
-  // Carrega fotos já existentes (edição)
+  const inputRef = React.useRef<HTMLInputElement | null>(null);
+
+  // 📌 Sempre sincroniza fotos existentes ao abrir o formulário ou editar
   useEffect(() => {
-    if (existingPhotos.length > 0) {
-      setFotos(existingPhotos.map((f) => ({ id: f.id, url: f.url })));
-    }
+    setFotos(existingPhotos.map((f) => ({ id: f.id, url: f.url })));
   }, [existingPhotos]);
 
-  // Handle alteração dos arquivos
+  // 📌 Handle alteração dos arquivos
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -57,6 +57,23 @@ const FotosUploader: React.FC<FotosUploaderProps> = ({
     );
   };
 
+  // 📌 Reset TOTAL das fotos após cadastro OU reset manual
+  useEffect(() => {
+    if (fotosExternas === null) {
+      if (!imovelId) {
+        // Cadastro → limpa tudo
+        setFotos([]);
+      } else {
+        // Edição → restaura fotos do banco
+        setFotos(existingPhotos.map((f) => ({ id: f.id, url: f.url })));
+      }
+
+      if (inputRef.current) {
+        inputRef.current.value = "";
+      }
+    }
+  }, [fotosExternas, imovelId, existingPhotos]);
+
   return (
     <div className="border border-gray-300 rounded-xl bg-white mt-6 p-6 text-center shadow-sm">
       <h3 className="text-xl font-semibold text-gray-900 mb-4">Fotos do Imóvel</h3>
@@ -70,7 +87,7 @@ const FotosUploader: React.FC<FotosUploaderProps> = ({
         <Camera className="w-10 h-10 text-blue-500 mb-2 group-hover:scale-110 transition-transform" />
 
         <span className="text-blue-600 text-base font-medium group-hover:underline">
-          Selecionar fotos (máx. 10)
+          Selecionar fotos (máx. 20)
         </span>
 
         <input
@@ -80,6 +97,7 @@ const FotosUploader: React.FC<FotosUploaderProps> = ({
           multiple
           onChange={handleFileChange}
           className="hidden"
+          ref={inputRef}
         />
 
         <p className="text-sm text-gray-600 mt-2">
