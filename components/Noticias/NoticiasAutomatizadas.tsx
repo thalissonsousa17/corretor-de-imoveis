@@ -35,7 +35,12 @@ export default function NoticiasAutomatizadas() {
       <h2 className="text-xl font-bold text-[#1A2A4F]">Últimas notícias sobre financiamento</h2>
 
       {noticias.map((n, i) => (
-        <CardNoticia key={i} titulo={n.titulo} data={n.data} link={n.link} />
+        <CardNoticia
+          key={i}
+          titulo={n.titulo}
+          data={new Date(n.data).toLocaleDateString("pt-BR")}
+          link={n.link}
+        />
       ))}
     </div>
   );
