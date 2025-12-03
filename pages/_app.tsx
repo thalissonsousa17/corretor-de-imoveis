@@ -7,7 +7,7 @@ import { Toaster } from "react-hot-toast";
 
 function MyApp({ Component, pageProps }: AppProps) {
   axios.defaults.withCredentials = true;
-  axios.defaults.baseURL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+  axios.defaults.baseURL = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
 
   return (
     <AuthProvider>
