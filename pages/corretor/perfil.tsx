@@ -37,9 +37,6 @@ export default function PerfilPage() {
 
   const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
-  // =========================================
-  // CARREGAR PERFIL (VERSÃO FINAL)
-  // =========================================
   useEffect(() => {
     const fetchPerfil = async () => {
       try {
@@ -58,10 +55,6 @@ export default function PerfilPage() {
 
     fetchPerfil();
   }, []);
-
-  // =========================================
-  // HANDLERS
-  // =========================================
 
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -169,10 +162,6 @@ export default function PerfilPage() {
     setIsEditing(!isEditing);
   };
 
-  // =========================================
-  // REDES SOCIAIS
-  // =========================================
-
   const socialItems: ReadonlyArray<{
     field: SocialField;
     label: string;
@@ -183,10 +172,6 @@ export default function PerfilPage() {
     { field: "linkedin", label: "LinkedIn", icon: <FiLinkedin className="text-blue-500" /> },
     { field: "whatsapp", label: "WhatsApp", icon: <FiPhone className="text-green-600" /> },
   ];
-
-  // =========================================
-  // RENDER
-  // =========================================
 
   return (
     <CorretorLayout>
