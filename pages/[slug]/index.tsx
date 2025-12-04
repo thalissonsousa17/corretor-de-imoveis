@@ -305,11 +305,6 @@ export default function CorretorHome({ corretor, imoveis, texto }: PageProps) {
 
                   {/* REDES SOCIAIS / CONTATOS */}
                   <div className="mt-10">
-                    {/* <h3 className="text-lg font-semibold text-[#1A2A4F] flex items-center gap-2 mb-4">
-                      <FaGlobeAmericas className="text-blue-500 text-xl" />
-                      Contatos
-                    </h3> */}
-
                     <div className="flex items-center gap-4">
                       {/* EMAIL */}
                       {corretor.email && (
