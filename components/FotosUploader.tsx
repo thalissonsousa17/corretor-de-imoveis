@@ -30,12 +30,16 @@ const FotosUploader: React.FC<FotosUploaderProps> = ({
 
   const inputRef = React.useRef<HTMLInputElement | null>(null);
 
-  // 📌 Sempre sincroniza fotos existentes ao abrir o formulário ou editar
   useEffect(() => {
-    setFotos(existingPhotos.map((f) => ({ id: f.id, url: f.url })));
+    setFotos(
+      existingPhotos.map((f) => {
+        let url = f.url.replace(/\\/g, "/");
+        if (!url.startsWith("/")) url = "/" + url;
+        return { id: f.id, url };
+      })
+    );
   }, [existingPhotos]);
 
-  // 📌 Handle alteração dos arquivos
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -57,20 +61,21 @@ const FotosUploader: React.FC<FotosUploaderProps> = ({
     );
   };
 
-  // 📌 Reset TOTAL das fotos após cadastro OU reset manual
   useEffect(() => {
     if (fotosExternas === null) {
       if (!imovelId) {
-        // Cadastro → limpa tudo
         setFotos([]);
       } else {
-        // Edição → restaura fotos do banco
-        setFotos(existingPhotos.map((f) => ({ id: f.id, url: f.url })));
+        setFotos(
+          existingPhotos.map((f) => {
+            let url = f.url.replace(/\\/g, "/");
+            if (!url.startsWith("/")) url = "/" + url;
+            return { id: f.id, url };
+          })
+        );
       }
 
-      if (inputRef.current) {
-        inputRef.current.value = "";
-      }
+      if (inputRef.current) inputRef.current.value = "";
     }
   }, [fotosExternas, imovelId, existingPhotos]);
 
@@ -78,7 +83,6 @@ const FotosUploader: React.FC<FotosUploaderProps> = ({
     <div className="border border-gray-300 rounded-xl bg-white mt-6 p-6 text-center shadow-sm">
       <h3 className="text-xl font-semibold text-gray-900 mb-4">Fotos do Imóvel</h3>
 
-      {/* Área central */}
       <label
         htmlFor="fotos"
         className="group cursor-pointer flex flex-col items-center justify-center p-6 rounded-xl 

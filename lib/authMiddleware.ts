@@ -53,9 +53,7 @@ export const authorize =
         return res.status(403).json({ error: "Acesso negado." });
       }
 
-      // --------------------------------------------------
-      // 🟢 GARANTE QUE O CORRETOR TEM UM corretorProfile
-      // --------------------------------------------------
+      //  GARANTE QUE O CORRETOR TEM UM corretorProfile
 
       if (req.user.role === "CORRETOR") {
         let perfil = await prisma.corretorProfile.findUnique({
