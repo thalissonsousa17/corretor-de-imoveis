@@ -16,6 +16,7 @@ import "swiper/css/navigation";
 import NoticiasPrincipais from "@/components/Noticias/NoticiasPrincipais";
 import NoticiasCarrossel from "@/components/Noticias/NoticiasCarrossel";
 import NoticiasAutomatizadas from "@/components/Noticias/NoticiasAutomatizadas";
+import { GetBaseUrl } from "@/lib/getBaseUrl";
 
 type Foto = { id: string; url: string };
 type Imovel = {
@@ -57,7 +58,8 @@ export const getServerSideProps = async (
   ctx: GetServerSidePropsContext
 ): Promise<GetServerSidePropsResult<PageProps>> => {
   const slug = ctx.params?.slug as string;
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || `http://${ctx.req.headers.host}`;
+  const baseUrl = GetBaseUrl();
+
   const res = await fetch(`${baseUrl}/api/public/corretor/${slug}`);
 
   if (!res.ok) return { notFound: true };
