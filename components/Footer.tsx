@@ -26,7 +26,7 @@ export default function Footer({
   instagram,
   facebook,
   logoUrl,
-  cidade = "Campina Grande - PB",
+  // cidade = "Campina Grande - PB",
 }: FooterProps) {
   const ano = new Date().getFullYear();
   const wa = whatsapp ? toWaLink(whatsapp) : "";
@@ -34,9 +34,20 @@ export default function Footer({
   return (
     <footer className="bg-[#0D1B3A] text-white pt-16 mt-20 relative">
       <div className="border-t-4 border-[#D4AC3A]"></div>
-      <div className="max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 md:grid-cols-4 gap-10">
+      <div className="max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 md:grid-cols-3 gap-10">
+        {/* 2 — QR Code */}
+        <div className="text-center">
+          <h3 className="text-base font-semibold mb-3">WhatsApp direto</h3>
+
+          <div className="bg-white p-2 rounded-xl w-fit mx-auto shadow">
+            <QRCode value={wa || ""} size={70} />
+          </div>
+
+          <p className="mt-2 text-sm text-gray-300">Aponte a câmera</p>
+        </div>
+
         {/* 1 — Logo + Info */}
-        <div className="space-y-3">
+        <div className="grid grid-cols-1 place-items-center ">
           {logoUrl && <img src={logoUrl} alt={nome} className="h-14 w-auto object-contain" />}
 
           <p className="text-lg font-semibold text-[#D4AC3A]">{nome}</p>
@@ -73,19 +84,8 @@ export default function Footer({
           </div>
         </div>
 
-        {/* 2 — QR Code */}
-        <div className="text-center">
-          <h3 className="text-base font-semibold mb-3">WhatsApp direto</h3>
-
-          <div className="bg-white p-2 rounded-xl w-fit mx-auto shadow">
-            <QRCode value={wa || ""} size={70} />
-          </div>
-
-          <p className="mt-2 text-sm text-gray-300">Aponte a câmera</p>
-        </div>
-
         {/* 3 — Mapa Mini */}
-        <div>
+        {/* <div>
           <h3 className="text-base font-semibold mb-3 flex items-center gap-2">
             <FaMapMarkerAlt /> Atuação
           </h3>
@@ -97,7 +97,7 @@ export default function Footer({
             alt="Mapa"
             className="rounded-lg shadow-md border border-white/10"
           />
-        </div>
+        </div> */}
 
         {/* 4 — Selo */}
         <div>

@@ -194,9 +194,8 @@ export default function PerfilPage() {
         </div>
 
         <div className="max-w-6xl mx-auto space-y-10">
-          {/* =======================================================
-               SEÇÃO PERFIL (avatar + nome + email + botão editar)
-          ========================================================= */}
+          {/* SEÇÃO PERFIL (avatar + nome + email + botão editar) */}
+
           <section className="rounded-2xl bg-white p-8 shadow-md border">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
               {/* FOTO + NOME */}
@@ -259,6 +258,19 @@ export default function PerfilPage() {
                   ) : (
                     <p className="text-gray-600 text-sm">{perfil.email}</p>
                   )}
+
+                  {isEditing ? (
+                    <input
+                      id="creci"
+                      type="text"
+                      name="creci"
+                      value={perfil.creci || ""}
+                      onChange={handleChange}
+                      className="border rounded-md px-3 text-sm w-64 focus:ring-2 focus:ring-[#2563EB]"
+                    />
+                  ) : (
+                    <p className="text-gray-600 text-sm">{perfil.creci}</p>
+                  )}
                 </div>
               </div>
 
@@ -277,9 +289,7 @@ export default function PerfilPage() {
             </div>
           </section>
 
-          {/* =======================================================
-                BIOGRAFIA + BANNER
-          ========================================================= */}
+          {/* BIOGRAFIA + BANNER */}
           <section className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* BIO */}
             <div className="rounded-2xl bg-white p-6 shadow-sm border hover:shadow-md transition">
@@ -335,9 +345,7 @@ export default function PerfilPage() {
             </div>
           </section>
 
-          {/* =======================================================
-              REDES SOCIAIS + LOGO
-          ========================================================= */}
+          {/* REDES SOCIAIS + LOGO */}
           <section className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* REDES */}
             <div className="rounded-2xl bg-white p-6 shadow-sm border hover:shadow-md transition">
@@ -406,9 +414,7 @@ export default function PerfilPage() {
             </div>
           </section>
 
-          {/* =======================================================
-                SLUG
-          ========================================================= */}
+          {/* SLUG */}
           <section className="rounded-2xl bg-white p-8 shadow-md border text-[#1A2A4F]">
             <h3 className="text-lg font-semibold mb-3">🔗 Endereço da Página (Slug)</h3>
 
@@ -434,9 +440,7 @@ export default function PerfilPage() {
             )}
           </section>
 
-          {/* =======================================================
-               ALTERAR SENHA
-          ========================================================= */}
+          {/*   ALTERAR SENHA */}
           <section className="rounded-2xl bg-white p-8 shadow-md border text-[#1A2A4F]">
             <h3 className="text-lg font-semibold mb-4">🔒 Alterar Senha</h3>
 

@@ -119,24 +119,33 @@ export default function PerfilProfissional({ corretor, todos }: Props) {
             {/* SEÇÃO DE TEXTO */}
             <div className="flex flex-col justify-start mt-4">
               {/* NOME */}
-              <h1 className="text-5xl font-extrabold text-gray-900 tracking-tight uppercase leading-tight">
+              <h1 className="text-5xl font-extrabold font-sans text-gray-900 tracking-tight uppercase leading-tight">
                 {corretor.name}
               </h1>
 
               {/* PROFISSÃO */}
-              <p className="mt-2 text-lg font-semibold text-gray-700 tracking-wide">
-                REALTOR ASSOCIATE
+              <p className="mt-2 text-lg font-semibold text-gray-700 tracking-wide font-sans">
+                CORRETOR IMÓVEIS
               </p>
 
+              {/* CRECI */}
+              <p className="mt-3 text-gray-700 font-medium">
+                <span className="font-semibold text-lg mt-2 tracking-wide text-gray-700">
+                  Creci {corretor.creci}
+                </span>
+              </p>
               {/* E-MAIL */}
-              {corretor.email && <p className="mt-3 text-gray-700 font-medium">{corretor.email}</p>}
-
-              {/* TELEFONE */}
-              {corretor.whatsapp && (
-                <p className="text-gray-700 font-medium">+55 {corretor.whatsapp}</p>
+              {corretor.email && (
+                <p className="mt-3 text-gray-700 font-medium text-lg font-sans">{corretor.email}</p>
               )}
 
+              {/* TELEFONE */}
+              {/* {corretor.whatsapp && (
+                <p className="text-gray-700 font-medium">+55 {corretor.whatsapp}</p>
+              )} */}
+
               {/* REDES SOCIAIS */}
+
               <div className="flex items-center gap-6 mt-6 text-3xl">
                 {instagramUrl && (
                   <a
@@ -184,9 +193,11 @@ export default function PerfilProfissional({ corretor, todos }: Props) {
               </div>
 
               {/* BIOGRAFIA */}
-              <div className="mt-10 text-lg leading-relaxed text-gray-800 max-w-2xl whitespace-pre-line">
+              <div className="mt-10 text-lg leading-relaxed text-gray-800 max-w-2xl whitespace-pre-line font-sans">
                 {corretor.biografia || "Biografia não preenchida."}
               </div>
+
+              <div></div>
             </div>
           </div>
         </div>

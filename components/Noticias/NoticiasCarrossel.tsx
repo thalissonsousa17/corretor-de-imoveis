@@ -45,7 +45,7 @@ export default function NoticiasCarrossel() {
   if (loading || noticias.length === 0) return null;
 
   return (
-    <section className="mt-12">
+    <section className="mt-12 bg-white border rounded-2xl shadow-2xl">
       <h2 className="text-xl font-bold  text-[#1A2A4F] mb-4">Mais notícias sobre financiamento</h2>
 
       {/* CARROSSEL ANIMADO */}
@@ -64,7 +64,7 @@ export default function NoticiasCarrossel() {
         className="pb-4"
       >
         {noticias.map((n, i) => (
-          <SwiperSlide key={i} className="flex justify-center">
+          <SwiperSlide key={i} className="flex justify-center ">
             <div className="min-w-[280px] max-w-[280px] ">
               <CardNoticia {...n} data={new Date(n.data).toLocaleDateString("pt-BR")} />
             </div>
@@ -74,7 +74,10 @@ export default function NoticiasCarrossel() {
 
       {/* Botão Ver Mais */}
       <div className="text-right mt-4">
-        <Link href={`/${slug}/noticias`} className="font-semibold text-[#1A2A4F] hover:underline">
+        <Link
+          href={`/${slug}/noticias`}
+          className="font-semibold p-5 text-[#1A2A4F] hover:underline"
+        >
           Ver mais →
         </Link>
       </div>

@@ -20,12 +20,17 @@ type Imovel = {
 export default function CarrosselDestaques({ imoveis }: { imoveis: Imovel[] }) {
   if (!imoveis || imoveis.length === 0) return null;
 
+  // 🧹 REMOVE IMÓVEIS VENDIDOS
+  const destaques = imoveis.filter((i) => i.status !== "VENDIDO");
+
+  if (destaques.length === 0) return null;
+
   return (
     <section className="bg-white py-16">
       <h2 className="text-center text-3xl font-bold text-[#1A2A4F] mb-10">Destaques para você</h2>
 
       <div className="max-w-7xl mx-auto px-4 relative">
-        {/* Botão esquerdo */}
+        {/* BOTÃO ESQUERDO */}
         <button
           id="btn-prev"
           className="absolute left-0 top-1/2 -translate-y-1/2 z-20
@@ -35,7 +40,7 @@ export default function CarrosselDestaques({ imoveis }: { imoveis: Imovel[] }) {
           ‹
         </button>
 
-        {/* Botão direito */}
+        {/* BOTÃO DIREITO */}
         <button
           id="btn-next"
           className="absolute right-0 top-1/2 -translate-y-1/2 z-20
@@ -47,10 +52,7 @@ export default function CarrosselDestaques({ imoveis }: { imoveis: Imovel[] }) {
 
         <Swiper
           modules={[Autoplay, Navigation]}
-          navigation={{
-            prevEl: "#btn-prev",
-            nextEl: "#btn-next",
-          }}
+          navigation={{ prevEl: "#btn-prev", nextEl: "#btn-next" }}
           autoplay={{ delay: 2200, disableOnInteraction: false }}
           loop={true}
           grabCursor={true}
@@ -63,12 +65,12 @@ export default function CarrosselDestaques({ imoveis }: { imoveis: Imovel[] }) {
           }}
           className="pb-8"
         >
-          {imoveis.slice(0, 12).map((imovel) => {
+          {destaques.slice(0, 12).map((imovel) => {
             const capa = imovel.fotos?.[0]?.url;
 
             return (
               <SwiperSlide key={imovel.id} className="group">
-                <div className="relative rounded-2xl overflow-hidden shadow-xl transition-all duration-300 group-hover:scale-105">
+                <div className=" relative rounded-2xl overflow-hidden shadow-xl transition-all duration-300 group-hover:scale-105">
                   {capa && (
                     <img src={capa} alt={imovel.titulo} className="w-full h-60 object-cover" />
                   )}
@@ -79,9 +81,11 @@ export default function CarrosselDestaques({ imoveis }: { imoveis: Imovel[] }) {
                     <h3 className="font-bold text-lg drop-shadow-sm line-clamp-1">
                       {imovel.titulo}
                     </h3>
+
                     <p className="text-sm opacity-90 line-clamp-1">
                       {imovel.cidade} - {imovel.estado}
                     </p>
+
                     <p className="text-yellow-400 font-bold mt-1 text-[15px]">
                       {Number(imovel.preco).toLocaleString("pt-BR", {
                         style: "currency",
@@ -90,21 +94,16 @@ export default function CarrosselDestaques({ imoveis }: { imoveis: Imovel[] }) {
                     </p>
                   </div>
 
+                  {/* BADGE */}
                   <span
                     className={`absolute top-3 left-3 px-3 py-1 text-xs font-bold rounded-full
                       ${
-                        imovel.status === "VENDIDO"
-                          ? "bg-red-500 text-white"
-                          : imovel.finalidade === "VENDA"
-                            ? "bg-green-500 text-white"
-                            : "bg-blue-500 text-white"
+                        imovel.finalidade === "VENDA"
+                          ? "bg-green-600 text-white"
+                          : "bg-blue-600 text-white"
                       }`}
                   >
-                    {imovel.status === "VENDIDO"
-                      ? "VENDIDO"
-                      : imovel.finalidade === "VENDA"
-                        ? "À VENDA"
-                        : "ALUGUEL"}
+                    {imovel.finalidade === "VENDA" ? "À VENDA" : "ALUGUEL"}
                   </span>
                 </div>
               </SwiperSlide>

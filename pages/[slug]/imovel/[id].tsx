@@ -6,6 +6,8 @@ import DOMPurify from "isomorphic-dompurify";
 import LayoutCorretor from "@/components/LayoutCorretor";
 import type { CorretorProps } from "@/components/LayoutCorretor";
 import { useRouter } from "next/router";
+import CarrosselDestaques from "@/components/CarrosselDestaques";
+import NoticiasCarrossel from "@/components/Noticias/NoticiasCarrossel";
 
 type Foto = { id: string; url: string };
 type Imovel = {
@@ -25,22 +27,37 @@ type Imovel = {
   fotos: Foto[];
 };
 
-type Props = { imovel: Imovel; corretor: CorretorProps; slug: string };
-
+type Props = {
+  imovel: Imovel;
+  corretor: CorretorProps;
+  slug: string;
+  imoveis: Imovel[];
+};
 export const getServerSideProps: GetServerSideProps<Props> = async (ctx) => {
   const slug = ctx.params?.slug as string;
   const id = ctx.params?.id as string;
+
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || `http://${ctx.req.headers.host}`;
-  const res = await fetch(`${baseUrl}/api/public/imovel/${id}`);
 
-  if (!res.ok) return { notFound: true };
+  // 1) Busca o imóvel atual
+  const resImovel = await fetch(`${baseUrl}/api/public/imovel/${id}`);
+  if (!resImovel.ok) return { notFound: true };
+  const dataImovel = await resImovel.json();
 
-  const data = await res.json();
+  const resCorretor = await fetch(`${baseUrl}/api/public/corretor/${slug}`);
+  const dataCorretor = await resCorretor.json();
 
-  return { props: { imovel: data.imovel, corretor: data.corretor, slug } };
+  return {
+    props: {
+      imovel: dataImovel.imovel,
+      corretor: dataCorretor.corretor,
+      slug,
+      imoveis: dataCorretor.imoveis,
+    },
+  };
 };
 
-export default function ImovelDetalhe({ imovel, corretor, slug }: Props) {
+export default function ImovelDetalhe({ imovel, corretor, slug, imoveis }: Props) {
   const [open, setOpen] = useState(false);
   const [idx, setIdx] = useState(0);
   const router = useRouter();
@@ -89,11 +106,17 @@ export default function ImovelDetalhe({ imovel, corretor, slug }: Props) {
               </div>
 
               <aside className="bg-[#1A2A4F] border border-gray-200 rounded-3xl shadow-sm p-6 w-full max-w-sm">
-                <p className="text-2xl font-bold text-[#D4AC3A] mb-1">
-                  {Number(imovel.preco).toLocaleString("pt-BR", {
-                    style: "currency",
-                    currency: "BRL",
-                  })}
+                <p
+                  className={`text-2xl font-bold mb-1
+                      ${imovel.status === "VENDIDO" ? "text-white bg-red-600 px-3 py-1 rounded-lg inline-block" : "text-[#D4AC3A]"}
+                    `}
+                >
+                  {imovel.status === "VENDIDO"
+                    ? "VENDIDO"
+                    : Number(imovel.preco).toLocaleString("pt-BR", {
+                        style: "currency",
+                        currency: "BRL",
+                      })}
                 </p>
 
                 <p className="text-[#D4AC3A] font-medium">
@@ -251,6 +274,10 @@ export default function ImovelDetalhe({ imovel, corretor, slug }: Props) {
               </button>
             </div>
           )}
+          <div className="bg-white left-4 border p-10 text-center rounded-2xl">
+            <CarrosselDestaques imoveis={imoveis} />
+            <NoticiasCarrossel />
+          </div>
         </>
       </div>
     </LayoutCorretor>

@@ -1,12 +1,31 @@
 import type { GetServerSideProps } from "next";
 import Head from "next/head";
 import LayoutCorretor from "@/components/LayoutCorretor";
+import CarrosselDestaques from "@/components/CarrosselDestaques";
 
 type Noticia = {
   titulo: string;
   resumo: string;
   link: string;
   data?: string;
+};
+
+type Foto = {
+  id: string;
+  url: string;
+};
+
+type Imovel = {
+  id: string;
+  titulo: string;
+  descricao: string;
+  preco: number;
+  cidade: string;
+  estado: string;
+  tipo: string;
+  finalidade: "VENDA" | "ALUGUEL";
+  status: "DISPONIVEL" | "VENDIDO" | "ALUGADO" | "INATIVO";
+  fotos: Foto[];
 };
 
 type Corretor = {
@@ -27,31 +46,30 @@ type Corretor = {
 interface Props {
   corretor: Corretor;
   noticias: Noticia[];
+  imoveis: Imovel[];
 }
 
 export const getServerSideProps: GetServerSideProps<Props> = async (ctx) => {
   const slug = ctx.params?.slug as string;
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || `http://${ctx.req.headers.host}`;
 
-  const [corretorRes, noticiasRes] = await Promise.all([
-    fetch(`${baseUrl}/api/public/corretor/${slug}`),
-    fetch(`${baseUrl}/api/noticias-externas`),
-  ]);
-
+  const corretorRes = await fetch(`${baseUrl}/api/public/corretor/${slug}`);
   if (!corretorRes.ok) return { notFound: true };
-
   const corretorJson = await corretorRes.json();
-  const noticiasJson = noticiasRes.ok ? await noticiasRes.json() : { noticias: [] };
+
+  const noticiasRes = await fetch(`${baseUrl}/api/noticias-externas`);
+  const noticiasJson = noticiasRes.ok ? await noticiasRes.json() : [];
 
   return {
     props: {
       corretor: corretorJson.corretor,
       noticias: Array.isArray(noticiasJson) ? noticiasJson : [],
+      imoveis: (corretorJson.imoveis ?? []) as Imovel[],
     },
   };
 };
 
-export default function NoticiasPage({ corretor, noticias }: Props) {
+export default function NoticiasPage({ corretor, noticias, imoveis }: Props) {
   return (
     <LayoutCorretor corretor={corretor}>
       <Head>
@@ -79,7 +97,6 @@ export default function NoticiasPage({ corretor, noticias }: Props) {
                 <div className="p-5 flex flex-col justify-between h-56">
                   <div>
                     <h2 className="font-bold text-lg text-gray-900 line-clamp-2">{n.titulo}</h2>
-
                     <p className="text-gray-600 text-sm mt-2 line-clamp-4">{n.resumo}</p>
                   </div>
 
@@ -94,6 +111,12 @@ export default function NoticiasPage({ corretor, noticias }: Props) {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {imoveis.length > 0 && (
+          <div className="mt-20">
+            <CarrosselDestaques imoveis={imoveis} />
           </div>
         )}
       </main>

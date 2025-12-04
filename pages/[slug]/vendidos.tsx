@@ -122,10 +122,14 @@ export default function Vendas({ slug, imoveis, corretor, todos }: Props) {
                       <div>
                         <p className="font-semibold text-gray-700">Preço</p>
                         <p className="text-gray-600">
-                          {Number(i.preco).toLocaleString("pt-BR", {
-                            style: "currency",
-                            currency: "BRL",
-                          })}
+                          {i.status === "VENDIDO" || i.status === "ALUGADO"
+                            ? i.status === "VENDIDO"
+                              ? "Vendido"
+                              : "Alugado"
+                            : Number(i.preco).toLocaleString("pt-BR", {
+                                style: "currency",
+                                currency: "BRL",
+                              })}
                         </p>
                       </div>
                     </div>

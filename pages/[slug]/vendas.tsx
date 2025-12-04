@@ -111,14 +111,14 @@ export default function Vendas({ slug, imoveis, corretor, todos }: Props) {
                     {/* Badge */}
                     <span
                       className={`absolute top-3 left-3 text-xs font-bold px-3 py-1 rounded-full shadow
-        ${
-          i.status === "VENDIDO"
-            ? "bg-red-600 text-white"
-            : i.finalidade === "VENDA"
-              ? "bg-green-600 text-white"
-              : "bg-blue-600 text-white"
-        }
-      `}
+                      ${
+                        i.status === "VENDIDO"
+                          ? "bg-red-600 text-white"
+                          : i.finalidade === "VENDA"
+                            ? "bg-green-600 text-white"
+                            : "bg-blue-600 text-white"
+                      }
+                    `}
                     >
                       {i.status === "VENDIDO"
                         ? "VENDIDO"
@@ -154,13 +154,17 @@ export default function Vendas({ slug, imoveis, corretor, todos }: Props) {
                       </div>
 
                       <div>
-                        <p className="font-semibold text-gray-700">Preço</p>
-                        <p className="text-gray-600">
-                          {Number(i.preco).toLocaleString("pt-BR", {
-                            style: "currency",
-                            currency: "BRL",
-                          })}
-                        </p>
+                        <div>
+                          <p className="font-semibold text-gray-700">Preço</p>
+                          <p className="text-gray-600">
+                            {i.status === "VENDIDO"
+                              ? "Vendido"
+                              : Number(i.preco).toLocaleString("pt-BR", {
+                                  style: "currency",
+                                  currency: "BRL",
+                                })}
+                          </p>
+                        </div>
                       </div>
                     </div>
 
