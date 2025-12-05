@@ -63,7 +63,6 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
         },
       });
 
-      // 1) Se NÃO existir perfil
       if (!perfil) {
         const user = await prisma.user.findUnique({
           where: { id: userId },
@@ -81,7 +80,6 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
         });
       }
 
-      // 2) Detecta se É assinatura manual
       const assinaturaManual = perfil.plano !== "GRATUITO" && !perfil.stripeSubscriptionId;
 
       return res.status(200).json({
@@ -96,7 +94,6 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
 
         stripeCustomerId: assinaturaManual ? null : (perfil.user.stripeCustomerId ?? null),
 
-        // Dados gerais do perfil
         creci: perfil.creci,
         slug: perfil.slug,
         biografia: perfil.biografia,
@@ -140,7 +137,6 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
     console.log("Logo:", req.files?.logo?.[0]?.filename);
     console.log("=========================");
 
-    // 🔹 Normaliza body (garante strings)
     if (typeof req.body === "object" && req.body !== null) {
       for (const key of Object.keys(req.body)) {
         const value = req.body[key as keyof typeof req.body];

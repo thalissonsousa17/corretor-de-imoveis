@@ -1,4 +1,3 @@
-// components/ImovelListagemCorretor.tsx
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Imovel } from "@/types/Imovel";
@@ -42,7 +41,6 @@ const ImovelListagemCorretor: React.FC<ImovelListagemCorretorProps> = () => {
     }
   };
 
-  //  Função principal de carregamento
   const fetchImoveis = async () => {
     setLoading(true);
     setError("");
@@ -60,7 +58,6 @@ const ImovelListagemCorretor: React.FC<ImovelListagemCorretorProps> = () => {
     fetchImoveis();
   }, []);
 
-  //  Filtro por texto
   const imoveisFiltradosPorBusca = imoveis.filter((imovel) =>
     imovel.titulo.toLowerCase().includes(search.toLowerCase())
   );

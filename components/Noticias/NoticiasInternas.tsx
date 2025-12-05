@@ -1,5 +1,3 @@
-// components/Noticias/NoticiasInternas.tsx
-
 import CardNoticia from "./CardNoticia";
 import Link from "next/link";
 

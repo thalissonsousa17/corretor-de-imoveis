@@ -88,7 +88,6 @@ export default function Aluguel({ slug, imoveis, corretor, todos }: Props) {
       group-hover:scale-105 transition-transform duration-500"
                     />
 
-                    {/* BADGE FIXO PARA ALUGUEL */}
                     <span className="absolute top-2 left-2 bg-blue-600 text-white text-xs font-semibold px-3 py-1 rounded-full shadow">
                       ALUGAR
                     </span>
@@ -101,7 +100,7 @@ export default function Aluguel({ slug, imoveis, corretor, todos }: Props) {
                       {i.titulo}
                     </h3>
 
-                    {/* QUADRO DE DETALHES (IGUAL AO DA HOME) */}
+                    {/* QUADRO DE DETALHES*/}
                     <div className="grid grid-cols-2 gap-3 text-sm bg-gray-50 rounded-xl p-3 border border-gray-100">
                       <div>
                         <p className="font-semibold text-gray-700">Tipo</p>

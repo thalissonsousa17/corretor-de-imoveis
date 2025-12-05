@@ -168,9 +168,6 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse): Promise<voi
   }
 };
 
-//
-// 🔥 GET — Buscar imóvel por ID
-//
 const handleGetById = async (req: AuthApiRequest, res: NextApiResponse): Promise<void> => {
   const { id } = req.query;
 
@@ -235,7 +232,6 @@ const handlePatch = async (req: AuthApiRequest, res: NextApiResponse) => {
     return res.status(400).json({ message: "ID inválido." });
   }
 
-  // 1) Validar o status recebido
   if (!status || !["DISPONIVEL", "VENDIDO", "ALUGADO", "INATIVO"].includes(status)) {
     return res.status(400).json({ message: "Status inválido." });
   }

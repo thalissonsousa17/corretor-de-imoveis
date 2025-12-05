@@ -28,7 +28,6 @@ export default authorize(async (req: AuthApiRequest, res: NextApiResponse) => {
 
     const userId = req.user.id;
 
-    // 1) Buscar perfil do corretor
     const profile = await prisma.corretorProfile.findUnique({
       where: { userId },
     });
@@ -37,7 +36,6 @@ export default authorize(async (req: AuthApiRequest, res: NextApiResponse) => {
       return res.status(404).json({ error: "Perfil de corretor não encontrado." });
     }
 
-    // 2) Garantir stripeCustomerId (no profile e no user)
     let stripeCustomerId = profile.stripeCustomerId;
 
     if (!stripeCustomerId) {
@@ -45,7 +43,6 @@ export default authorize(async (req: AuthApiRequest, res: NextApiResponse) => {
         where: { id: userId },
       });
 
-      // se já tiver no User, reutiliza
       if (user?.stripeCustomerId) {
         stripeCustomerId = user.stripeCustomerId;
       } else {
@@ -71,7 +68,6 @@ export default authorize(async (req: AuthApiRequest, res: NextApiResponse) => {
       }
     }
 
-    // 3) Criar sessão de checkout
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       customer: stripeCustomerId,

@@ -20,7 +20,6 @@ type Imovel = {
 export default function CarrosselDestaques({ imoveis }: { imoveis: Imovel[] }) {
   if (!imoveis || imoveis.length === 0) return null;
 
-  // 🧹 REMOVE IMÓVEIS VENDIDOS
   const destaques = imoveis.filter((i) => i.status !== "VENDIDO");
 
   if (destaques.length === 0) return null;

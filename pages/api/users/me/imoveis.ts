@@ -1,14 +1,8 @@
-// pages/api/users/me/imoveis.ts
-
 import { NextApiResponse } from "next";
-// Ajuste o caminho para o seu arquivo prisma.ts se for diferente
 import { prisma } from "../../../../lib/prisma";
-// Ajuste o caminho para o seu arquivo authMiddleware.ts se for diferente
 import { AuthApiRequest, authorize } from "../../../../lib/authMiddleware";
 
-// Handler para buscar SOMENTE os imóveis do corretor logado
 const handleGetCorretorImoveis = async (req: AuthApiRequest, res: NextApiResponse) => {
-  // req.user! é garantido pelo authorize('CORRETOR')
   const corretorId = req.user!.id;
 
   try {
@@ -25,10 +19,8 @@ const handleGetCorretorImoveis = async (req: AuthApiRequest, res: NextApiRespons
   }
 };
 
-// Função principal que roteia a requisição
 export default function handler(req: AuthApiRequest, res: NextApiResponse) {
   if (req.method === "GET") {
-    // Protege a rota: só pode acessar quem for CORRETOR
     return authorize(handleGetCorretorImoveis, "CORRETOR")(req, res);
   }
 

@@ -6,8 +6,6 @@ import HeaderCorretor from "@/components/Header";
 import DOMPurify from "isomorphic-dompurify";
 import type { GetServerSidePropsContext, GetServerSidePropsResult } from "next";
 import LayoutCorretor from "@/components/LayoutCorretor";
-import { Swiper, SwiperSlide } from "swiper/react";
-import { Autoplay, Navigation } from "swiper/modules";
 import { FaWhatsapp, FaInstagram, FaFacebook, FaGlobeAmericas } from "react-icons/fa";
 import { MdEmail } from "react-icons/md";
 import "swiper/css";
@@ -15,7 +13,6 @@ import "swiper/css/navigation";
 
 import NoticiasPrincipais from "@/components/Noticias/NoticiasPrincipais";
 import NoticiasCarrossel from "@/components/Noticias/NoticiasCarrossel";
-import NoticiasAutomatizadas from "@/components/Noticias/NoticiasAutomatizadas";
 import { GetBaseUrl } from "@/lib/getBaseUrl";
 import CarrosselDestaques from "@/components/CarrosselDestaques";
 
@@ -162,19 +159,12 @@ export default function CorretorHome({ corretor, imoveis }: PageProps) {
           <div>
             <section id="imoveis" className="bg-white py-16">
               <div className="max-w-6xl mx-auto px-4">
-                {/* <h2 className="flex items-center justify-center  text-3xl font-semibold text-gray-900 mb-6">
-                  Imóveis em destaque
-                </h2> */}
                 <div className="text-center mb-10">
                   <h2 className="text-3xl md:text-4xl font-bold text-[#1A2A4F]">
                     Imóveis em Destaque
-                    {/* <span className="text-[#D4AC3A]">Destaque</span> */}
                   </h2>
                   <div className="w-20 h-1 bg-[#1A2A4F] mx-auto mt-3 rounded-full"></div>
                 </div>
-                {/* <h2 className="text-center text-3xl md:text-4xl font-bold text-[#1A2A4F] mb-10 tracking-tight">
-                  Imóveis <span className="text-[#D4AC3A]">em Destaque</span>
-                </h2> */}
 
                 {/* Listagem de cards */}
                 <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -220,7 +210,7 @@ export default function CorretorHome({ corretor, imoveis }: PageProps) {
                             {imovel.titulo}
                           </h3>
 
-                          {/* Rodapé estilo "Winter Garden" */}
+                          {/* Rodapé estilo */}
                           <div className="grid grid-cols-2 gap-3 text-sm bg-gray-50 rounded-xl p-3 border border-gray-100">
                             <div>
                               <p className="font-semibold text-gray-700">Tipo</p>

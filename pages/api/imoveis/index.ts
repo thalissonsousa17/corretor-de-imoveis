@@ -13,8 +13,6 @@ export const config = {
   },
 };
 
-// GET - Lista todos os Imóveis do corretor logado
-
 const handleGet = async (req: AuthApiRequest, res: NextApiResponse) => {
   try {
     const corretorId = req.user?.id;
@@ -35,12 +33,9 @@ const handleGet = async (req: AuthApiRequest, res: NextApiResponse) => {
   }
 };
 
-// POST - Cadastra novo Imóvel
-
 const handlePost = async (req: AuthApiRequest, res: NextApiResponse) => {
   const corretorId = req.user!.id;
 
-  // Configuração do Formidable para lidar com upload de arquivos
   const form = formidable({
     uploadDir: path.join(process.cwd(), "public", "uploads"),
     keepExtensions: true,

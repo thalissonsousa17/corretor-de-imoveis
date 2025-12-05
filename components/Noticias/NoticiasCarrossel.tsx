@@ -2,8 +2,6 @@ import { useEffect, useState } from "react";
 import CardNoticia from "./CardNoticia";
 import Link from "next/link";
 import { useRouter } from "next/router";
-
-// Swiper
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay } from "swiper/modules";
 import "swiper/css";

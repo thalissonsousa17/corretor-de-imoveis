@@ -29,7 +29,6 @@ export const getServerSideProps: GetServerSideProps<Props> = async (ctx) => {
   const slug = ctx.params?.slug as string;
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || `http://${ctx.req.headers.host}`;
 
-  // Pegamos os dados do corretor e os imóveis
   const [topoRes, vendasRes, todosRes] = await Promise.all([
     fetch(`${baseUrl}/api/public/corretor/${slug}`),
     fetch(`${baseUrl}/api/public/corretor/${slug}/vendas`),
@@ -75,7 +74,6 @@ export default function Vendas({ slug, imoveis, corretor, todos }: Props) {
             {imoveis.map((i) => {
               const capa = i.fotos?.[0]?.url;
 
-              // BADGE LABEL
               const badgeLabel =
                 i.status === "VENDIDO"
                   ? "VENDIDO"
@@ -134,7 +132,7 @@ export default function Vendas({ slug, imoveis, corretor, todos }: Props) {
                       {i.titulo}
                     </h3>
 
-                    {/* Rodapé tipo "Winter Garden" */}
+                    {/* Rodapé tipo  */}
                     <div className="grid grid-cols-2 gap-3 text-sm bg-gray-50 rounded-xl p-3 border border-gray-100">
                       <div>
                         <p className="font-semibold text-gray-700">Tipo</p>

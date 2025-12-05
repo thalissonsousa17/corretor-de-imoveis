@@ -9,7 +9,6 @@ import {
   RiWhatsappLine,
 } from "react-icons/ri";
 
-// Tipagem do corretor
 type Corretor = {
   name: string;
   email?: string;
@@ -43,7 +42,6 @@ interface Props {
   todos: ImovelCompleto[];
 }
 
-// Função que monta corretamente a URL da rede social
 function buildSocialUrl(
   username?: string | null,
   type?: "instagram" | "linkedin" | "facebook" | "whatsapp"
@@ -64,7 +62,6 @@ function buildSocialUrl(
   }
 }
 
-// Server side (busca API pública)
 export const getServerSideProps: GetServerSideProps<Props> = async (ctx) => {
   const slug = ctx.params?.slug as string;
 
@@ -138,11 +135,6 @@ export default function PerfilProfissional({ corretor, todos }: Props) {
               {corretor.email && (
                 <p className="mt-3 text-gray-700 font-medium text-lg font-sans">{corretor.email}</p>
               )}
-
-              {/* TELEFONE */}
-              {/* {corretor.whatsapp && (
-                <p className="text-gray-700 font-medium">+55 {corretor.whatsapp}</p>
-              )} */}
 
               {/* REDES SOCIAIS */}
 

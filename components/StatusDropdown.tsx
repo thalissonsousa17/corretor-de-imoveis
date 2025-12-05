@@ -21,13 +21,11 @@ export default function StatusDropdown({
   const [loading, setLoading] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Opções dinâmicas baseadas na finalidade
   const statusOptions: Status[] =
     finalidade === "ALUGUEL"
       ? ["DISPONIVEL", "ALUGADO", "INATIVO"]
       : ["DISPONIVEL", "VENDIDO", "INATIVO"];
 
-  // Cores por status
   const getStatusColor = (status: Status): string => {
     switch (status) {
       case "DISPONIVEL":
@@ -43,7 +41,6 @@ export default function StatusDropdown({
     }
   };
 
-  // Fecha o dropdown ao clicar fora
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -54,7 +51,6 @@ export default function StatusDropdown({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Atualiza o status no backend
   const handleUpdate = async (newStatus: Status) => {
     if (loading || newStatus === currentStatus) return;
     setLoading(true);
@@ -73,7 +69,6 @@ export default function StatusDropdown({
 
   return (
     <div ref={dropdownRef} className="relative inline-block text-left">
-      {/* Botão que mostra o status atual */}
       <button
         onClick={() => setIsOpen((prev) => !prev)}
         disabled={loading}
@@ -82,7 +77,7 @@ export default function StatusDropdown({
         {loading ? "Atualizando..." : currentStatus}
       </button>
 
-      {/* Menu dropdown */}
+      {/* Menu  */}
       {isOpen && (
         <div className="absolute right-0 bottom-full mb-2 text-gray-700 w-40 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-20">
           {statusOptions.map((status) => (

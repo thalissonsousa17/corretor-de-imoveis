@@ -19,7 +19,6 @@ export default authorize(async (req: AuthApiRequest, res: NextApiResponse) => {
       return res.status(401).json({ error: "Usuário não autenticado." });
     }
 
-    // Buscar o user + profile
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
@@ -37,7 +36,6 @@ export default authorize(async (req: AuthApiRequest, res: NextApiResponse) => {
       });
     }
 
-    // Criar sessão do portal
     const portalSession = await stripe.billingPortal.sessions.create({
       customer: user.stripeCustomerId,
       return_url: `${process.env.NEXT_PUBLIC_BASE_URL}/corretor/assinatura`,

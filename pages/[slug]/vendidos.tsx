@@ -29,7 +29,6 @@ export const getServerSideProps: GetServerSideProps<Props> = async (ctx) => {
   const slug = ctx.params?.slug as string;
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || `http://${ctx.req.headers.host}`;
 
-  // Pegamos os dados do corretor e os imóveis
   const [topoRes, vendidosRes, todosRes] = await Promise.all([
     fetch(`${baseUrl}/api/public/corretor/${slug}`),
     fetch(`${baseUrl}/api/public/corretor/${slug}?filtro=vendido`),
@@ -57,7 +56,6 @@ export default function Vendas({ slug, imoveis, corretor, todos }: Props) {
   const router = useRouter();
   return (
     <LayoutCorretor corretor={corretor}>
-      {/* Listagem de imóveis */}
       <main className="flex-1 w-full max-w-8xl mx-auto px-4 py-12">
         <div className="flex items-center justify-end mb-6 mt-4 gap-4">
           <button
@@ -88,7 +86,7 @@ export default function Vendas({ slug, imoveis, corretor, todos }: Props) {
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                     />
 
-                    {/* BADGE — VENDIDO */}
+                    {/*  VENDIDO */}
                     <span className="absolute top-3 left-3 bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow">
                       VENDIDO
                     </span>
@@ -100,7 +98,7 @@ export default function Vendas({ slug, imoveis, corretor, todos }: Props) {
                       {i.titulo}
                     </h3>
 
-                    {/* RODAPÉ (Winter Garden Style) */}
+                    {/* RODAPÉ  */}
                     <div className="grid grid-cols-2 gap-3 text-sm bg-gray-50 rounded-xl p-3 border border-gray-100">
                       <div>
                         <p className="font-semibold text-gray-700">Status</p>

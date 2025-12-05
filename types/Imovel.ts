@@ -1,14 +1,10 @@
-// types/Imovel.ts
-
 import { Finalidade } from "@prisma/client";
 
-// Enum ou Union Type para os tipos de imóvel
 export type TipoImovel = "APARTAMENTO" | "CASA" | "TERRENO" | "COMERCIAL";
 
-// Tipo para as fotos, conforme o schema do Prisma (Foto)
 export interface Foto {
   id: string;
-  url: string; // Ex: /uploads/nome_do_arquivo.jpg
+  url: string;
   principal: boolean;
   ordem: number;
   imovelId: string;
@@ -16,13 +12,11 @@ export interface Foto {
   updatedAt: Date;
 }
 
-// Tipo para os dados básicos do Corretor (usado em includes)
 export interface CorretorInfo {
   name: string;
   email: string;
 }
 export type Status = "Disponivel" | "Vendido" | "Inativo";
-// O tipo principal do Imóvel, espelhando a estrutura do Prisma
 export interface Imovel {
   id: string;
   titulo: string;

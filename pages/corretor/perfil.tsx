@@ -175,7 +175,6 @@ export default function PerfilPage() {
 
   return (
     <CorretorLayout>
-      {/* TOAST */}
       {toast && (
         <div
           className={`fixed top-6 right-6 px-4 py-3 rounded-lg shadow-lg text-white transition-all ${
@@ -194,8 +193,6 @@ export default function PerfilPage() {
         </div>
 
         <div className="max-w-6xl mx-auto space-y-10">
-          {/* SEÇÃO PERFIL (avatar + nome + email + botão editar) */}
-
           <section className="rounded-2xl bg-white p-8 shadow-md border">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
               {/* FOTO + NOME */}
@@ -291,7 +288,6 @@ export default function PerfilPage() {
 
           {/* BIOGRAFIA + BANNER */}
           <section className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* BIO */}
             <div className="rounded-2xl bg-white p-6 shadow-sm border hover:shadow-md transition">
               <h3 className="text-lg font-semibold text-[#1A2A4F] mb-3">📝 Biografia</h3>
 
@@ -311,11 +307,9 @@ export default function PerfilPage() {
               )}
             </div>
 
-            {/* BANNER */}
             <div className="rounded-2xl bg-white p-6 shadow-sm border hover:shadow-md transition">
               <h3 className="text-lg font-semibold text-[#1E3A8A] mb-3">📸 Banner</h3>
 
-              {/* Botão upload */}
               {isEditing && (
                 <label className="cursor-pointer text-sm font-medium text-white bg-[#2563EB] hover:bg-[#1E3A8A] px-4 py-2 rounded-md mb-3 transition inline-block">
                   Selecionar imagem
@@ -345,7 +339,6 @@ export default function PerfilPage() {
             </div>
           </section>
 
-          {/* REDES SOCIAIS + LOGO */}
           <section className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* REDES */}
             <div className="rounded-2xl bg-white p-6 shadow-sm border hover:shadow-md transition">

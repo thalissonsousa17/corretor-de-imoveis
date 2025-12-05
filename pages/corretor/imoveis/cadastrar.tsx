@@ -22,8 +22,6 @@ const CadastrarImovelPage: React.FC = () => {
           <ImovelFormulario onSuccess={handleSuccess} />
         </div>
 
-        {/* Modal de notificação */}
-
         {openModal && (
           <div className="fixed inset-0 flex items-center justify-center bg-opacity-10 z-50">
             <div className="bg-gray-900 opacity-90 rounded-lg shadow-lg p-8 max-w-md w-full text-center animate-fade-in">

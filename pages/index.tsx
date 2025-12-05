@@ -16,7 +16,6 @@ export default function Home() {
         <title>ImobTECH • Plataforma Profissional para Corretores</title>
       </Head>
 
-      {/* HERO */}
       <section className="container mx-auto px-6 py-24 text-center">
         <h2 className="text-5xl font-extrabold text-[#1A2A4F] leading-tight">
           A plataforma inteligente para Corretores de Imóveis
@@ -37,7 +36,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* POR QUE IMOBTECH */}
       <section className="bg-white py-20">
         <div className="container mx-auto px-6">
           <h2 className="text-4xl font-bold text-[#1A2A4F] text-center">
@@ -195,7 +193,6 @@ export default function Home() {
     `}</style>
       </section>
 
-      {/* COMO FUNCIONA */}
       <section className="bg-white py-20">
         <div className="container mx-auto px-6">
           <h2 className="text-4xl font-bold text-center text-[#1A2A4F]">Como funciona?</h2>
@@ -219,7 +216,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* SUA PÁGINA DE VENDAS */}
+      {/*  PÁGINA DE VENDAS */}
       <section className="bg-white py-24">
         <div className="container mx-auto px-6 grid md:grid-cols-2 gap-12 items-center">
           <div>

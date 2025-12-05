@@ -1,6 +1,4 @@
-// pages/corretor/dashboard.tsx
 import { ReactElement, useEffect, useState } from "react";
-import axios from "axios";
 import { FiHome, FiCheckCircle, FiShoppingBag, FiTrendingUp, FiPieChart } from "react-icons/fi";
 import {
   ResponsiveContainer,
@@ -144,7 +142,7 @@ export default function DashboardCorretor() {
 
             {/* Barras */}
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+              <h3 className="text-lg font-semibold text-gray-700 mb-4 flex items-center gap-2">
                 <FiTrendingUp /> Tipos de imóveis cadastrados
               </h3>
               <ResponsiveContainer width="100%" height={300}>
@@ -159,7 +157,7 @@ export default function DashboardCorretor() {
             </div>
           </div>
 
-          {/* === Últimos imóveis === */}
+          {/*  Últimos imóveis  */}
           <div className="mt-10 bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">
               📋 Últimos imóveis cadastrados

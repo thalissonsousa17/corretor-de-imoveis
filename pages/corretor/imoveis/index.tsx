@@ -9,8 +9,7 @@ const GerenciarImoveisPage: React.FC = () => {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const limit = 5; //número de imóveis por página.
-
+  const limit = 5;
   const fetchImoveis = async () => {
     try {
       const res = await axios.get("/api/imoveis", {
@@ -23,13 +22,10 @@ const GerenciarImoveisPage: React.FC = () => {
     }
   };
 
-  // Quando o corretor quiser editar um imóvel
   const handleEdit = (id: string) => {
     console.log("Editar imóvel com ID:", id);
-    // Aqui você pode redirecionar, ex: router.push(`/corretor/editar/${id}`)
   };
 
-  // Quando houver alguma mudança nos imóveis (ex: exclusão, atualização)
   const handleImovelChange = () => {
     console.log("Atualizando listagem de imóveis...");
     fetchImoveis();

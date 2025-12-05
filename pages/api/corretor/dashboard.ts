@@ -22,12 +22,10 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
         tipo: item.tipo,
         quantidade: item._count.tipo,
       }));
-      // Conta total de imóveis do corretor
       const totalImoveis = await prisma.imovel.count({
         where: { corretorId: userId },
       });
 
-      // Conta imóveis status
       const imovelDisponiveis = await prisma.imovel.count({
         where: { corretorId: userId, status: ImovelStatus.DISPONIVEL },
       });
@@ -44,7 +42,6 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
         where: { corretorId: userId, status: ImovelStatus.INATIVO },
       });
 
-      // Lista últimos 5 imóveis cadastrados
       const imoveisRecentes = await prisma.imovel.findMany({
         where: { corretorId: userId },
         orderBy: { createdAt: "desc" },

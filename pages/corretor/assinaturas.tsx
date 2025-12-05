@@ -16,10 +16,8 @@ export default function Assinaturas() {
   const [perfil, setPerfil] = useState<PerfilData | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Modal do plano gratuito
   const [showModal, setShowModal] = useState(false);
 
-  // Carrega perfil
   useEffect(() => {
     const carregar = async () => {
       try {
@@ -34,7 +32,6 @@ export default function Assinaturas() {
     carregar();
   }, []);
 
-  // Abrir portal de cobrança (correto)
   const abrirPortal = async () => {
     if (!perfil?.stripeCustomerId) {
       setShowModal(true);

@@ -74,8 +74,6 @@ export const authorize =
         }
       }
 
-      // --------------------------------------------------
-
       return handler(req, res);
     } catch (error) {
       console.error("ERRO NO AUTHORIZE:", error);

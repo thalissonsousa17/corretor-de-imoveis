@@ -5,7 +5,6 @@ import { prisma } from "../../../lib/prisma";
 import bcrypt from "bcryptjs";
 
 export default authorize(async function handler(req: AuthApiRequest, res: NextApiResponse) {
-  // Permitir apenas POST
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Método não permitido." });
   }
@@ -22,22 +21,18 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
       return res.status(400).json({ error: "Preencha todos os campos." });
     }
 
-    // Busca usuário
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) {
       return res.status(404).json({ error: "Usuário não encontrado." });
     }
 
-    // Verifica senha atual
     const senhaCorreta = await bcrypt.compare(senhaAtual, user.password);
     if (!senhaCorreta) {
       return res.status(401).json({ error: "Senha atual incorreta." });
     }
 
-    // Criptografa nova senha
     const novaSenhaHash = await bcrypt.hash(novaSenha, 10);
 
-    // Atualiza no banco
     await prisma.user.update({
       where: { id: userId },
       data: { password: novaSenhaHash },

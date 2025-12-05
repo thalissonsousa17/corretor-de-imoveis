@@ -4,7 +4,6 @@ import bcrypt from "bcryptjs";
 import { prisma } from "../../../lib/prisma";
 import { authorize } from "../../../lib/authMiddleware";
 
-// Configuração padrão do Next.js API route
 export const config = {
   api: { bodyParser: true },
 };
@@ -20,7 +19,6 @@ async function handler(req: AuthApiRequest, res: NextApiResponse) {
   try {
     const { emailAtual, emailNovo, senhaAtual, senhaNova } = req.body;
 
-    // Validação básica
     if (!senhaAtual || !senhaNova) {
       return res.status(400).json({ error: "Senha atual e nova são obrigatórias." });
     }
@@ -33,19 +31,16 @@ async function handler(req: AuthApiRequest, res: NextApiResponse) {
       return res.status(404).json({ error: "Usuário não encontrado." });
     }
 
-    // senha atual
     const senhaCorreta = await bcrypt.compare(senhaAtual, existingUser.password);
     if (!senhaCorreta) {
       return res.status(401).json({ error: "Senha atual incorreta." });
     }
 
-    //  atualização
     const updateData: Partial<{ email: string; password: string }> = {
       password: await bcrypt.hash(senhaNova, 10),
     };
 
     if (emailNovo && emailNovo !== existingUser.email) {
-      // e-mails duplicados
       const emailExistente = await prisma.user.findUnique({ where: { email: emailNovo } });
       if (emailExistente) {
         return res.status(400).json({ error: "Este e-mail já está em uso." });

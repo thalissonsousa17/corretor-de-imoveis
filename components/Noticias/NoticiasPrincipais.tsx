@@ -1,5 +1,3 @@
-// components/Noticias/NoticiasPrincipais.tsx
-
 import { useEffect, useState } from "react";
 import CardNoticia from "./CardNoticia";
 import Link from "next/link";

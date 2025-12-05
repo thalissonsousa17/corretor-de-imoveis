@@ -1,14 +1,9 @@
-// components/ImovelFormulario.tsx (VERSÃO ATUALIZADA PARA EDIÇÃO E CADASTRO)
-
 import React, { useState, FormEvent, ChangeEvent, useEffect } from "react";
 import axios from "axios";
 import { Imovel, Foto } from "@/types/Imovel";
 import BuscaEndereco from "./BuscaEndereco";
 import { Endereco } from "../types/endereco";
 import FotosUploader from "./FotosUploader";
-//import { Finalidade } from "@prisma/client";
-
-// INTERFACES
 
 interface FormState {
   titulo: string;
@@ -35,7 +30,6 @@ interface ImovelFormularioProps {
 }
 
 const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess }) => {
-  // ESTADOS
   const isEditMode = !!imovelId;
 
   const [formData, setFormData] = useState<FormState>({
@@ -63,11 +57,8 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
   });
 
   const [cep, setCep] = useState("");
-  //const [numero, setNumero] = useState("");
   const [rua, setRua] = useState("");
   const [bairro, setBairro] = useState("");
-
-  // Buscar dados pelo CEP
 
   const handleEnderecoAchado = (endereco: Endereco, cep: string) => {
     setFormData((prev) => ({
@@ -80,8 +71,6 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
       numero: prev.numero,
     }));
   };
-
-  // EFEITO: CARREGAR DADOS NA EDIÇÃO
 
   useEffect(() => {
     if (isEditMode && imovelId) {
@@ -105,7 +94,6 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
             finalidade: imovel.finalidade ?? "VENDA",
           });
           setCep(imovel.cep ?? "");
-          //setNumero(imovel.numero ?? "");
 
           setExistingPhotos(imovel.fotos.map((f) => ({ ...f, toBeDeleted: false })));
         })
@@ -117,7 +105,6 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
     }
   }, [isEditMode, imovelId]);
 
-  //Editando aqui
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     console.log(" (ImovelFormulario) Recebendo arquivos do filho:", files);
@@ -134,7 +121,6 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
     setFotosSelecionadas(files);
   };
 
-  // Toggle para marcar/desmarcar foto para remoção
   const handlePhotoToggle = (photoId: string) => {
     setExistingPhotos((prev) =>
       prev.map((photo) =>
@@ -143,7 +129,6 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
     );
   };
 
-  // Envio do Formulário
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -151,7 +136,6 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
 
     const data = new FormData();
 
-    // 1. Anexa os dados do formulário
     Object.keys(formData).forEach((key) => {
       const value = formData[key as keyof FormState];
       data.append(key, typeof value === "boolean" ? String(value) : value || "");
@@ -162,13 +146,11 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
     data.append("bairro", bairro);
     data.append("numero", formData.numero ?? "");
 
-    // 2. Adiciona o imovelId (necessário para o upload backend)
     if (imovelId) {
       console.log(" Adicionando imovelId no FormData:", imovelId);
       data.append("imovelId", imovelId);
     }
 
-    // 3. Anexa as fotos a remover (apenas no modo edição)
     if (isEditMode) {
       const photosToDelete = existingPhotos.filter((f) => f.toBeDeleted).map((f) => f.id);
       if (photosToDelete.length > 0) {
@@ -177,7 +159,6 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
       }
     }
 
-    // 4. Anexa as novas fotos
     const fotosParaEnviar = fotosSelecionadas || fotos;
     if (fotosParaEnviar && fotosParaEnviar.length > 0) {
       for (let i = 0; i < fotosParaEnviar.length; i++) {
@@ -192,7 +173,6 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
       return;
     }
 
-    // Debug do que será enviado
     for (const [key, value] of data.entries()) {
       console.log(" FormData:", key, value);
     }
@@ -217,7 +197,6 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
       });
       onSuccess();
 
-      // Limpa formulário após envio
       if (!isEditMode) {
         setFormData({
           titulo: "",
@@ -269,7 +248,6 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
       onSubmit={(e) => handleSubmit(e)}
       className="space-y-6 p-6 bg-white text-gray-600 rounded-lg shadow-xl"
     >
-      {/* Mensagem de Status */}
       {message.text && (
         <div
           className={`p-3 rounded-md text-sm font-medium ${message.type === "success" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}
@@ -282,7 +260,7 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
         {isEditMode ? "Editar Imóvel" : "Cadastrar Novo Imóvel"}
       </h2>
 
-      {/* Linha 1: Título */}
+      {/* Título */}
       <div>
         <label htmlFor="titulo" className="block text-sm font-medium text-gray-700">
           Título
@@ -298,7 +276,7 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
         />
       </div>
 
-      {/* Linha 2: Descrição */}
+      {/*  Descrição */}
       <div>
         <label htmlFor="descricao" className="block text-sm font-medium text-gray-700">
           Descrição Detalhada
@@ -334,7 +312,6 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
           placeholder="Descreva todos os detalhes do imóvel, área de lazer, diferenciais e informações de contato..."
         />
 
-        {/* Contador de caracteres */}
         <div className="flex justify-between text-sm mt-2">
           <span
             className={`${
@@ -352,7 +329,7 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
         </div>
       </div>
 
-      {/* Linha 3: Preço e Tipo */}
+      {/*  Preço e Tipo */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div>
           <label htmlFor="preco" className="block text-sm font-medium text-gray-700">
@@ -409,7 +386,7 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
         </div>
       </div>
 
-      {/* Linha 4.1 : Cep e Número */}
+      {/*  Cep e Número */}
 
       <h3 className="text-xl font-medium text-gray-800 pt-4 border-t mt-6">Endereço Completo</h3>
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -471,7 +448,6 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
               Cidade
             </label>
             <input
-              // ... (atributos)
               value={formData.cidade}
               onChange={(e) => setFormData({ ...formData, cidade: e.target.value })}
               required
@@ -484,7 +460,6 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
               Estado (Sigla)
             </label>
             <input
-              // ... (atributos)
               type="text"
               name="estado"
               id="estado"
@@ -498,7 +473,7 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
         </div>
       </div>
 
-      {/* Linha 7: Fotos */}
+      {/*  Fotos */}
       {isEditMode && existingPhotos.length > 0 && (
         <div className="border-t pt-4">
           <h3 className="text-lg font-medium mb-2 text-gray-800">Fotos Existentes</h3>
@@ -529,7 +504,6 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
         </div>
       )}
 
-      {/* Linha de Upload de Fotos */}
       <FotosUploader
         imovelId={imovelId}
         existingPhotos={existingPhotos}

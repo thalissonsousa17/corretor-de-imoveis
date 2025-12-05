@@ -1,5 +1,3 @@
-// components/BuscaEndereco.tsx (Versão Estilizada)
-
 import React, { useState } from "react";
 import axios from "axios";
 import { Endereco } from "../types/endereco";
