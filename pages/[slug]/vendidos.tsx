@@ -4,6 +4,7 @@ import LayoutCorretor from "@/components/LayoutCorretor";
 import type { CorretorProps } from "@/components/LayoutCorretor";
 import { useRouter } from "next/router";
 import CarrosselDestaques from "@/components/CarrosselDestaques";
+import NoticiasCarrossel from "@/components/Noticias/NoticiasCarrossel";
 
 type Foto = { id: string; url: string };
 type Imovel = {
@@ -38,7 +39,6 @@ export const getServerSideProps: GetServerSideProps<Props> = async (ctx) => {
   if (!topoRes.ok || !vendidosRes.ok) return { notFound: true };
 
   const todosJson = todosRes.ok ? await todosRes.json() : { imoveis: [] };
-
   const topo = await topoRes.json();
   const vendidos = await vendidosRes.json();
 
@@ -52,41 +52,46 @@ export const getServerSideProps: GetServerSideProps<Props> = async (ctx) => {
   };
 };
 
-export default function Vendas({ slug, imoveis, corretor, todos }: Props) {
+export default function Vendidos({ slug, imoveis, corretor, todos }: Props) {
   const router = useRouter();
+
   return (
     <LayoutCorretor corretor={corretor}>
       <main className="flex-1 w-full max-w-8xl mx-auto px-4 py-12">
+        {/* BOTÃO VOLTAR */}
         <div className="flex items-center justify-end mb-6 mt-4 gap-4">
           <button
             onClick={() => router.back()}
-            className="px-4 py-2 bg-[#1A2A4F] text-white hover:text-[#D4AC3A] hover:bg-[#1A2A4F] rounded-lg transition font-medium cursor-pointer "
+            className="px-4 py-2 bg-[#1A2A4F] text-white hover:text-[#D4AC3A] hover:bg-[#1A2A4F] rounded-lg transition font-medium cursor-pointer"
           >
             ← Voltar
           </button>
         </div>
+
+        {/* SE NÃO EXISTE IMÓVEIS */}
         {imoveis.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-[60vh] text-gray-500">
             <p>Nenhum imóvel encontrado.</p>
           </div>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
             {imoveis.map((i) => {
               const capa = i.fotos?.[0]?.url;
+
               return (
                 <article
                   key={i.id}
                   className="group bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100"
                 >
                   {/* FOTO */}
-                  <div className="relative h-56 w-full overflow-hidden bg-gray-100">
+                  <div className="relative w-full h-48 sm:h-56 md:h-64 overflow-hidden bg-gray-100">
                     <img
                       src={capa}
                       alt={i.titulo}
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                     />
 
-                    {/*  VENDIDO */}
+                    {/* BADGE VENDIDO */}
                     <span className="absolute top-3 left-3 bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow">
                       VENDIDO
                     </span>
@@ -98,7 +103,7 @@ export default function Vendas({ slug, imoveis, corretor, todos }: Props) {
                       {i.titulo}
                     </h3>
 
-                    {/* RODAPÉ  */}
+                    {/* GRID DE INFORMAÇÕES */}
                     <div className="grid grid-cols-2 gap-3 text-sm bg-gray-50 rounded-xl p-3 border border-gray-100">
                       <div>
                         <p className="font-semibold text-gray-700">Status</p>
@@ -119,16 +124,7 @@ export default function Vendas({ slug, imoveis, corretor, todos }: Props) {
 
                       <div>
                         <p className="font-semibold text-gray-700">Preço</p>
-                        <p className="text-gray-600">
-                          {i.status === "VENDIDO" || i.status === "ALUGADO"
-                            ? i.status === "VENDIDO"
-                              ? "Vendido"
-                              : "Alugado"
-                            : Number(i.preco).toLocaleString("pt-BR", {
-                                style: "currency",
-                                currency: "BRL",
-                              })}
-                        </p>
+                        <p className="text-gray-600">Vendido</p>
                       </div>
                     </div>
 
@@ -146,7 +142,10 @@ export default function Vendas({ slug, imoveis, corretor, todos }: Props) {
           </div>
         )}
       </main>
+
+      {/* CARROSSEL E NOTÍCIAS */}
       <CarrosselDestaques imoveis={todos} />
+      <NoticiasCarrossel />
     </LayoutCorretor>
   );
 }

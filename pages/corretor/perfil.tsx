@@ -206,10 +206,9 @@ export default function PerfilPage() {
                       "https://via.placeholder.com/120?text=Avatar"
                     }
                     alt="Avatar"
-                    className="w-24 h-24 rounded-full object-cover border"
+                    className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 lg:w-36 lg:h-36 rounded-full object-cover border"
                   />
 
-                  {/* BOTÃO TROCAR AVATAR */}
                   {isEditing && (
                     <label
                       htmlFor="avatar"
@@ -228,7 +227,6 @@ export default function PerfilPage() {
                   )}
                 </div>
 
-                {/* CAMPOS */}
                 <div className="flex flex-col gap-1">
                   {isEditing ? (
                     <input

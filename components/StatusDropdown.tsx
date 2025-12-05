@@ -72,21 +72,37 @@ export default function StatusDropdown({
       <button
         onClick={() => setIsOpen((prev) => !prev)}
         disabled={loading}
-        className={`cursor-pointer inline-flex justify-center items-center rounded-md border px-3 py-1 text-sm font-bold uppercase ${getStatusColor(currentStatus)} focus:outline-none transition`}
+        className={`cursor-pointer inline-flex justify-center items-center rounded-md border px-3 py-1.5 text-xs sm:text-sm font-bold uppercase ${getStatusColor(
+          currentStatus
+        )} focus:outline-none transition`}
       >
         {loading ? "Atualizando..." : currentStatus}
       </button>
 
-      {/* Menu  */}
+      {/* Menu */}
       {isOpen && (
-        <div className="absolute right-0 bottom-full mb-2 text-gray-700 w-40 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-20">
+        <div
+          className="
+            absolute right-0 
+            bottom-full 
+            mb-2 
+            text-gray-700 
+            w-36 sm:w-40 
+            rounded-md 
+            shadow-lg 
+            bg-white 
+            ring-1 ring-black ring-opacity-5 
+            z-20
+            overflow-hidden
+          "
+        >
           {statusOptions.map((status) => (
             <button
               key={status}
               onClick={() => handleUpdate(status)}
-              className={`block w-full text-left px-4 py-2 text-sm uppercase transition hover:bg-gray-500 ${
-                status === currentStatus ? "font-semibold bg-gray-900 text-gray-100" : ""
-              }`}
+              className={`block w-full text-left px-3 sm:px-4 py-2 text-xs sm:text-sm uppercase transition 
+                hover:bg-gray-200 
+                ${status === currentStatus ? "font-semibold bg-gray-900 text-gray-100" : ""}`}
             >
               {status}
             </button>

@@ -4,6 +4,7 @@ import LayoutCorretor from "@/components/LayoutCorretor";
 import type { CorretorProps } from "@/components/LayoutCorretor";
 import { useRouter } from "next/router";
 import CarrosselDestaques from "@/components/CarrosselDestaques";
+import NoticiasCarrossel from "@/components/Noticias/NoticiasCarrossel";
 
 type Foto = { id: string; url: string };
 type Imovel = {
@@ -57,6 +58,7 @@ export default function Aluguel({ slug, imoveis, corretor, todos }: Props) {
   return (
     <LayoutCorretor corretor={corretor}>
       <main className="flex-1 w-full max-w-8xl mx-auto px-4 py-12">
+        {/* BOTÃO VOLTAR */}
         <div className="flex items-center justify-end mb-6 mt-4 gap-4">
           <button
             onClick={() => router.back()}
@@ -66,26 +68,27 @@ export default function Aluguel({ slug, imoveis, corretor, todos }: Props) {
           </button>
         </div>
 
+        {/* LISTAGEM */}
         {imoveis.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-[60vh] text-gray-500">
             <p>Nenhum imóvel para aluguel encontrado.</p>
           </div>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
             {imoveis.map((i) => {
               const capa = i.fotos?.[0]?.url;
+
               return (
                 <article
                   key={i.id}
                   className="group bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100"
                 >
                   {/* FOTO */}
-                  <div className="relative w-full aspect-[4/3] overflow-hidden bg-gray-100">
+                  <div className="relative w-full h-48 sm:h-56 md:h-64 lg:aspect-[4/3] overflow-hidden bg-gray-100">
                     <img
                       src={capa}
                       alt={i.titulo}
-                      className="absolute inset-0 w-full h-full object-cover object-center 
-      group-hover:scale-105 transition-transform duration-500"
+                      className="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
                     />
 
                     <span className="absolute top-2 left-2 bg-blue-600 text-white text-xs font-semibold px-3 py-1 rounded-full shadow">
@@ -95,12 +98,10 @@ export default function Aluguel({ slug, imoveis, corretor, todos }: Props) {
 
                   {/* CONTEÚDO */}
                   <div className="p-5 space-y-3">
-                    {/* TÍTULO */}
                     <h3 className="font-bold text-lg text-gray-900 leading-tight line-clamp-2">
                       {i.titulo}
                     </h3>
 
-                    {/* QUADRO DE DETALHES*/}
                     <div className="grid grid-cols-2 gap-3 text-sm bg-gray-50 rounded-xl p-3 border border-gray-100">
                       <div>
                         <p className="font-semibold text-gray-700">Tipo</p>
@@ -128,7 +129,6 @@ export default function Aluguel({ slug, imoveis, corretor, todos }: Props) {
                       </div>
                     </div>
 
-                    {/* BOTÃO */}
                     <Link
                       href={`/${slug}/imovel/${i.id}`}
                       className="mt-4 inline-block w-full text-center rounded-xl bg-[#1A2A4F] text-white hover:text-[#D4AC3A] py-2 font-medium transition"
@@ -142,7 +142,9 @@ export default function Aluguel({ slug, imoveis, corretor, todos }: Props) {
           </div>
         )}
       </main>
+
       <CarrosselDestaques imoveis={todos} />
+      <NoticiasCarrossel />
     </LayoutCorretor>
   );
 }

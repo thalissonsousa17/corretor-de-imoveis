@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { Phone } from "lucide-react";
+import { Phone, Menu, X } from "lucide-react";
 
 interface Corretor {
   name?: string;
@@ -17,6 +17,7 @@ interface HeaderCorretorProps {
 
 export default function HeaderCorretor({ corretor }: HeaderCorretorProps) {
   const [isScrolled, setIsScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -37,125 +38,166 @@ export default function HeaderCorretor({ corretor }: HeaderCorretorProps) {
       : null;
 
   return (
-    <header
-      className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${
-        isScrolled ? "shadow-md bg-white/95 backdrop-blur-sm" : "bg-white"
-      }`}
-    >
-      <div className="w-full">
-        {/* TOPO */}
-        <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-2 text-[#D4AC3A]">
+    <>
+      {/* HEADER */}
+      <header
+        className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${
+          isScrolled ? "shadow-md bg-white/95 backdrop-blur-sm" : "bg-white"
+        }`}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex justify-between items-center">
+          {/* LOGO */}
           <div className="flex items-center gap-3">
             {logoSrc ? (
-              <img
-                src={logoSrc}
-                alt={corretor.name || "Logo"}
-                className="h-14 w-auto object-contain"
-              />
+              <img src={logoSrc} alt={corretor.name || "Logo"} className="h-10 sm:h-14 w-auto" />
             ) : (
-              <h1 className="text-xl font-semibold tracking-wide text-[#1A2A4F]">
-                {corretor.name}
-              </h1>
+              <h1 className="text-lg sm:text-xl font-semibold text-[#1A2A4F]">{corretor.name}</h1>
             )}
           </div>
 
-          {/* WHATS */}
-          <div className="flex items-center gap-6 text-[#1A2A4F] font-bold">
+          {/* WHATSAPP (mobile escondido) */}
+          <div className="hidden sm:flex items-center text-[#1A2A4F] font-bold">
             {corretor.whatsapp && (
               <a
                 href={`https://wa.me/${corretor.whatsapp.replace(/\D/g, "")}`}
                 target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 hover:text-[#D4AC3A] transition"
+                className="flex items-center gap-2 hover:text-[#D4AC3A]"
               >
                 <Phone size={18} /> {corretor.whatsapp}
               </a>
             )}
           </div>
+
+          {/* BOTÃO HAMBÚRGUER */}
+          <button className="sm:hidden text-[#1A2A4F]" onClick={() => setMenuOpen(true)}>
+            <Menu size={30} />
+          </button>
         </div>
 
-        {/* MENU */}
-        <div className="bg-[#1A2A4F] w-full mt-1">
-          <div
-            className="max-w-7xl mx-auto flex justify-center py-3 rounded-t-[1rem]"
-            style={{
-              borderTopLeftRadius: "1.5rem",
-              borderTopRightRadius: "1.5rem",
-            }}
-          >
-            {/* ❗ NÃO RENDERIZAR MENU ATÉ O SLUG EXISTIR */}
-            {!slug ? null : (
-              <nav className="flex gap-8 text-base font-medium">
-                <Link
-                  href={`/${slug}`}
-                  className={`relative transition ${
-                    router.asPath === `/${slug}`
-                      ? "text-[#D4AC3A] font-semibold"
-                      : "text-white hover:text-[#D4AC3A]"
-                  }`}
-                >
-                  Início
-                </Link>
+        {/* MENU DESKTOP */}
+        {slug && (
+          <div className="bg-[#1A2A4F] hidden sm:flex justify-center py-3">
+            <nav className="flex gap-8 text-base font-medium">
+              <MenuLink href={`/${slug}`} label="Início" active={router.asPath === `/${slug}`} />
+              <MenuLink
+                href={`/${slug}/vendas`}
+                label="Comprar"
+                active={router.asPath.includes("/vendas")}
+              />
+              <MenuLink
+                href={`/${slug}/aluguel`}
+                label="Alugar"
+                active={router.asPath.includes("/aluguel")}
+              />
+              <MenuLink
+                href={`/${slug}/vendidos`}
+                label="Vendidos"
+                active={router.asPath.includes("/vendidos")}
+              />
+              <MenuLink
+                href={`/${slug}/perfil`}
+                label="Perfil"
+                active={router.asPath.includes("/perfil")}
+              />
+              <MenuLink
+                href={`/${slug}/noticias`}
+                label="Notícias"
+                active={router.asPath.includes("/noticias")}
+              />
+            </nav>
+          </div>
+        )}
+      </header>
 
-                <Link
+      {/* MENU MOBILE (DRAWER) */}
+      {menuOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm sm:hidden">
+          <div className="absolute left-0 top-0 h-full w-64 bg-white shadow-xl p-6 flex flex-col gap-4 animate-slideIn">
+            {/* FECHAR */}
+            <button className="self-end mb-4 text-gray-700" onClick={() => setMenuOpen(false)}>
+              <X size={28} />
+            </button>
+
+            {/* LINKS */}
+            {slug && (
+              <>
+                <MobileLink href={`/${slug}`} label="Início" onClick={() => setMenuOpen(false)} />
+                <MobileLink
                   href={`/${slug}/vendas`}
-                  className={`relative transition ${
-                    router.asPath.includes("/vendas")
-                      ? "text-[#D4AC3A] font-semibold"
-                      : "text-white hover:text-[#D4AC3A]"
-                  }`}
-                >
-                  Comprar
-                </Link>
-
-                <Link
+                  label="Comprar"
+                  onClick={() => setMenuOpen(false)}
+                />
+                <MobileLink
                   href={`/${slug}/aluguel`}
-                  className={`relative transition ${
-                    router.asPath.includes("/aluguel")
-                      ? "text-[#D4AC3A] font-semibold"
-                      : "text-white hover:text-[#D4AC3A]"
-                  }`}
-                >
-                  Alugar
-                </Link>
-
-                <Link
+                  label="Alugar"
+                  onClick={() => setMenuOpen(false)}
+                />
+                <MobileLink
                   href={`/${slug}/vendidos`}
-                  className={`relative transition ${
-                    router.asPath.includes("/vendidos")
-                      ? "text-[#D4AC3A] font-semibold"
-                      : "text-white hover:text-[#D4AC3A]"
-                  }`}
-                >
-                  Vendidos
-                </Link>
-
-                <Link
+                  label="Vendidos"
+                  onClick={() => setMenuOpen(false)}
+                />
+                <MobileLink
                   href={`/${slug}/perfil`}
-                  className={`relative transition ${
-                    router.asPath.includes("/perfil")
-                      ? "text-[#D4AC3A] font-semibold"
-                      : "text-white hover:text-[#D4AC3A]"
-                  }`}
-                >
-                  Perfil
-                </Link>
-
-                <Link
+                  label="Perfil"
+                  onClick={() => setMenuOpen(false)}
+                />
+                <MobileLink
                   href={`/${slug}/noticias`}
-                  className={`relative transition ${
-                    router.asPath.includes("/noticias")
-                      ? "text-[#D4AC3A] font-semibold"
-                      : "text-white hover:text-[#D4AC3A]"
-                  }`}
-                >
-                  Notícias
-                </Link>
-              </nav>
+                  label="Notícias"
+                  onClick={() => setMenuOpen(false)}
+                />
+              </>
             )}
           </div>
         </div>
-      </div>
-    </header>
+      )}
+
+      {/* ANIMAÇÃO */}
+      <style>{`
+        @keyframes slideIn {
+          from { transform: translateX(-100%); }
+          to   { transform: translateX(0); }
+        }
+        .animate-slideIn {
+          animation: slideIn .3s ease forwards;
+        }
+      `}</style>
+    </>
+  );
+}
+
+/* COMPONENTES DE LINK */
+
+function MenuLink({ href, label, active }: { href: string; label: string; active: boolean }) {
+  return (
+    <Link
+      href={href}
+      className={`transition ${
+        active ? "text-[#D4AC3A] font-semibold" : "text-white hover:text-[#D4AC3A]"
+      }`}
+    >
+      {label}
+    </Link>
+  );
+}
+
+function MobileLink({
+  href,
+  label,
+  onClick,
+}: {
+  href: string;
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <Link
+      href={href}
+      onClick={onClick}
+      className="text-lg font-medium text-[#1A2A4F] py-2 hover:text-[#D4AC3A] transition"
+    >
+      {label}
+    </Link>
   );
 }

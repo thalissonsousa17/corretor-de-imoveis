@@ -67,72 +67,49 @@ export default function DashboardCorretor() {
   const renderPieLabel = ({ name, percent }: PieLabelRenderProps) => {
     const safePercent = typeof percent === "number" && !isNaN(percent) ? percent : 0;
     const safeName = name ?? "";
-
     return `${safeName} ${(safePercent * 100).toFixed(0)}%`;
   };
 
   return (
     <CorretorLayout>
-      <div className="min-h-screen bg-gray-50 p-8">
+      <div className="min-h-screen bg-gray-50 p-4 sm:p-8">
         <div className="max-w-6xl mx-auto">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2 flex items-center gap-2">
+          {/* TÍTULO */}
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2 flex items-center gap-2">
             🏡 Dashboard
           </h1>
-          <p className="text-gray-600 mb-8">
+          <p className="text-gray-600 mb-6 sm:mb-8 text-sm sm:text-base">
             Bem-vindo(a)! Aqui você vê um resumo dos seus imóveis e atividades recentes.
           </p>
 
           {/* === Estatísticas === */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
-            <DashboardCard
-              title="Total de Imóveis"
-              value={stats.total}
-              icon={<FiHome className="text-gray-500" />}
-            />
-            <DashboardCard
-              title="Disponíveis"
-              value={stats.disponiveis}
-              icon={<FiCheckCircle className="text-green-600" />}
-            />
-            <DashboardCard
-              title="Vendidos"
-              value={stats.vendidos}
-              icon={<FiShoppingBag className="text-blue-600" />}
-            />
-            <DashboardCard
-              title="Alugados"
-              value={stats.alugados || 0}
-              icon={<FiTrendingUp className="text-orange-500" />}
-            />
-            <DashboardCard
-              title="Inativos"
-              value={stats.inativos || 0}
-              icon={<FiTrendingUp className="text-orange-500" />}
-            />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6">
+            <DashboardCard title="Total de Imóveis" value={stats.total} icon={<FiHome />} />
+            <DashboardCard title="Disponíveis" value={stats.disponiveis} icon={<FiCheckCircle />} />
+            <DashboardCard title="Vendidos" value={stats.vendidos} icon={<FiShoppingBag />} />
+            <DashboardCard title="Alugados" value={stats.alugados || 0} icon={<FiTrendingUp />} />
+            <DashboardCard title="Inativos" value={stats.inativos || 0} icon={<FiTrendingUp />} />
           </div>
 
           {/* === Gráficos === */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-10">
-            {/* Pizza */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 mt-8 sm:mt-10">
+            {/* Gráfico Pizza */}
+            <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
                 <FiPieChart /> Distribuição dos imóveis
               </h3>
-              <ResponsiveContainer width="100%" height={400}>
+              <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
                   <Legend />
                   <Pie
                     data={pieData}
-                    cx="50%"
-                    cy="50%"
                     labelLine={false}
-                    outerRadius={120}
-                    fill="#8884d8"
+                    outerRadius={100}
                     dataKey="value"
                     label={renderPieLabel}
                   >
-                    {pieData.map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    {pieData.map((_, i) => (
+                      <Cell key={i} fill={COLORS[i % COLORS.length]} />
                     ))}
                   </Pie>
                   <Tooltip />
@@ -140,12 +117,12 @@ export default function DashboardCorretor() {
               </ResponsiveContainer>
             </div>
 
-            {/* Barras */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-              <h3 className="text-lg font-semibold text-gray-700 mb-4 flex items-center gap-2">
+            {/* Gráfico Barras */}
+            <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-700 mb-4 flex items-center gap-2">
                 <FiTrendingUp /> Tipos de imóveis cadastrados
               </h3>
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={280}>
                 <BarChart data={barData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="tipo" />
@@ -157,9 +134,9 @@ export default function DashboardCorretor() {
             </div>
           </div>
 
-          {/*  Últimos imóveis  */}
-          <div className="mt-10 bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">
+          {/* === Últimos Imóveis === */}
+          <div className="mt-8 sm:mt-10 bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-4">
               📋 Últimos imóveis cadastrados
             </h2>
 
@@ -168,11 +145,17 @@ export default function DashboardCorretor() {
             ) : imoveisRecentes.length > 0 ? (
               <ul className="divide-y divide-gray-100">
                 {imoveisRecentes.map((imovel) => (
-                  <li key={imovel.id} className="py-3 flex justify-between items-center">
-                    <div>
-                      <p className="font-medium text-gray-800">{imovel.titulo}</p>
+                  <li
+                    key={imovel.id}
+                    className="py-3 flex flex-col sm:flex-row justify-between sm:items-center"
+                  >
+                    <div className="mb-2 sm:mb-0">
+                      <p className="font-medium text-gray-800 text-sm sm:text-base">
+                        {imovel.titulo}
+                      </p>
                       <p className="text-xs text-gray-500 capitalize">{imovel.tipo}</p>
                     </div>
+
                     <div className="text-right">
                       <p className="text-sm text-gray-700">
                         {imovel.preco.toLocaleString("pt-BR", {
@@ -180,16 +163,18 @@ export default function DashboardCorretor() {
                           currency: "BRL",
                         })}
                       </p>
+
                       <span
-                        className={`text-xs font-medium px-2 py-1 rounded ${
-                          imovel.status === "DISPONIVEL"
-                            ? "text-green-700 bg-green-100"
-                            : imovel.status === "VENDIDO"
-                              ? "text-blue-700 bg-blue-100"
-                              : imovel.status === "ALUGADO"
-                                ? "text-orange-700 bg-orange-100"
-                                : "text-gray-600 bg-gray-100"
-                        }`}
+                        className={`text-xs font-medium px-2 py-1 rounded inline-block mt-1
+                          ${
+                            imovel.status === "DISPONIVEL"
+                              ? "text-green-700 bg-green-100"
+                              : imovel.status === "VENDIDO"
+                                ? "text-blue-700 bg-blue-100"
+                                : imovel.status === "ALUGADO"
+                                  ? "text-orange-700 bg-orange-100"
+                                  : "text-gray-600 bg-gray-100"
+                          }`}
                       >
                         {imovel.status === "DISPONIVEL"
                           ? "Disponível"
@@ -223,12 +208,13 @@ function DashboardCard({
   icon: ReactElement;
 }) {
   return (
-    <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition group">
+    <div className="bg-white p-4 sm:p-5 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition group">
       <div className="flex items-center justify-between">
-        <h3 className="text-gray-500 text-sm font-medium">{title}</h3>
-        <div className="text-2xl">{icon}</div>
+        <h3 className="text-xs sm:text-sm text-gray-500 font-medium">{title}</h3>
+        <div className="text-xl sm:text-2xl">{icon}</div>
       </div>
-      <p className="text-3xl font-bold text-gray-900 mt-2 group-hover:scale-105 transition-transform">
+
+      <p className="text-2xl sm:text-3xl font-bold text-gray-900 mt-2 group-hover:scale-105 transition-transform">
         {value}
       </p>
     </div>

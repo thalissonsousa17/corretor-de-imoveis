@@ -9,14 +9,20 @@ const VisualizarFotosModal: React.FC<VisualizarFotosModalProps> = ({ fotos, onCl
   if (!fotos || fotos.length === 0) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-      <div className="bg-white rounded-2xl p-6 w-full max-w-3xl shadow-lg overflow-y-auto max-h-[90vh]">
-        <h2 className="text-xl font-semibold mb-4 text-center text-gray-700">Fotos do Imóvel</h2>
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl p-4 sm:p-6 w-full max-w-3xl shadow-lg overflow-y-auto max-h-[90vh]">
+        <h2 className="text-lg sm:text-xl font-semibold mb-4 text-center text-gray-700">
+          Fotos do Imóvel
+        </h2>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
           {fotos.map((foto) => (
-            <div key={foto.id} className="rounded-lg overflow-hidden shadow">
-              <img src={foto.url} alt="Foto do imóvel" className="w-full h-40 object-cover" />
+            <div key={foto.id} className="rounded-lg overflow-hidden shadow-md">
+              <img
+                src={foto.url}
+                alt="Foto do imóvel"
+                className="w-full aspect-video object-cover"
+              />
             </div>
           ))}
         </div>

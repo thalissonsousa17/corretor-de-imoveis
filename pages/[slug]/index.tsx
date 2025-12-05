@@ -142,11 +142,11 @@ export default function CorretorHome({ corretor, imoveis }: PageProps) {
               </div>
 
               {corretor.avatarUrl && (
-                <div className="absolute bottom-0 right-6 md:right-12">
+                <div className="absolute bottom-0 right-2 sm:right-6 md:right-12 flex justify-end pointer-events-none">
                   <img
                     src={corretor.avatarUrl ?? ""}
                     alt={corretor.name}
-                    className="w-[300px] sm:w-[400px] md:w-[280px]  h-auto "
+                    className="w-[180px] sm:w-[260px] md:w-[320px] lg:w-[360px] h-auto object-contain translate-y-6 sm:translate-y-0"
                   />
                 </div>
               )}

@@ -26,20 +26,9 @@ const ImovelListagemCorretor: React.FC<ImovelListagemCorretorProps> = () => {
   const [statusFiltro, setStatusFiltro] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
   const [fotosModalOpen, setFotosModalOpen] = useState(false);
   const [fotosSelecionadas, setFotosSelecionadas] = useState<{ id: string; url: string }[]>([]);
-
-  const handleVerFotos = (imovel: Imovel) => {
-    if (imovel.fotos && imovel.fotos.length > 0) {
-      const fotosFormatadas = imovel.fotos.map((f) => ({
-        id: f.id,
-        url: f.url,
-      }));
-      setFotosSelecionadas(fotosFormatadas);
-      setFotosModalOpen(true);
-    }
-  };
 
   const fetchImoveis = async () => {
     setLoading(true);
@@ -58,176 +47,124 @@ const ImovelListagemCorretor: React.FC<ImovelListagemCorretorProps> = () => {
     fetchImoveis();
   }, []);
 
-  const imoveisFiltradosPorBusca = imoveis.filter((imovel) =>
-    imovel.titulo.toLowerCase().includes(search.toLowerCase())
-  );
+  const imoveisFiltrados = imoveis
+    .filter((i) => i.titulo.toLowerCase().includes(search.toLowerCase()))
+    .filter((i) => (statusFiltro ? i.status === statusFiltro : true));
 
-  //  Filtro por status
-  const imoveisFiltradosStatus = statusFiltro
-    ? imoveisFiltradosPorBusca.filter((imovel) => imovel.status === statusFiltro)
-    : imoveisFiltradosPorBusca;
-
-  //  Paginação
-  const totalPages = Math.ceil(imoveisFiltradosStatus.length / itemsPerPage);
+  const totalPages = Math.ceil(imoveisFiltrados.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const currentImoveis = imoveisFiltradosStatus.slice(startIndex, startIndex + itemsPerPage);
+  const currentImoveis = imoveisFiltrados.slice(startIndex, startIndex + itemsPerPage);
 
-  //  Controle de modais
   const [imovelSelecionadoDelete, setImovelSelecionadoDelete] = useState<Imovel | null>(null);
   const [imovelSelecionado, setImovelSelecionado] = useState<Imovel | null>(null);
 
-  const handleEdit = (imovel: Imovel) => setImovelSelecionado(imovel);
-  const handleSave = (imovelAtualizado: Imovel) => {
-    setImoveis((prev) => prev.map((i) => (i.id === imovelAtualizado.id ? imovelAtualizado : i)));
-  };
-
-  const handleDeleteClick = (imovel: Imovel) => setImovelSelecionadoDelete(imovel);
-  const handleDeleteSuccess = () => {
-    if (imovelSelecionadoDelete) {
-      setImoveis(imoveis.filter((i) => i.id !== imovelSelecionadoDelete.id));
+  const handleVerFotos = (imovel: Imovel) => {
+    if (imovel.fotos?.length) {
+      setFotosSelecionadas(imovel.fotos.map((f) => ({ id: f.id, url: f.url })));
+      setFotosModalOpen(true);
     }
   };
 
-  const handleFiltrarStatus = (status: string | null) => {
-    setStatusFiltro(status === statusFiltro ? null : status);
-  };
-
-  if (loading) return <p className="p-4 text-center text-gray-600">Carregando seus imóveis...</p>;
+  if (loading) return <p className="p-4 text-center text-gray-600">Carregando...</p>;
   if (error) return <p className="p-4 text-red-500">{error}</p>;
 
   return (
-    <div className="overflow-x-auto bg-gray-100 rounded-lg shadow-xl p-4">
-      <FiltroImoveis
-        search={search}
-        onSearchChange={setSearch}
-        onFilterclick={() => console.log("Filtrando últimos 30 dias...")}
-      />
+    <div className="bg-gray-100 rounded-lg shadow-xl p-4 w-full">
+      <FiltroImoveis search={search} onSearchChange={setSearch} />
 
       {imoveis.length === 0 ? (
         <p className="text-center text-gray-600 mt-4">Nenhum imóvel encontrado.</p>
       ) : (
-        <table className="min-w-full divide-y divide-gray-200 mt-4">
-          <thead className="bg-gray-300">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">
-                Título / Endereço Completo
-              </th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-gray-900 uppercase tracking-wider">
-                Valor
-              </th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-gray-900 uppercase tracking-wider">
-                Finalidade
-              </th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-gray-900 uppercase tracking-wider">
-                Mudar Status
-              </th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-gray-900 uppercase tracking-wider">
-                Ações
-                <button
-                  onClick={fetchImoveis}
-                  className="ml-3 text-blue-500 hover:text-blue-700 cursor-pointer"
-                  title="Recarregar Lista"
-                >
-                  <FiRefreshCw className="inline w-4 h-4" />
-                </button>
-              </th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-gray-900 uppercase tracking-wider">
-                Fotos
-              </th>
-            </tr>
-          </thead>
-
-          <tbody className="bg-white divide-y divide-gray-200">
-            {currentImoveis.map((imovel) => (
-              <tr key={imovel.id} className="hover:bg-gray-100 transition-colors">
-                {/* Título / Endereço */}
-                <td className="px-6 py-4 text-sm text-gray-700">
-                  <div className="font-medium">{imovel.titulo}</div>
-                  <div className="text-xs text-gray-600">
-                    {imovel.rua}, {imovel.numero} - {imovel.bairro}
-                  </div>
-                  <div className="text-xs text-gray-600">
-                    {imovel.cidade} - {imovel.estado} ({imovel.cep})
-                  </div>
-                  <div className="font-medium">
-                    {imovel.tipo ? `${imovel.tipo} - ${imovel.titulo}` : imovel.titulo}
-                  </div>
-                </td>
-
-                {/* Valor */}
-                <td className="text-gray-700 px-6 py-4 text-center text-sm font-bold">
-                  R${" "}
-                  {imovel.preco?.toLocaleString("pt-BR", {
-                    minimumFractionDigits: 2,
-                  }) ?? "0,00"}
-                </td>
-
-                {/* Finalidade */}
-                <td className="px-6 py-4 text-center">
-                  <span
-                    className={`px-3 py-1 text-xs font-semibold rounded-full ${
-                      imovel.finalidade === "VENDA"
-                        ? "bg-blue-100 text-blue-700"
-                        : "bg-purple-100 text-purple-700"
-                    }`}
-                  >
-                    {imovel.finalidade === "VENDA" ? "Venda" : "Aluguel"}
-                  </span>
-                </td>
-
-                {/* Status */}
-                <td className="px-6 py-4 text-center">
-                  <StatusDropdown
-                    imovelId={imovel.id}
-                    currentStatus={(imovel.status as Status) ?? "DISPONIVEL"}
-                    finalidade={imovel.finalidade as Finalidade}
-                    onUpdate={fetchImoveis}
-                  />
-                </td>
-
-                {/* Ações */}
-                <td className="px-6 py-4 text-center">
-                  <div className="flex items-center justify-center gap-3">
-                    <button
-                      onClick={() => handleEdit(imovel)}
-                      className="text-blue-600 hover:text-blue-900"
-                      title="Editar Imóvel"
-                    >
-                      <Pencil className="w-5 h-5" />
-                    </button>
-
-                    <button
-                      onClick={() => handleDeleteClick(imovel)}
-                      className="text-red-600 hover:text-red-900"
-                      title="Excluir Imóvel"
-                    >
-                      🗑️
-                    </button>
-                  </div>
-                </td>
-
-                {/* Fotos */}
-                <td className="px-6 py-4 text-center">
-                  <button
-                    title="Ver Fotos"
-                    className="p-1 rounded hover:bg-gray-200"
-                    onClick={() => handleVerFotos(imovel)}
-                  >
-                    <Camera className="w-5 h-5 text-gray-700" />
-                  </button>
-                </td>
+        <div className="w-full overflow-x-auto">
+          <table className="min-w-full mt-4">
+            <thead className="bg-gray-300 hidden md:table-header-group">
+              <tr>
+                <th className="px-4 py-2 text-left text-xs font-semibold text-gray-900 uppercase">
+                  Título / Endereço
+                </th>
+                <th className="px-4 py-2 text-center text-xs font-semibold">Valor</th>
+                <th className="px-4 py-2 text-center text-xs font-semibold">Finalidade</th>
+                <th className="px-4 py-2 text-center text-xs font-semibold">Status</th>
+                <th className="px-4 py-2 text-center text-xs font-semibold">Ações</th>
+                <th className="px-4 py-2 text-center text-xs font-semibold">Fotos</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+
+            <tbody className="bg-white divide-y divide-gray-200">
+              {currentImoveis.map((imovel) => (
+                <tr
+                  key={imovel.id}
+                  className="grid md:table-row border md:border-none p-3 md:p-0 mb-4 md:mb-0 rounded-lg md:rounded-none bg-white shadow-md md:shadow-none"
+                >
+                  {/* TÍTULO */}
+                  <td className="px-4 py-2 text-sm text-gray-700">
+                    <div className="font-semibold text-base md:text-sm">{imovel.titulo}</div>
+                    <div className="text-xs text-gray-600">
+                      {imovel.rua}, {imovel.numero}
+                    </div>
+                    <div className="text-xs text-gray-600">
+                      {imovel.cidade} - {imovel.estado}
+                    </div>
+                  </td>
+
+                  {/* VALOR */}
+                  <td className="px-4 py-2 text-center font-bold text-gray-700 text-sm">
+                    R$ {imovel.preco?.toLocaleString("pt-BR")}
+                  </td>
+
+                  {/* FINALIDADE */}
+                  <td className="px-4 py-2 text-center">
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                        imovel.finalidade === "VENDA"
+                          ? "bg-blue-100 text-blue-700"
+                          : "bg-purple-100 text-purple-700"
+                      }`}
+                    >
+                      {imovel.finalidade === "VENDA" ? "Venda" : "Aluguel"}
+                    </span>
+                  </td>
+
+                  {/* STATUS */}
+                  <td className="px-4 py-2 text-center">
+                    <StatusDropdown
+                      imovelId={imovel.id}
+                      currentStatus={imovel.status as Status}
+                      finalidade={imovel.finalidade as Finalidade}
+                      onUpdate={fetchImoveis}
+                    />
+                  </td>
+
+                  {/* AÇÕES */}
+                  <td className="px-4 py-2 flex md:table-cell justify-center gap-3">
+                    <button onClick={() => setImovelSelecionado(imovel)}>
+                      <Pencil className="w-5 h-5 text-blue-700" />
+                    </button>
+
+                    <button onClick={() => setImovelSelecionadoDelete(imovel)}>
+                      <span className="text-red-600 text-xl">🗑️</span>
+                    </button>
+                  </td>
+
+                  {/* FOTOS */}
+                  <td className="px-4 py-2 text-center">
+                    <button onClick={() => handleVerFotos(imovel)}>
+                      <Camera className="w-5 h-5 text-gray-700" />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
 
-      {/* Modais */}
+      {/* MODAIS */}
       {imovelSelecionado && (
         <EdtiImovel
           imovel={imovelSelecionado}
           onClose={() => setImovelSelecionado(null)}
-          onSave={handleSave}
+          onSave={() => {}}
         />
       )}
 
@@ -235,14 +172,14 @@ const ImovelListagemCorretor: React.FC<ImovelListagemCorretorProps> = () => {
         <DeleteImovelModal
           imovel={imovelSelecionadoDelete}
           onClose={() => setImovelSelecionadoDelete(null)}
-          onDeleteSuccess={handleDeleteSuccess}
+          onDeleteSuccess={() => fetchImoveis()}
         />
       )}
+
       {fotosModalOpen && (
         <VisualizarFotosModal fotos={fotosSelecionadas} onClose={() => setFotosModalOpen(false)} />
       )}
 
-      {/* Paginação */}
       <Paginacao currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
     </div>
   );

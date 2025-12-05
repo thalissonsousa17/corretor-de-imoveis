@@ -3,12 +3,6 @@
 import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
 import { useEffect, useState } from "react";
 
-const containerStyle = {
-  width: "100%",
-  height: "400px",
-  borderRadius: "12px",
-};
-
 type MapaProps = {
   endereco: string;
 };
@@ -40,15 +34,18 @@ export default function Mapa({ endereco }: MapaProps) {
         console.error("Erro ao buscar coordenadas", err);
       }
     };
+
     fetchCoods();
   }, [endereco]);
 
   if (!isMounted) return <p className="text-gray-500">Carregando mapa...</p>;
 
   return coords ? (
-    <GoogleMap mapContainerStyle={containerStyle} center={coords} zoom={15}>
-      <Marker position={coords} />
-    </GoogleMap>
+    <div className="w-full h-[250px] sm:h-[350px] md:h-[400px] rounded-xl overflow-hidden">
+      <GoogleMap mapContainerStyle={{ width: "100%", height: "100%" }} center={coords} zoom={15}>
+        <Marker position={coords} />
+      </GoogleMap>
+    </div>
   ) : (
     <p className="text-gray-500">Carregando mapa...</p>
   );

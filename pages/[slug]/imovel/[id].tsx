@@ -145,15 +145,28 @@ export default function ImovelDetalhe({ imovel, corretor, slug, imoveis }: Props
               <div className="lg:pl-4">
                 {fotos.length > 0 && (
                   <div className="w-full">
-                    {/* GRID PRINCIPAL */}
-                    <div className="grid grid-cols-4 grid-rows-2 gap-3 h-[420px]">
+                    {/* GRID PRINCIPAL — MOBILE EMPILHADO / DESKTOP SIDE-BY-SIDE */}
+                    <div
+                      className="
+          grid 
+          grid-cols-1           /* mobile: tudo empilhado */
+          sm:grid-cols-2        /* tablet: 2 colunas */
+          lg:grid-cols-4 lg:grid-rows-2  /* desktop: grid original */
+          gap-3 
+          lg:h-[420px]
+        "
+                    >
                       {/* FOTO PRINCIPAL */}
                       <button
                         onClick={() => {
                           setIdx(0);
                           setOpen(true);
                         }}
-                        className="col-span-2 row-span-2 rounded-xl overflow-hidden shadow group"
+                        className="
+            rounded-xl overflow-hidden shadow group
+            lg:col-span-2 lg:row-span-2   /* apenas no desktop */
+            h-52 sm:h-64 lg:h-full        /* altura responsiva */
+          "
                       >
                         <img
                           src={fotos[0].url}
@@ -170,7 +183,7 @@ export default function ImovelDetalhe({ imovel, corretor, slug, imoveis }: Props
                             setIdx(i + 1);
                             setOpen(true);
                           }}
-                          className="rounded-xl overflow-hidden shadow group"
+                          className="rounded-xl overflow-hidden shadow group h-40 sm:h-48 lg:h-full"
                         >
                           <img
                             src={f.url}
@@ -183,7 +196,16 @@ export default function ImovelDetalhe({ imovel, corretor, slug, imoveis }: Props
 
                     {/* FOTOS EXTRAS */}
                     {fotos.length > 5 && (
-                      <div className="grid grid-cols-5 gap-3 mt-3">
+                      <div
+                        className="
+            grid 
+            grid-cols-1         /* mobile: uma abaixo da outra */
+            sm:grid-cols-2      /* tablet */
+            lg:grid-cols-5      /* desktop: original */
+            gap-3 
+            mt-3
+          "
+                      >
                         {fotos.slice(5).map((f, i) => (
                           <button
                             key={f.id}
@@ -191,11 +213,11 @@ export default function ImovelDetalhe({ imovel, corretor, slug, imoveis }: Props
                               setIdx(i + 5);
                               setOpen(true);
                             }}
-                            className="rounded-lg overflow-hidden shadow group"
+                            className="rounded-lg overflow-hidden shadow group h-32 sm:h-40 lg:h-24"
                           >
                             <img
                               src={f.url}
-                              className="w-full h-24 object-cover group-hover:scale-110 transition"
+                              className="w-full h-full object-cover group-hover:scale-110 transition"
                             />
                           </button>
                         ))}
@@ -232,15 +254,17 @@ export default function ImovelDetalhe({ imovel, corretor, slug, imoveis }: Props
           </main>
 
           {/* MAPA */}
-          <main className="px-40 py-10">
+          <main className="px-4 sm:px-8 lg:px-20 py-10">
             <section className="bg-white rounded-2xl shadow-md border border-gray-100 p-6">
-              <h1 className="text-2xl text-[#1A2A4F] font-semibold mb-6">📍 Localização</h1>
+              <h1 className="text-xl sm:text-2xl text-[#1A2A4F] font-semibold mb-6">
+                📍 Localização
+              </h1>
 
-              <Mapa
-                endereco={`${imovel.rua || ""} ${imovel.numero || ""}, ${imovel.bairro || ""}, ${
-                  imovel.cidade || ""
-                } - ${imovel.estado || ""}, Brasil`}
-              />
+              <div className="w-full h-[380px] sm:h-[450px] rounded-xl overflow-hidden">
+                <Mapa
+                  endereco={`${imovel.rua || ""} ${imovel.numero || ""}, ${imovel.bairro || ""}, ${imovel.cidade || ""} - ${imovel.estado || ""}, Brasil`}
+                />
+              </div>
             </section>
           </main>
 

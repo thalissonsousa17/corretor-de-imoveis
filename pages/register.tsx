@@ -22,9 +22,7 @@ const RegisterPage = () => {
     try {
       const response = await fetch("/api/register", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, password }),
       });
 
@@ -33,21 +31,22 @@ const RegisterPage = () => {
         setTimeout(() => {
           router.push("/login");
         }, 2000);
+      } else {
+        const errData = await response.json();
+        setError(errData.message || "Erro ao registrar.");
       }
     } catch (err) {
-      if (axios.isAxiosError(err) && err.response) {
-        setError(err.response.data.message || "Ocorreu um erro ao registrar.");
-      } else {
-        setError("Ocorreu um erro desconhecido. Tente novamente.");
-      }
+      setError("Erro ao registrar. Tente novamente.");
     } finally {
       setIsLoading(false);
     }
   };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 text-gray-800">
-      <div className="w-full max-w-md p-8 space-y-6 bg-white rounded shadow">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 text-gray-800 px-4">
+      <div className="w-full max-w-md p-6 sm:p-8 space-y-6 bg-white rounded shadow">
         <h1 className="text-2xl font-bold text-center text-gray-700">Criar Conta</h1>
+
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* nome */}
           <div>
@@ -56,15 +55,16 @@ const RegisterPage = () => {
             </label>
             <input
               id="name"
-              name="name"
               type="text"
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Digite seu nome completo"
-              className="text-gray-500 mt-1 block w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              className="text-gray-500 mt-1 block w-full px-3 py-2 border border-gray-300 
+                         rounded shadow-sm focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
+
           {/* e-mail */}
           <div>
             <label htmlFor="email" className="text-sm font-medium text-gray-700">
@@ -72,13 +72,13 @@ const RegisterPage = () => {
             </label>
             <input
               id="email"
-              name="email"
               type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Digite seu e-mail"
-              className="text-gray-500 mt-1 block w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              className="text-gray-500 mt-1 block w-full px-3 py-2 border border-gray-300 
+                         rounded shadow-sm focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
 
@@ -89,33 +89,36 @@ const RegisterPage = () => {
             </label>
             <input
               id="password"
-              name="password"
               type="password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Digite sua senha"
-              className="text-gray-500 mt-1 block w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              className="text-gray-500 mt-1 block w-full px-3 py-2 border border-gray-300 
+                         rounded shadow-sm focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
-          {/* exibir mensagem */}
 
-          {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
-          {message && <p className="text-green-600 text-sm mb-4">{message}</p>}
+          {/* mensagens */}
+          {error && <p className="text-red-600 text-sm">{error}</p>}
+          {message && <p className="text-green-600 text-sm">{message}</p>}
 
           <div>
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full  flex justify-center py-2 px-4 border border-transparent rounded shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+              className="w-full flex justify-center py-2 px-4 rounded shadow-sm text-sm font-medium 
+                         text-white bg-blue-600 hover:bg-blue-700 
+                         focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
             >
               {isLoading ? "Registrando..." : "Registrar"}
             </button>
           </div>
         </form>
-        <p className=" flex justify-center items-center">
-          Já tem conta ?
-          <Link href="/login" className="font-medium text-indigo-600 hover:text-indigo-500 ">
+
+        <p className="text-center">
+          Já tem conta?{" "}
+          <Link href="/login" className="font-medium text-indigo-600 hover:text-indigo-500">
             Fazer Login
           </Link>
         </p>
@@ -123,4 +126,5 @@ const RegisterPage = () => {
     </div>
   );
 };
+
 export default RegisterPage;

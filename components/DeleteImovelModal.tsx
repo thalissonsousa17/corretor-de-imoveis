@@ -21,39 +21,43 @@ const DeleteImovelModal: React.FC<DeleteImovelModalProps> = ({
       onDeleteSuccess();
       onClose();
     } catch (error) {
-      console.error("Error ao deletar:", error);
-      alert("Falha ao deletar o imóvel. Verifique se você é o dono.");
+      console.error("Erro ao deletar:", error);
+      alert("Falha ao deletar o imóvel. Verifique se possui permissão.");
     }
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center text-center bg-gray-400/30 z-50">
-      <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md">
-        <h2 className="text-xl font-semibold text-gray-800 mb-3">Deletar Imóvel</h2>
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 px-4">
+      <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md animate-fadeIn">
+        {/* Título */}
+        <h2 className="text-2xl font-semibold text-gray-900 mb-2 text-center">
+          Confirmar Exclusão
+        </h2>
 
-        <p className="text-gray-600 mb-6">
-          Tem certeza que deseja <strong>deletar</strong> o imóvel
+        <p className="text-gray-600 text-center leading-relaxed">
+          Você realmente deseja <strong className="text-red-600">excluir</strong> o imóvel:
           <br />
-          <span className="text-red-500 font-semibold">
-            {imovel.titulo}?
-            <br />
-          </span>
-          <span className="text-sm text-gray-700">
-            Esta ação é <strong>irreversível</strong>
-          </span>
+          <span className="text-red-500 font-semibold">{imovel.titulo}</span>?
         </p>
-        <div className="flex justify-center gap-3">
+
+        <p className="mt-3 text-sm text-gray-500 text-center">
+          Esta ação é permanente e <strong>não poderá ser desfeita</strong>.
+        </p>
+
+        {/* Botões */}
+        <div className="flex justify-center gap-3 mt-8">
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded-md bg-red-700 text-gray-200 hover:bg-red-900 transition hover:text-white"
+            className="px-4 py-2 rounded-lg bg-gray-200 text-gray-800 hover:bg-gray-300 transition cursor-pointer"
           >
-            cancelar
+            Cancelar
           </button>
+
           <button
             onClick={handleDelete}
-            className="px-4 py-2 rounded-md bg-red-700 text-gray-200 hover:bg-red-800 transition hover:text-white"
+            className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition cursor-pointer"
           >
-            Confirmar exclusão
+            Excluir Imóvel
           </button>
         </div>
       </div>

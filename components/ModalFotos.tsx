@@ -64,16 +64,16 @@ function SortableFoto({
       style={style}
       {...attributes}
       {...listeners}
-      className={`relative w-full h-40 rounded-xl overflow-hidden border shadow-sm bg-gray-100 
+      className={`relative w-full h-36 sm:h-40 rounded-xl overflow-hidden border shadow-sm bg-gray-100 
       ${isDragging ? "ring-2 ring-blue-400 ring-offset-2" : ""}`}
     >
       <img src={foto.url} alt={`Foto ${index + 1}`} className="w-full h-full object-cover" />
 
-      <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-black/60 to-transparent" />
+      <div className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-black/60 to-transparent" />
 
       {isPrincipal && (
-        <div className="absolute top-2 left-2 bg-emerald-500 text-xs font-semibold px-2 py-1 rounded-full shadow flex items-center gap-1 text-white">
-          <span>⭐ Principal</span>
+        <div className="absolute top-2 left-2 bg-emerald-500 text-xs font-semibold px-2 py-1 rounded-full shadow text-white">
+          ⭐ Principal
         </div>
       )}
 
@@ -169,7 +169,6 @@ const ModalFotos: React.FC<ModalFotosProps> = ({ fotos, imovelId, onClose, onDel
 
     const novaLista = arrayMove(lista, oldIndex, newIndex);
     setLista(novaLista);
-
     await salvarOrdem(novaLista);
   };
 
@@ -184,10 +183,7 @@ const ModalFotos: React.FC<ModalFotosProps> = ({ fotos, imovelId, onClose, onDel
   };
 
   const handleDeleteLocal = (foto: Foto) => {
-    // Remove visualmente do modal
     setLista((prev) => prev.filter((f) => (f.id || f.url) !== (foto.id || foto.url)));
-
-    // Chama delete real no componente pai
     onDeleteFoto(foto);
   };
 
@@ -198,7 +194,7 @@ const ModalFotos: React.FC<ModalFotosProps> = ({ fotos, imovelId, onClose, onDel
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/70 flex items-center justify-center z-50"
+        className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 sm:p-6 z-50"
       >
         <motion.div
           key="modal-content"
@@ -206,7 +202,7 @@ const ModalFotos: React.FC<ModalFotosProps> = ({ fotos, imovelId, onClose, onDel
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="bg-white rounded-2xl p-6 max-w-4xl w-full max-h-[90vh] overflow-hidden shadow-2xl relative"
+          className="bg-white rounded-2xl p-4 sm:p-6 w-full max-w-[95vw] sm:max-w-3xl md:max-w-4xl max-h-[92vh] overflow-hidden shadow-2xl relative"
         >
           <button
             type="button"
@@ -216,10 +212,12 @@ const ModalFotos: React.FC<ModalFotosProps> = ({ fotos, imovelId, onClose, onDel
             <X size={22} />
           </button>
 
-          <div className="mb-4 flex items-center justify-between gap-4">
+          <div className="mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4">
             <div>
-              <h2 className="text-xl font-semibold text-gray-900">Gerenciar fotos do imóvel</h2>
-              <p className="text-sm text-gray-500">
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
+                Gerenciar fotos do imóvel
+              </h2>
+              <p className="text-xs sm:text-sm text-gray-500">
                 Arraste para alterar a ordem ou clique em “Definir principal”.
               </p>
             </div>
@@ -233,7 +231,7 @@ const ModalFotos: React.FC<ModalFotosProps> = ({ fotos, imovelId, onClose, onDel
 
           {feedback && (
             <div
-              className={`mb-4 rounded-lg px-3 py-2 text-sm flex items-center gap-2 ${
+              className={`mb-3 sm:mb-4 rounded-lg px-3 py-2 text-xs sm:text-sm flex items-center gap-2 ${
                 feedback.type === "success"
                   ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
                   : "bg-red-50 text-red-700 border border-red-200"
@@ -254,7 +252,7 @@ const ModalFotos: React.FC<ModalFotosProps> = ({ fotos, imovelId, onClose, onDel
             <SortableContext items={lista.map((f) => f.id || f.url)} strategy={rectSortingStrategy}>
               {lista.length > 0 ? (
                 <div className="max-h-[60vh] overflow-y-auto pr-2">
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-4">
+                  <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4 mb-4">
                     {lista.map((foto, i) => (
                       <SortableFoto
                         key={foto.id || foto.url}

@@ -63,7 +63,7 @@ export default function NoticiasCarrossel() {
       >
         {noticias.map((n, i) => (
           <SwiperSlide key={i} className="flex justify-center ">
-            <div className="min-w-[280px] max-w-[280px] ">
+            <div className="min-w-[200px] max-w-[280px] ">
               <CardNoticia {...n} data={new Date(n.data).toLocaleDateString("pt-BR")} />
             </div>
           </SwiperSlide>
