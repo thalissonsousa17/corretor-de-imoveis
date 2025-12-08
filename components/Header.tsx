@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { Phone, Menu, X } from "lucide-react";
+import Image from "next/image";
 
 interface Corretor {
   name?: string;
@@ -49,7 +50,7 @@ export default function HeaderCorretor({ corretor }: HeaderCorretorProps) {
           {/* LOGO */}
           <div className="flex items-center gap-3">
             {logoSrc ? (
-              <img src={logoSrc} alt={corretor.name || "Logo"} className="h-10 sm:h-14 w-auto" />
+              <Image src={logoSrc} alt={corretor.name || "Logo"} className="h-10 sm:h-14 w-auto" />
             ) : (
               <h1 className="text-lg sm:text-xl font-semibold text-[#1A2A4F]">{corretor.name}</h1>
             )}
