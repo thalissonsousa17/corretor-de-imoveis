@@ -50,7 +50,13 @@ export default function HeaderCorretor({ corretor }: HeaderCorretorProps) {
           {/* LOGO */}
           <div className="flex items-center gap-3">
             {logoSrc ? (
-              <Image src={logoSrc} alt={corretor.name || "Logo"} className="h-10 sm:h-14 w-auto" />
+              <div className="relative h-10 sm:h-10 w-auto aspect-auto">
+                <img
+                  src={logoSrc}
+                  alt={corretor.name || "Logo"}
+                  className="object-contain h-full w-auto"
+                />
+              </div>
             ) : (
               <h1 className="text-lg sm:text-xl font-semibold text-[#1A2A4F]">{corretor.name}</h1>
             )}
