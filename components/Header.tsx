@@ -32,10 +32,12 @@ export default function HeaderCorretor({ corretor }: HeaderCorretorProps) {
   const logoSrc =
     corretor.logoUrl && corretor.logoUrl.trim() !== ""
       ? corretor.logoUrl.startsWith("http")
-        ? corretor.logoUrl
-        : `${process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000"}${
-            corretor.logoUrl.startsWith("/") ? "" : "/"
-          }${corretor.logoUrl}`
+        ? corretor.logoUrl.replace("http://", "https://")
+        : `${
+            corretor.logoUrl.startsWith("/")
+              ? `${router.basePath}${corretor.logoUrl}`
+              : `${(process.env.NEXT_PUBLIC_BASE_URL || "https://localhost:3000").replace("http://", "https://")}/${corretor.logoUrl}`
+          }`
       : null;
 
   return (
