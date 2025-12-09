@@ -32,8 +32,10 @@ export default function HeaderCorretor({ corretor }: HeaderCorretorProps) {
   const logoSrc =
     corretor.logoUrl && corretor.logoUrl.trim() !== ""
       ? corretor.logoUrl.startsWith("http")
-        ? corretor.logoUrl.replace("http://207.180.235.23", "https://seuimovel.automatech.app.br")
-        : `${process.env.NEXT_PUBLIC_BASE_URL}${corretor.logoUrl}`
+        ? corretor.logoUrl
+        : `${process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000"}${
+            corretor.logoUrl.startsWith("/") ? "" : "/"
+          }${corretor.logoUrl}`
       : null;
 
   return (
