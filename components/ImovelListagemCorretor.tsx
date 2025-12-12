@@ -136,20 +136,20 @@ const ImovelListagemCorretor: React.FC<ImovelListagemCorretorProps> = () => {
                   </td>
 
                   {/* AÇÕES */}
-                  <td className="px-4 py-2 flex md:table-cell justify-center gap-3">
+                  <td className="px-4 py-2 flex md:table-cell justify-center gap-3 ">
                     <button onClick={() => setImovelSelecionado(imovel)}>
-                      <Pencil className="w-5 h-5 text-blue-700" />
+                      <Pencil className="w-5 h-5 text-orange-500 cursor-pointer" />
                     </button>
 
                     <button onClick={() => setImovelSelecionadoDelete(imovel)}>
-                      <span className="text-red-600 text-xl">🗑️</span>
+                      <span className="text-red-600 text-xl cursor-pointer">🗑️</span>
                     </button>
                   </td>
 
                   {/* FOTOS */}
                   <td className="px-4 py-2 text-center">
                     <button onClick={() => handleVerFotos(imovel)}>
-                      <Camera className="w-5 h-5 text-gray-700" />
+                      <Camera className="w-5 h-5 text-gray-700 cursor-pointer" />
                     </button>
                   </td>
                 </tr>
