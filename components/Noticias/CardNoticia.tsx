@@ -11,7 +11,7 @@ export default function CardNoticia({ titulo, data, resumo, link = "#" }: CardNo
       href={link}
       target="_blank"
       rel="noopener noreferrer"
-      className="block bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition border border-gray-200"
+      className="block  bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition border border-gray-200"
     >
       {/* Conteúdo */}
       <div className="p-4">

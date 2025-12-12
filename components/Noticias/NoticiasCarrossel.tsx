@@ -43,7 +43,7 @@ export default function NoticiasCarrossel() {
   if (loading || noticias.length === 0) return null;
 
   return (
-    <section className="mt-12 bg-white border rounded-2xl shadow-2xl">
+    <section className="mt-12 ">
       <h2 className="text-xl font-bold  text-[#1A2A4F] mb-4">Mais notícias sobre financiamento</h2>
 
       {/* CARROSSEL ANIMADO */}

@@ -56,19 +56,14 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
     type: "",
   });
 
-  const [cep, setCep] = useState("");
-  const [rua, setRua] = useState("");
-  const [bairro, setBairro] = useState("");
-
   const handleEnderecoAchado = (endereco: Endereco, cep: string) => {
     setFormData((prev) => ({
       ...prev,
-      cep: cep || prev.cep,
+      cep,
       rua: endereco.logradouro || "",
       bairro: endereco.bairro || "",
       cidade: endereco.localidade || prev.cidade,
       estado: endereco.uf || prev.estado,
-      numero: prev.numero,
     }));
   };
 
@@ -82,43 +77,31 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
           setFormData({
             titulo: imovel.titulo,
             descricao: imovel.descricao,
-            preco: (imovel.preco ?? "").toString(),
+            preco: imovel.preco?.toString() ?? "",
             tipo: imovel.tipo,
-            cep: imovel.cep ?? "",
-            rua: imovel.rua ?? "",
             bairro: imovel.bairro ?? "",
+            rua: imovel.rua ?? "",
             numero: imovel.numero ?? "",
+            cep: imovel.cep ?? "",
             cidade: imovel.cidade,
             estado: imovel.estado,
             localizacao: imovel.localizacao,
             finalidade: imovel.finalidade ?? "VENDA",
           });
-          setCep(imovel.cep ?? "");
 
           setExistingPhotos(imovel.fotos.map((f) => ({ ...f, toBeDeleted: false })));
         })
-        .catch((err) => {
-          setMessage({ text: "Erro ao carregar dados do imóvel para edição.", type: "error" });
-          console.error("Erro de GET:", err);
+        .catch(() => {
+          setMessage({ text: "Erro ao carregar dados do imóvel.", type: "error" });
         })
         .finally(() => setLoading(false));
     }
   }, [isEditMode, imovelId]);
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    console.log(" (ImovelFormulario) Recebendo arquivos do filho:", files);
-
-    if (!files || files.length === 0) {
-      console.warn(" Nenhum arquivo recebido.");
-      return;
+    if (e.target.files && e.target.files.length > 0) {
+      setFotosSelecionadas(e.target.files);
     }
-
-    const fileArray = Array.from(files);
-    const dataTransfer = new DataTransfer();
-    fileArray.forEach((file) => dataTransfer.items.add(file));
-
-    setFotosSelecionadas(files);
   };
 
   const handlePhotoToggle = (photoId: string) => {
@@ -136,111 +119,52 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
 
     const data = new FormData();
 
-    Object.keys(formData).forEach((key) => {
-      const value = formData[key as keyof FormState];
-      data.append(key, typeof value === "boolean" ? String(value) : value || "");
+    // ✅ MODELO 1 — envia SOMENTE o que está preenchido
+    Object.entries(formData).forEach(([key, value]) => {
+      if (value !== undefined && value !== "") {
+        data.append(key, value);
+      }
     });
 
-    data.append("cep", cep);
-    data.append("rua", rua);
-    data.append("bairro", bairro);
-    data.append("numero", formData.numero ?? "");
-
     if (imovelId) {
-      console.log(" Adicionando imovelId no FormData:", imovelId);
       data.append("imovelId", imovelId);
     }
 
     if (isEditMode) {
-      const photosToDelete = existingPhotos.filter((f) => f.toBeDeleted).map((f) => f.id);
-      if (photosToDelete.length > 0) {
-        data.append("fotosRemover", JSON.stringify(photosToDelete));
-        console.log(" Fotos marcadas para remover:", photosToDelete);
+      const fotosRemover = existingPhotos.filter((f) => f.toBeDeleted).map((f) => f.id);
+
+      if (fotosRemover.length > 0) {
+        data.append("fotosRemover", JSON.stringify(fotosRemover));
       }
     }
 
     const fotosParaEnviar = fotosSelecionadas || fotos;
     if (fotosParaEnviar && fotosParaEnviar.length > 0) {
-      for (let i = 0; i < fotosParaEnviar.length; i++) {
-        data.append("fotos", fotosParaEnviar[i]);
-      }
-    } else if (!isEditMode) {
-      setMessage({
-        text: "Por favor, selecione pelo menos uma foto para o cadastro.",
-        type: "error",
+      Array.from(fotosParaEnviar).forEach((file) => {
+        data.append("fotos", file);
       });
+    } else if (!isEditMode) {
+      setMessage({ text: "Selecione ao menos uma foto.", type: "error" });
       setLoading(false);
       return;
     }
 
-    for (const [key, value] of data.entries()) {
-      console.log(" FormData:", key, value);
-    }
-
     try {
-      let response;
-      const config = {
-        headers: { "Content-Type": "multipart/form-data" },
-      };
-
-      if (isEditMode) {
-        response = await axios.put(`/api/imoveis/${imovelId}`, data, config);
-      } else {
-        response = await axios.post("/api/imoveis", data, config);
-      }
+      const response = isEditMode
+        ? await axios.put(`/api/imoveis/${imovelId}`, data)
+        : await axios.post("/api/imoveis", data);
 
       setMessage({
-        text:
-          response.data.message ||
-          `Imóvel ${isEditMode ? "atualizado" : "cadastrado"} com sucesso!`,
+        text: response.data.message || "Imóvel salvo com sucesso!",
         type: "success",
       });
+
       onSuccess();
-
-      if (!isEditMode) {
-        setFormData({
-          titulo: "",
-          descricao: "",
-          preco: "",
-          tipo: "APARTAMENTO",
-          bairro: "",
-          rua: "",
-          numero: "",
-          cep: "",
-          cidade: "",
-          estado: "",
-          localizacao: "",
-          finalidade: "VENDA",
-        });
-
-        setFotos(null);
-        setFotosSelecionadas(null);
-        setExistingPhotos([]);
-      } else {
-        const updatedImovel = response.data.imovel || response.data;
-
-        setExistingPhotos(
-          updatedImovel.fotos
-            ? updatedImovel.fotos.map((f: Foto) => ({ ...f, toBeDeleted: false }))
-            : []
-        );
-
-        setFotos(null);
-      }
-    } catch (error: unknown) {
-      let errorMsg = "Erro ao processar imóvel. Verifique o console.";
-      if (axios.isAxiosError(error) && error.response?.data?.message) {
-        errorMsg = error.response.data.message;
-      }
-      setMessage({ text: errorMsg, type: "error" });
-      console.error(error);
+    } catch {
+      setMessage({ text: "Erro ao salvar imóvel.", type: "error" });
     } finally {
       setLoading(false);
     }
-  };
-
-  const setEstado = (value: string) => {
-    setFormData((prev) => ({ ...prev, estado: value }));
   };
 
   return (
@@ -392,7 +316,11 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {/* Campo CEP */}
         <div className="md:col-span-2">
-          <BuscaEndereco onEnderecoAchado={handleEnderecoAchado} />
+          <BuscaEndereco
+            onEnderecoAchado={handleEnderecoAchado}
+            cep={formData.cep ?? ""}
+            onCepChange={(novoCep) => setFormData((prev) => ({ ...prev, cep: novoCep }))}
+          />
 
           {/* Campo Número */}
           <div className="md:col-span-2">
@@ -420,7 +348,8 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
               name="rua"
               id="rua"
               value={formData.rua}
-              onChange={(e) => setRua(e.target.value)}
+              onChange={(e) => setFormData((prev) => ({ ...prev, rua: e.target.value }))}
+              // onChange={(e) => setRua(e.target.value)}
               required
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 bg-gray-100"
             />
@@ -435,7 +364,8 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
               name="bairro"
               id="bairro"
               value={formData.bairro}
-              onChange={(e) => setBairro(e.target.value)}
+              onChange={(e) => setFormData((prev) => ({ ...prev, bairro: e.target.value }))}
+              // onChange={(e) => setBairro(e.target.value)}
               required
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 bg-gray-100"
             />
@@ -465,7 +395,12 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
               id="estado"
               maxLength={2}
               value={formData.estado}
-              onChange={(e) => setEstado(e.target.value.toUpperCase())}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  estado: e.target.value.toUpperCase(),
+                }))
+              }
               required
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 bg-gray-100"
             />

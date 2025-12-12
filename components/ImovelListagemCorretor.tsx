@@ -164,7 +164,10 @@ const ImovelListagemCorretor: React.FC<ImovelListagemCorretorProps> = () => {
         <EdtiImovel
           imovel={imovelSelecionado}
           onClose={() => setImovelSelecionado(null)}
-          onSave={() => {}}
+          onSave={() => {
+            fetchImoveis();
+            setImovelSelecionado(null);
+          }}
         />
       )}
 

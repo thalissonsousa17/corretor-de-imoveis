@@ -145,16 +145,16 @@ export default function ImovelDetalhe({ imovel, corretor, slug, imoveis }: Props
               <div className="lg:pl-4">
                 {fotos.length > 0 && (
                   <div className="w-full">
-                    {/* GRID PRINCIPAL — MOBILE EMPILHADO / DESKTOP SIDE-BY-SIDE */}
+                    {/* GRID PRINCIPAL — MOBILE EMPILHADO */}
                     <div
                       className="
-          grid 
-          grid-cols-1           /* mobile: tudo empilhado */
-          sm:grid-cols-2        /* tablet: 2 colunas */
-          lg:grid-cols-4 lg:grid-rows-2  /* desktop: grid original */
-          gap-3 
-          lg:h-[420px]
-        "
+                        grid 
+                        grid-cols-1          
+                        sm:grid-cols-2        
+                        lg:grid-cols-4 lg:grid-rows-2  
+                        gap-3 
+                        lg:h-[420px]
+                      "
                     >
                       {/* FOTO PRINCIPAL */}
                       <button
@@ -163,10 +163,10 @@ export default function ImovelDetalhe({ imovel, corretor, slug, imoveis }: Props
                           setOpen(true);
                         }}
                         className="
-            rounded-xl overflow-hidden shadow group
-            lg:col-span-2 lg:row-span-2   /* apenas no desktop */
-            h-52 sm:h-64 lg:h-full        /* altura responsiva */
-          "
+                          rounded-xl overflow-hidden shadow group
+                          lg:col-span-2 lg:row-span-2   /* apenas no desktop */
+                          h-52 sm:h-64 lg:h-full        /* altura responsiva */
+                        "
                       >
                         <img
                           src={fotos[0].url}

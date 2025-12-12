@@ -6,6 +6,14 @@ import path from "path";
 import type { Imovel, Foto } from "@prisma/client";
 import type { ImovelStatus } from "@prisma/client";
 
+import formidable from "formidable";
+
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
+
 interface UpdateImovelInput {
   titulo?: string;
   descricao?: string;
@@ -83,9 +91,18 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse): Promise<voi
     return;
   }
 
-  const body = req.body as UpdateImovelInput;
-
   try {
+    const form = formidable({ multiples: true });
+
+    const { fields } = await new Promise<{
+      fields: formidable.Fields;
+    }>((resolve, reject) => {
+      form.parse(req, (err, fields) => {
+        if (err) reject(err);
+        else resolve({ fields });
+      });
+    });
+
     const imovelExistente = await prisma.imovel.findUnique({
       where: { id },
       include: { fotos: true },
@@ -103,26 +120,27 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse): Promise<voi
 
     const data: Partial<Imovel> = {};
 
-    if (body.titulo) data.titulo = body.titulo;
-    if (body.descricao) data.descricao = body.descricao;
-    if (body.tipo) data.tipo = body.tipo;
-    if (body.localizacao) data.localizacao = body.localizacao;
-    if (body.cidade) data.cidade = body.cidade;
-    if (body.estado) data.estado = body.estado;
-    if (body.bairro) data.bairro = body.bairro;
-    if (body.rua) data.rua = body.rua;
-    if (body.numero) data.numero = body.numero;
-    if (body.cep) data.cep = body.cep;
+    if (fields.titulo) data.titulo = String(fields.titulo);
+    if (fields.descricao) data.descricao = String(fields.descricao);
+    if (fields.tipo) data.tipo = String(fields.tipo);
+    if (fields.localizacao) data.localizacao = String(fields.localizacao);
+    if (fields.cidade) data.cidade = String(fields.cidade);
+    if (fields.estado) data.estado = String(fields.estado);
+    if (fields.bairro) data.bairro = String(fields.bairro);
+    if (fields.rua) data.rua = String(fields.rua);
+    if (fields.numero) data.numero = String(fields.numero);
+    if (fields.cep) data.cep = String(fields.cep);
 
-    if (body.preco) {
-      const preco = typeof body.preco === "string" ? parseFloat(body.preco) : body.preco;
+    if (fields.preco) {
+      const preco = parseFloat(String(fields.preco));
       if (!isNaN(preco)) data.preco = preco;
     }
 
     let fotosRemoverIds: string[] = [];
-    if (body.fotosRemover) {
+
+    if (fields.fotosRemover) {
       try {
-        fotosRemoverIds = JSON.parse(body.fotosRemover);
+        fotosRemoverIds = JSON.parse(String(fields.fotosRemover));
       } catch {
         console.warn("fotosRemover inválido");
       }
@@ -153,15 +171,13 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse): Promise<voi
       include: { fotos: true },
     });
 
-    const resposta = {
+    res.status(200).json({
       ...atualizado,
       fotos: atualizado.fotos.map((f) => ({
         ...f,
         url: normalizeUrl(f.url),
       })),
-    };
-
-    res.status(200).json(resposta);
+    });
   } catch (error) {
     console.error("Erro PUT:", error);
     res.status(500).json({ message: "Erro ao atualizar imóvel." });

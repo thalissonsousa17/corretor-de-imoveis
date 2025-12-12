@@ -2,10 +2,13 @@ import React, { useState } from "react";
 import axios from "axios";
 import { Endereco } from "../types/endereco";
 
-const BuscaEndereco: React.FC<{ onEnderecoAchado: (endereco: Endereco, cep: string) => void }> = ({
-  onEnderecoAchado,
-}) => {
-  const [cep, setCep] = useState("");
+interface BuscaEnderecoProps {
+  cep: string;
+  onCepChange: (cep: string) => void;
+  onEnderecoAchado: (endereco: Endereco, cep: string) => void;
+}
+
+const BuscaEndereco: React.FC<BuscaEnderecoProps> = ({ cep, onCepChange, onEnderecoAchado }) => {
   const [erro, setErro] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -22,8 +25,8 @@ const BuscaEndereco: React.FC<{ onEnderecoAchado: (endereco: Endereco, cep: stri
 
     try {
       const resposta = await axios.get(`/api/cep?cep=${cepLimpo}`);
-
       const dados = resposta.data;
+
       if (dados.erro) {
         setErro("CEP não encontrado.");
       } else {
@@ -33,8 +36,8 @@ const BuscaEndereco: React.FC<{ onEnderecoAchado: (endereco: Endereco, cep: stri
           localidade: dados.localidade,
           uf: dados.uf,
         };
+
         onEnderecoAchado(novoEndereco, cepLimpo);
-        setErro("");
       }
     } catch (error) {
       setErro("Erro ao buscar o CEP. Verifique sua conexão.");
@@ -51,12 +54,11 @@ const BuscaEndereco: React.FC<{ onEnderecoAchado: (endereco: Endereco, cep: stri
       </label>
 
       <div className="flex mt-1 w-full flex-col sm:flex-row sm:items-center gap-2 sm:gap-0">
-        {/* INPUT */}
         <input
           type="text"
           id="cep"
           value={cep}
-          onChange={(e) => setCep(e.target.value.replace(/\D/g, "").slice(0, 8))}
+          onChange={(e) => onCepChange(e.target.value.replace(/\D/g, "").slice(0, 8))}
           onBlur={buscarCep}
           required
           disabled={isLoading}
@@ -74,7 +76,6 @@ const BuscaEndereco: React.FC<{ onEnderecoAchado: (endereco: Endereco, cep: stri
           placeholder="Ex: 58400000"
         />
 
-        {/* BOTÃO */}
         <button
           type="button"
           onClick={buscarCep}
@@ -93,7 +94,6 @@ const BuscaEndereco: React.FC<{ onEnderecoAchado: (endereco: Endereco, cep: stri
             focus:ring-blue-500
             flex items-center justify-center
           "
-          aria-label="Buscar CEP"
         >
           {isLoading ? (
             <span className="animate-spin h-5 w-5 block border-2 border-r-transparent rounded-full"></span>
