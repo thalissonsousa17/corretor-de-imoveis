@@ -24,7 +24,8 @@ export default async function handleLougout(req: NextApiRequest, res: NextApiRes
     "Set-Cookie",
     cookie.serialize("sessionId", "", {
       httpOnly: true,
-      secure: false,
+      secure: true,
+      sameSite: "none",
       maxAge: 0,
       path: "/",
       expires: new Date(0),

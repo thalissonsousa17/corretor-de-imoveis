@@ -365,7 +365,6 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
               id="bairro"
               value={formData.bairro}
               onChange={(e) => setFormData((prev) => ({ ...prev, bairro: e.target.value }))}
-              // onChange={(e) => setBairro(e.target.value)}
               required
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 bg-gray-100"
             />
