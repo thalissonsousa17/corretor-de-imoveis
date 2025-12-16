@@ -33,7 +33,7 @@ const SidebarCorretor: React.FC = () => {
         bg-gray-800 text-white 
         min-h-screen 
         fixed top-0 left-0 
-        w-[70px] md:w-64          /* 🔥 Sidebar pequena no mobile, normal no desktop */
+        w-[70px] md:w-64          
         transition-all duration-300
         z-40
       "
