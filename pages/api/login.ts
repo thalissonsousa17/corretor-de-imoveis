@@ -12,25 +12,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { email, password } = req.body;
 
   try {
-    console.log("Buscando usuário:", email);
     const user = await prisma.user.findUnique({ where: { email } });
-    console.log("Usuário encontrado:", user);
 
     if (!user) return res.status(401).json({ message: "Usuário não encontrado" });
 
-    console.log("Comparando senha...");
     const senhaValida = await bcrypt.compare(password, user.password);
-    console.log("Senha válida:", senhaValida);
+
     if (!senhaValida) return res.status(401).json({ message: "Credenciais inválidas" });
 
     const sessionId = uuidv4();
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
-    console.log("Criando sessão...");
     await prisma.session.create({
       data: { id: sessionId, userId: user.id, expiresAt },
     });
-    console.log("Sessão criada com sucesso");
 
     res.setHeader(
       "Set-Cookie",
@@ -52,7 +47,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
   } catch (error) {
-    console.error("Erro no login:", error);
     return res.status(500).json({ message: "Erro interno no servidor", error });
   }
 }

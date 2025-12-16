@@ -69,8 +69,6 @@ export const authorize =
               planoStatus: "INATIVO",
             },
           });
-
-          console.log("Perfil criado automaticamente:", perfil);
         }
       }
 

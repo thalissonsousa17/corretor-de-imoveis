@@ -6,7 +6,6 @@ const CadastrarImovelPage: React.FC = () => {
   const [openModal, setOpenModal] = useState(false);
 
   const handleSuccess = () => {
-    console.log("Imóvel cadastrado com sucesso! Exibir mensagem ou redirecionar.");
     setOpenModal(true);
   };
 

@@ -135,7 +135,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!perfil) return res.json({ received: true });
 
     if (perfil.plano === PlanoTipo.GRATUITO && !perfil.stripeSubscriptionId) {
-      console.log(" Usuário no gratuito sem Stripe. Ignorando.");
       return res.json({ received: true });
     }
 
@@ -199,7 +198,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
-    console.log(" Plano atualizado:", plano);
     return res.json({ received: true });
   }
 

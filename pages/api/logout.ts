@@ -16,7 +16,7 @@ export default async function handleLougout(req: NextApiRequest, res: NextApiRes
         where: { id: sessionId },
       });
     } catch (error) {
-      console.log("Erro ao deletar sessão, mas prosseguindo com o logout do cliente.", error);
+      return res.status(500).json({ message: "Erro ao encerrar a sessão", error });
     }
   }
 

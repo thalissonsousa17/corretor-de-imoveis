@@ -129,14 +129,6 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
       );
     });
 
-    console.log("===== DEBUG UPLOAD =====");
-    console.log("Body keys:", Object.keys(req.body || {}));
-    console.log("Files keys:", Object.keys(req.files || {}));
-    console.log("Avatar:", req.files?.avatar?.[0]?.filename);
-    console.log("Banner:", req.files?.banner?.[0]?.filename);
-    console.log("Logo:", req.files?.logo?.[0]?.filename);
-    console.log("=========================");
-
     if (typeof req.body === "object" && req.body !== null) {
       for (const key of Object.keys(req.body)) {
         const value = req.body[key as keyof typeof req.body];
@@ -217,8 +209,6 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
       if (metaTitle !== undefined) dataToSave.metaTitle = metaTitle;
       if (metaDescription !== undefined) dataToSave.metaDescription = metaDescription;
 
-      console.log("🧠 Dados que serão salvos:", dataToSave);
-
       const existingPerfil = await prisma.corretorProfile.findUnique({ where: { userId } });
       let perfil;
 
@@ -253,7 +243,6 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
         });
       }
 
-      console.log("✅ Perfil salvo com sucesso!");
       return res.status(200).json(perfil);
     } catch (err) {
       console.error("❌ Erro ao salvar perfil:", err);

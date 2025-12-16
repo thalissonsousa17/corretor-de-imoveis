@@ -25,10 +25,10 @@ const GerenciarImoveisPage: React.FC = () => {
 
   const handleEdit = (id: string) => {
     console.log("Editar imóvel com ID:", id);
+    // Implementar lógica de edição ou redirecionamento para a página de edição
   };
 
   const handleImovelChange = () => {
-    console.log("Atualizando listagem de imóveis...");
     fetchImoveis();
   };
 
