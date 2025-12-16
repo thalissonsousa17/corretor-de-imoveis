@@ -3,6 +3,8 @@ import { prisma } from "../../lib/prisma";
 import bcrypt from "bcryptjs";
 import { v4 as uuidv4 } from "uuid";
 import * as cookie from "cookie";
+import { cookieOptions } from "@/lib/cookies";
+import { serialize } from "cookie";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
@@ -29,11 +31,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     res.setHeader(
       "Set-Cookie",
-      cookie.serialize("sessionId", sessionId, {
-        httpOnly: true,
-        secure: true,
-        sameSite: "none",
-        path: "/",
+      serialize("sessionId", sessionId, {
+        ...cookieOptions,
         maxAge: 60 * 60 * 24 * 7,
       })
     );

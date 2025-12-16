@@ -1,6 +1,8 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import * as cookie from "cookie";
 import { prisma } from "../../lib/prisma";
+import { serialize } from "cookie";
+import { cookieOptions } from "@/lib/cookies";
 
 export default async function handleLougout(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
@@ -22,14 +24,12 @@ export default async function handleLougout(req: NextApiRequest, res: NextApiRes
 
   res.setHeader(
     "Set-Cookie",
-    cookie.serialize("sessionId", "", {
-      httpOnly: true,
-      secure: true,
-      sameSite: "none",
+    serialize("sessionId", "", {
+      ...cookieOptions,
       maxAge: 0,
-      path: "/",
       expires: new Date(0),
     })
   );
+
   return res.status(200).json({ message: "Logout realizado com sucesso." });
 }
