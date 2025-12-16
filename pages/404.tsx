@@ -37,7 +37,7 @@ export default function NotFoundPage() {
 
         <p className="mt-2 text-gray-500">
           {isDashboard
-            ? "Não foi possível encontrar essa página dentro do ImobTECH."
+            ? "Não foi possível encontrar essa página dentro do ImobHub."
             : "Não encontramos essa página, mas você pode voltar ao perfil público."}
         </p>
 

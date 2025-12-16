@@ -69,15 +69,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
 
       await resend.emails.send({
-        from: "ImobTECH <noreply@contato.automatech.app.br>",
+        from: "ImobHub <noreply@contato.automatech.app.br>",
         to: email,
-        subject: "🎉 Bem-vindo à ImobTECH!",
+        subject: "🎉 Bem-vindo à ImobHub!",
         html: `
           <h2>Olá, ${name}</h2>
           <p>Seu acesso foi criado com sucesso!</p>
           <p><b>Email:</b> ${email}</p>
           <p><b>Senha:</b> ${senhaGerada}</p>
-          <a href="http://207.180.235.23:4000/login"
+          <a href="http://imobhub.automatech.app.br/login"
             style="padding:12px 18px;background:#4f46e5;color:white;border-radius:6px;text-decoration:none;">
             Acessar painel
           </a>

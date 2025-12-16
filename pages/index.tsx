@@ -13,7 +13,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Head>
-        <title>ImobTECH • Plataforma Profissional para Corretores</title>
+        <title>ImobHub • Plataforma Profissional para Corretores</title>
       </Head>
 
       <section className="container mx-auto px-6 py-24 text-center">
@@ -39,7 +39,7 @@ export default function Home() {
       <section className="bg-white py-20">
         <div className="container mx-auto px-6">
           <h2 className="text-4xl font-bold text-[#1A2A4F] text-center">
-            Por que corretores escolhem a ImobTECH?
+            Por que corretores escolhem a ImobHub?
           </h2>
 
           <div className="grid md:grid-cols-3 gap-12 mt-16">
@@ -73,7 +73,7 @@ export default function Home() {
           </h2>
 
           <p className="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">
-            Veja como funciona sua área exclusiva dentro da ImobTECH.
+            Veja como funciona sua área exclusiva dentro da ImobHub.
           </p>
 
           {/* CARROSSEL */}
@@ -225,8 +225,8 @@ export default function Home() {
             </h2>
 
             <p className="mt-6 text-lg text-[#1A2A4F]">
-              Na ImobTECH você ganha automaticamente sua landing page profissional, com seu nome,
-              sua foto, seus contatos e todos seus imóveis organizados de forma elegante para captar
+              Na ImobHub você ganha automaticamente sua landing page profissional, com seu nome, sua
+              foto, seus contatos e todos seus imóveis organizados de forma elegante para captar
               novos clientes todos os dias.
             </p>
 
@@ -340,7 +340,7 @@ export default function Home() {
 
       {/* FOOTER */}
       <footer className="bg-[#1A2A4F] text-gray-300 py-8 text-center">
-        <p>© {new Date().getFullYear()} ImobTECH. Todos os direitos reservados.</p>
+        <p>© {new Date().getFullYear()} ImobHub. Todos os direitos reservados.</p>
       </footer>
     </div>
   );

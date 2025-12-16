@@ -42,7 +42,7 @@ const SidebarCorretor: React.FC = () => {
       <div className="p-4 border-b border-gray-700 flex items-center">
         <h1 className="text-xl md:text-2xl font-bold flex items-center">
           {/* No mobile some o texto, fica só o emoji */}
-          <span className="hidden md:inline">ImobiCorretor</span>
+          <span className="hidden md:inline">ImobCorretor</span>
           <span className="ml-0 md:ml-2 text-yellow-400">🏡</span>
         </h1>
       </div>
