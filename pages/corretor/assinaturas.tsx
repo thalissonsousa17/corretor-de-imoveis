@@ -50,7 +50,7 @@ export default function Assinaturas() {
     if (router.query.success) {
       router.replace("/dashboard/assinaturas", undefined, { shallow: true });
     }
-  }, [router.query.success]);
+  }, [router.query.success, router]); //router.query.success
 
   const abrirPortal = async () => {
     if (!perfil?.stripeCustomerId) {
