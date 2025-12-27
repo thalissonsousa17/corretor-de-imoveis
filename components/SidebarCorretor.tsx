@@ -10,7 +10,7 @@ const navItems = [
   { href: "/corretor/perfil", icon: FiUser, label: "Perfil" },
   { href: "/corretor/imoveis/cadastrar", icon: FiPlusSquare, label: "Cadastrar Imóvel" },
   { href: "/corretor/imoveis", icon: FiList, label: "Gerenciar Imóveis" },
-  { href: "/corretor/assinaturas", icon: AiOutlineFileText, label: "Gerenciar Assinaturas" },
+  { href: "/corretor/assinaturas", icon: AiOutlineFileText, label: "Meu Plano" },
 ];
 
 const SidebarCorretor: React.FC = () => {

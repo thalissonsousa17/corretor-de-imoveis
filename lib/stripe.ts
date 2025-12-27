@@ -10,6 +10,7 @@ export function mapPriceToPlano(priceId: string): PlanoTipo {
     [process.env.NEXT_PUBLIC_PRICE_START!]: PlanoTipo.START,
     [process.env.NEXT_PUBLIC_PRICE_PRO!]: PlanoTipo.PRO,
     [process.env.NEXT_PUBLIC_PRICE_EXPERT!]: PlanoTipo.EXPERT,
+    [process.env.NEXT_PUBLIC_PRICE_EXPERT_YEARLY!]: PlanoTipo.EXPERT,
   };
 
   return map[priceId] ?? PlanoTipo.GRATUITO;

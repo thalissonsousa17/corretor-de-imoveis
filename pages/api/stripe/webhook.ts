@@ -4,8 +4,12 @@ import { prisma } from "@/lib/prisma";
 import { resend } from "@/lib/resend";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
-import { stripe, mapPriceToPlano } from "@/lib/stripe";
+import { mapPriceToPlano } from "@/lib/stripe";
 import { PlanoTipo, PlanoStatus } from "@prisma/client";
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: "2025-11-17.clover",
+});
 
 export const config = {
   api: { bodyParser: false },
@@ -178,17 +182,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.json({ received: true });
     }
 
-    const plano = mapPriceToPlano(priceId);
-
     if (!subscription.current_period_end || !subscription.start_date) {
       console.error(" Dados de timestamp da assinatura ausentes");
       return res.json({ received: true });
     }
 
     await prisma.corretorProfile.updateMany({
-      where: { user: { email } },
+      where: {
+        OR: [
+          { stripeSubscriptionId: subscription.id },
+          { stripeCustomerId: subscription.customer as string },
+        ],
+      },
+
       data: {
-        plano,
         planoStatus: PlanoStatus.ATIVO,
         stripeSubscriptionId: subscription.id,
         ultimos4,
@@ -199,6 +206,62 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     return res.json({ received: true });
+  }
+
+  if (event.type === "customer.subscription.updated") {
+    type StripeSubscriptionWithPeriods = Stripe.Subscription & {
+      current_period_end: number;
+      start_date: number;
+    };
+    const subscription = event.data.object as unknown as StripeSubscriptionWithPeriods;
+
+    const stripeCustomerId =
+      typeof subscription.customer === "string" ? subscription.customer : subscription.customer.id;
+
+    const perfil = await prisma.corretorProfile.findFirst({
+      where: {
+        OR: [{ stripeSubscriptionId: subscription.id }, { stripeCustomerId }],
+      },
+    });
+
+    if (!perfil) {
+      console.error("Perfil não encontrado para subscription", subscription.id);
+      return res.json({ received: true });
+    }
+
+    const currentPeriodEnd: number | null =
+      "current_period_end" in subscription && typeof subscription.current_period_end === "number"
+        ? subscription.current_period_end
+        : null;
+
+    const startDate: number | null =
+      "start_date" in subscription && typeof subscription.start_date === "number"
+        ? subscription.start_date
+        : null;
+
+    const item = subscription.items.data[0];
+    const priceId = item?.price?.id;
+
+    if (!priceId) {
+      console.error("PriceId não encontrado na subscription", subscription.id);
+      return res.json({ received: true });
+    }
+
+    const plano = mapPriceToPlano(priceId);
+
+    await prisma.corretorProfile.update({
+      where: {
+        id: perfil.id,
+      },
+      data: {
+        plano,
+        planoStatus: "ATIVO",
+        stripeSubscriptionId: subscription.id,
+        stripeCurrentPeriodEnd: currentPeriodEnd ? new Date(currentPeriodEnd * 1000) : null,
+        assinaturaCriadaEm: startDate ? new Date(startDate * 1000) : new Date(),
+        ultimoPagamentoEm: new Date(),
+      },
+    });
   }
 
   return res.json({ received: true });

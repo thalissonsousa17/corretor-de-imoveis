@@ -1,5 +1,7 @@
 import CorretorLayout from "@/components/CorretorLayout";
+import { ModalUpgradePlano } from "@/components/ModalUpgradePlano";
 import axios from "axios";
+import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
 interface PerfilData {
@@ -18,6 +20,8 @@ export default function Assinaturas() {
 
   const [showModal, setShowModal] = useState(false);
 
+  const router = useRouter();
+
   useEffect(() => {
     const carregar = async () => {
       try {
@@ -29,8 +33,24 @@ export default function Assinaturas() {
         setLoading(false);
       }
     };
+
     carregar();
-  }, []);
+  }, [router.query.success]);
+
+  const atualizarPerfil = async () => {
+    try {
+      const r = await axios.get("/api/corretor/perfil");
+      setPerfil(r.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    if (router.query.success) {
+      router.replace("/dashboard/assinaturas", undefined, { shallow: true });
+    }
+  }, [router.query.success]);
 
   const abrirPortal = async () => {
     if (!perfil?.stripeCustomerId) {
@@ -53,11 +73,11 @@ export default function Assinaturas() {
   const traduzPlano = (p: string) => {
     switch (p) {
       case "START":
-        return "Plano Mensal";
+        return "Plano Start";
       case "PRO":
-        return "Plano Semestral";
+        return "Plano Pro";
       case "EXPERT":
-        return "Plano Anual";
+        return "Plano Expert";
       default:
         return "Plano Gratuito";
     }
@@ -89,6 +109,32 @@ export default function Assinaturas() {
     }
   };
 
+  const limitePlano = (p: string) => {
+    switch (p) {
+      case "START":
+        return "Até 100 imóveis";
+      case "PRO":
+        return "Até 50 imóveis";
+      case "EXPERT":
+        return "Imóveis ilimitados";
+      default:
+        return "Até 5 imóveis";
+    }
+  };
+
+  const suportePlano = (p: string) => {
+    switch (p) {
+      case "START":
+        return "Suporte prioritário";
+      case "PRO":
+        return "Suporte padrão";
+      case "EXPERT":
+        return "Suporte premium";
+      default:
+        return "Suporte básico";
+    }
+  };
+
   const formatarData = (data?: string | null) => {
     if (!data) return "–";
     const d = new Date(data);
@@ -100,7 +146,8 @@ export default function Assinaturas() {
     if (!perfil?.stripeCurrentPeriodEnd) return null;
     const hoje = new Date();
     const final = new Date(perfil.stripeCurrentPeriodEnd);
-    return Math.ceil((final.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24));
+    const diff = Math.ceil((final.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24));
+    return Math.max(diff, 0);
   };
 
   const alertaVencimento = () => {
@@ -117,47 +164,6 @@ export default function Assinaturas() {
 
     return null;
   };
-
-  // Modal do plano gratuito
-  const ModalPlanoGratuito = () => (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md">
-      <div className="bg-white/90 shadow-2xl rounded-2xl p-8 max-w-md w-full relative">
-        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#1A2A4F] flex items-center justify-center shadow-md">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-8 w-8 text-white"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M13 16h-1v-4h1m0 8h-1m9-8a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-        </div>
-
-        <h2 className="text-2xl font-bold text-[#1A2A4F] text-center mb-4">Plano Gratuito</h2>
-
-        <p className="text-gray-700 text-center mb-6">
-          Você está utilizando o <b>plano gratuito</b> e ainda não possui assinaturas ou cobranças
-          no Stripe.
-          <br />
-          <br />
-          Caso deseje contratar um plano, acesse a página de assinatura.
-        </p>
-
-        <button
-          onClick={() => setShowModal(false)}
-          className="cursor-pointer w-full py-3 bg-[#1A2A4F] text-white rounded-xl hover:bg-[#15203E] transition"
-        >
-          Entendi
-        </button>
-      </div>
-    </div>
-  );
 
   if (loading) {
     return (
@@ -198,11 +204,18 @@ export default function Assinaturas() {
             </p>
 
             <p>
-              <b>Status:</b>{" "}
+              <b>Status:</b>
               <span className={`px-3 py-1 text-sm rounded-full ${badgeStatus(perfil.planoStatus)}`}>
                 {traduzStatus(perfil.planoStatus)}
               </span>
             </p>
+
+            {perfil.planoStatus === "ATIVO" && perfil.stripeCurrentPeriodEnd && (
+              <p>
+                <b>Validade:</b> {formatarData(perfil.stripeCurrentPeriodEnd)}{" "}
+                <span className="text-sm text-gray-500">({diasRestantes()} dias restantes)</span>
+              </p>
+            )}
 
             {perfil.ultimos4 && (
               <p>
@@ -219,23 +232,44 @@ export default function Assinaturas() {
           <ul className="list-disc pl-6 space-y-2 text-gray-700">
             <li>Página profissional personalizada</li>
             <li>Hospedagem inclusa</li>
-            <li>Cadastro ilimitado de imóveis</li>
-            <li>Suporte via WhatsApp</li>
+            <li>{limitePlano(perfil.plano)}</li>
+            <li>{suportePlano(perfil.plano)}</li>
             <li>Dashboard completo</li>
           </ul>
         </div>
 
         {/* PORTAL DE COBRANÇA */}
-        <div>
+        <div className="space-y-3">
+          {perfil.plano !== "GRATUITO" && (
+            <button
+              onClick={abrirPortal}
+              className="px-6 py-3 bg-[#1A2A4F] text-white rounded-lg hover:bg-[#15203E] transition w-full"
+            >
+              Gerenciar assinatura
+            </button>
+          )}
+
           <button
-            onClick={abrirPortal}
-            className="px-6 py-3 bg-[#1A2A4F] text-white rounded-lg hover:bg-[#15203E] transition w-full cursor-pointer"
+            onClick={() => setShowModal(true)}
+            className="px-6 py-3 border border-[#1A2A4F] text-[#1A2A4F] rounded-lg hover:bg-[#1A2A4F] hover:text-white transition w-full"
           >
-            Abrir Portal de Cobrança
+            {perfil.plano === "GRATUITO"
+              ? "Ver planos"
+              : perfil.planoStatus === "EXPIRADO"
+                ? "Reativar plano"
+                : "Trocar de plano"}
           </button>
         </div>
 
-        {showModal && <ModalPlanoGratuito />}
+        {showModal && (
+          <ModalUpgradePlano
+            open={showModal}
+            onClose={() => {
+              setShowModal(false);
+              atualizarPerfil();
+            }}
+          />
+        )}
 
         <div className="p-4 bg-green-100 text-green-700 rounded-lg text-sm">
           👉 Dica: personalize sua página pública para melhorar suas conversões!

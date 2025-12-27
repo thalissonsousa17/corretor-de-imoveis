@@ -22,17 +22,19 @@ export default function Home() {
         </h2>
 
         <p className="mt-6 text-xl text-[#1A2A4F] max-w-3xl mx-auto">
-          Tenha seu site profissional, publique imóveis com facilidade e gerencie tudo em um painel
-          moderno — sem complicações.
+          Crie sua página profissional, publique imóveis com facilidade e gerencie tudo em um painel
+          moderno. Comece gratuitamente e evolua conforme seu negócio cresce.
         </p>
 
         <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
           <Link
-            href="#planos"
+            href="/register"
             className="bg-[#1A2A4F] text-white px-10 py-4 rounded-xl text-lg font-bold hover:bg-white hover:border hover:text-[#1A2A4F] transition shadow-lg"
           >
-            Começar Agora
+            Começar gratuitamente
           </Link>
+
+          <span className="text-sm text-gray-500">Sem cartão de crédito • Ativação imediata</span>
         </div>
       </section>
 
@@ -261,78 +263,120 @@ export default function Home() {
       {/* PLANOS */}
       <section id="planos" className="container mx-auto px-6 py-24 text-center text-[#1A2A4F]">
         <h2 className="text-4xl font-bold">Escolha o plano ideal para você</h2>
-        <p className="text-[#1A2A4F]mt-4 max-w-2xl mx-auto">
-          Todos os planos incluem acesso total à plataforma, página de vendas exclusiva, cadastro de
-          imóveis ilimitado e suporte completo.
+
+        <p className="mt-4 max-w-2xl mx-auto">
+          Comece gratuitamente e evolua conforme sua carteira de imóveis cresce. Planos acessíveis
+          pensados para corretores que querem escalar.
         </p>
 
-        <div className="mt-16 grid md:grid-cols-3 gap-12">
-          {/* PLANO MENSAL */}
-          <div className="shadow-xl p-10 rounded-2xl bg-white hover:scale-[1.03] transition">
-            <h3 className="text-2xl font-bold">Mensal</h3>
+        <div className="mt-16 grid md:grid-cols-4 gap-10 ">
+          {/* PLANO GRATUITO */}
+          <div className="shadow-lg p-8 rounded-2xl bg-white border border-gray-200 hover:scale-[1.03] transition">
+            <h3 className="text-2xl font-bold">Gratuito</h3>
+
             <p className="text-4xl font-extrabold mt-4">
-              R$ 299,90
-              <span className="flex items-center justify-end text-[20px]">Por mês</span>
+              R$ 0<span className="block text-base font-medium">Para sempre</span>
             </p>
-            <ul className="mt-6 text-left text-[#1A2A4F] space-y-3">
-              <li>• Página de vendas personalizada</li>
-              <li>• Cadastro ilimitado de imóveis</li>
-              <li>• Gerenciamento completo</li>
+
+            <ul className="mt-6 text-left space-y-3">
+              <li>• Até 5 imóveis</li>
+              <li>• Página pública básica</li>
+              <li>• Painel de gerenciamento</li>
               <li>• Suporte básico</li>
             </ul>
 
             <Link
-              href="https://buy.stripe.com/test_8x228qcqA6wUcVx0qp1wY01"
-              target="_blank"
-              className="mt-8 block w-full bg-[#1A2A4F] text-white hover:bg-gray-100 hover:border hover:text-[#1A2A4F] py-3 rounded-lg font-semibold"
+              href="/register"
+              className="mt-8 block w-full border border-[#1A2A4F] text-[#1A2A4F] py-3 rounded-lg font-semibold hover:bg-[#1A2A4F] hover:text-white transition"
             >
-              Assinar Agora
+              Começar Grátis
             </Link>
           </div>
 
-          {/* PLANO SEMESTRAL */}
-          <div className="shadow-2xl p-10 rounded-2xl bg-white border-4 border-[#1A2A4F] scale-[1.05] hover:scale-[1.10]">
-            <h3 className="text-2xl font-bold text-[#1A2A4F]">Semestral • MAIS POPULAR </h3>
-            <p className="text-4xl font-extrabold mt-4 text-[#1A2A4F]">
-              R$ 249,90
-              <span className="flex items-center justify-end text-[20px]">Por mês</span>
-            </p>
-            <ul className="mt-6 text-left text-gray-700 space-y-3">
-              <li>• Tudo do plano Mensal</li>
-              <li>• Suporte Prioritário</li>
-              <li>• Melhor custo-benefício</li>
-              <li>• Atualizações exclusivas</li>
-            </ul>
+          {/* PLANO PRO */}
+          <div className="shadow-xl p-8 rounded-2xl bg-white hover:scale-[1.03] transition">
+            <h3 className="text-2xl font-bold">Pro</h3>
 
-            <Link
-              href="https://buy.stripe.com/test_8x28wO0HSf3qaNp4GF1wY02"
-              target="_blank"
-              className="mt-8 block w-full bg-[#1A2A4F] text-white  hover:bg-gray-100 hover:border hover:text-[#1A2A4F] py-3 rounded-lg font-semibold"
-            >
-              Assinar Agora
-            </Link>
-          </div>
-
-          {/* PLANO ANUAL */}
-          <div className="shadow-xl p-10 rounded-2xl bg-white hover:scale-[1.03] transition">
-            <h3 className="text-2xl font-bold">Anual</h3>
             <p className="text-4xl font-extrabold mt-4">
-              R$ 199,00
-              <span className="flex items-center justify-end text-[20px]">Por mês</span>
+              R$ 79,90
+              <span className="block text-base font-medium">Por mês</span>
             </p>
-            <ul className="mt-6 text-left text-gray-700 space-y-3">
-              <li>• Tudo do plano Semestral</li>
-              <li>• Economia máxima</li>
-              <li>• Bônus exclusivos</li>
-              <li>• Suporte Premium</li>
+
+            <ul className="mt-6 text-left space-y-3">
+              <li>• Até 50 imóveis</li>
+              <li>• Página personalizada</li>
+              <li>• Gerenciamento completo</li>
+              <li>• Suporte padrão</li>
             </ul>
 
             <Link
-              href="https://buy.stripe.com/test_8x228q4Y82gE5t5b531wY03"
-              target="_blank"
-              className="mt-8 block w-full bg-[#1A2A4F] text-white  hover:bg-gray-100 hover:border hover:text-[#1A2A4F] py-3 rounded-lg font-semibold"
+              href="LINK_STRIPE_PRO"
+              className="mt-8 block w-full bg-[#1A2A4F] text-white py-3 rounded-lg font-semibold hover:bg-gray-100 hover:text-[#1A2A4F] hover:border"
             >
               Assinar Agora
+            </Link>
+          </div>
+
+          {/* PLANO START */}
+          <div className="shadow-xl p-8 rounded-2xl bg-white hover:scale-[1.03] transition">
+            <h3 className="text-2xl font-bold">Start</h3>
+
+            <p className="text-4xl font-extrabold mt-4">
+              R$ 99,90
+              <span className="block text-base font-medium">Por mês</span>
+            </p>
+
+            <ul className="mt-6 text-left space-y-3">
+              <li>• Até 100 imóveis</li>
+              <li>• Tudo do plano Pro</li>
+              <li>• Prioridade no suporte</li>
+              <li>• Melhor custo-benefício</li>
+            </ul>
+
+            <Link
+              href="LINK_STRIPE_START"
+              className="mt-8 block w-full bg-[#1A2A4F] text-white py-3 rounded-lg font-semibold hover:bg-gray-100 hover:text-[#1A2A4F] hover:border"
+            >
+              Assinar Agora
+            </Link>
+          </div>
+          {/* PLANO EXPERT */}
+          <div className="shadow-lg p-5 rounded-xl bg-white border-2 border-[#1A2A4F] hover:scale-[1.03] transition">
+            <h3 className="text-lg font-bold">Expert</h3>
+            <p className="text-xs font-bold text-[#1A2A4F] uppercase mt-1">MAIS POPULAR</p>
+
+            {/* Mensal */}
+            <p className="text-2xl font-extrabold mt-2">
+              R$ 149,90
+              <span className="block text-xs font-medium">Por mês</span>
+            </p>
+
+            {/* Anual */}
+            <div className="mt-3 bg-[#1A2A4F] text-white rounded-lg p-3">
+              <p className="text-xs uppercase font-semibold">Oferta anual (12 meses)</p>
+              <p className="text-lg font-extrabold">R$ 119,90 / mês</p>
+              <p className="text-xs opacity-90">Economia de R$ 360,00 por ano</p>
+            </div>
+
+            <ul className="mt-4 text-left text-sm space-y-1.5">
+              <li>• Imóveis ilimitados</li>
+              <li>• Tudo do plano Start</li>
+              <li>• Suporte premium</li>
+              <li>• Recursos avançados</li>
+            </ul>
+
+            <Link
+              href="LINK_STRIPE_EXPERT_MENSAL"
+              className="mt-4 block w-full bg-[#1A2A4F] text-white py-2 rounded-lg text-sm font-medium hover:bg-gray-100 hover:text-[#1A2A4F] hover:border"
+            >
+              Assinar Mensal
+            </Link>
+
+            <Link
+              href="LINK_STRIPE_EXPERT_ANUAL"
+              className="mt-2 block w-full border border-[#1A2A4F] text-[#1A2A4F] py-2 rounded-lg text-sm font-medium hover:bg-[#1A2A4F] hover:text-white"
+            >
+              Assinar Anual (12 meses)
             </Link>
           </div>
         </div>
