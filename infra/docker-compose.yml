@@ -1,22 +1,13 @@
 version: "3.8"
 
 services:
-  db:
-    # Imagem oficial do PostgreSQL
-    image: postgres:16-alpine
-    # Mapeia a porta 5432 do container para a porta 5432 da sua máquina local
+  corretor-imoveis-db:
+    image: postgres:16
+    container_name: corretor-db
+    restart: unless-stopped
     ports:
-      - "5432:5432"
-    # Monta um volume para que os dados persistam mesmo se o container for parado/recriado
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    # Variáveis de ambiente
+      - "5437:5432"
     environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: corretor_db
-    # Garante que ele reinicie se cair
-    restart: always
-
-volumes:
-  postgres_data:
+      - ../.env
+    volumes:
+      - /tmp/postgres-data:/var/lib/postgresql/data
