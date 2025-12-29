@@ -1,13 +1,13 @@
 version: "3.8"
 
 services:
-  corretor-imoveis-db:
+  db:
     image: postgres:16
     container_name: corretor-db
     restart: unless-stopped
     ports:
       - "5437:5432"
-    environment:
+    env_file:
       - ../.env
     volumes:
       - /tmp/postgres-data:/var/lib/postgresql/data
