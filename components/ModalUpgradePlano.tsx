@@ -23,6 +23,7 @@ export function ModalUpgradePlano({ open, onClose }: Props) {
     try {
       const res = await fetch("/api/stripe/create-checkout", {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ priceId }),
       });
