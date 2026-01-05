@@ -28,10 +28,10 @@ export function ModalUpgradePlano({ open, onClose }: Props) {
         body: JSON.stringify({ priceId }),
       });
 
-      const data = await res.json();
+      const data: { url?: string; upgraded?: boolean; error?: string } = await res.json();
 
       if (!res.ok) {
-        throw new Error("Erro ao conectar com o Stripe.");
+        throw new Error(data.error || "Erro ao iniciar checkout");
       }
 
       if (data.upgraded) {
@@ -39,15 +39,15 @@ export function ModalUpgradePlano({ open, onClose }: Props) {
         return;
       }
 
-      if (data.url) {
-        window.location.href = data.url;
-        return;
+      if (!data.url) {
+        throw new Error("URL do checkout não retornada");
       }
 
-      throw new Error("Resposta inválida.");
+      window.location.href = data.url;
     } catch (err) {
-      console.error(err);
-      alert("Erro ao conectar com o Stripe.");
+      console.error("CHECKOUT_FRONTEND_ERROR:", err);
+      alert(err instanceof Error ? err.message : "Erro inesperado");
+    } finally {
       isProcessingRef.current = false;
       setLoadingPrice(null);
     }
