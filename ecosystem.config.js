@@ -3,7 +3,7 @@ module.exports = {
     {
       name: "next-app",
       script: "npm",
-      args: "run start -- -p 4000",
+      args: "run start",
       cwd: "/projects/corretor-de-imoveis",
       env_file: ".env",
     },
