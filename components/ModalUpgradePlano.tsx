@@ -1,4 +1,4 @@
-import { X, CheckCircle } from "lucide-react";
+import { X, CheckCircle, CreditCard, RefreshCcw } from "lucide-react";
 import { useRef, useState } from "react";
 
 interface Props {
@@ -6,9 +6,12 @@ interface Props {
   onClose: () => void;
 }
 
+type PaymentChoice = "KEEP_CARD" | "CHANGE_CARD";
+
 export function ModalUpgradePlano({ open, onClose }: Props) {
   const [showSuccess, setShowSuccess] = useState(false);
   const [loadingPrice, setLoadingPrice] = useState<string | null>(null);
+  const [paymentChoice, setPaymentChoice] = useState<PaymentChoice>("KEEP_CARD");
 
   const isProcessingRef = useRef(false);
 
@@ -21,29 +24,40 @@ export function ModalUpgradePlano({ open, onClose }: Props) {
     setLoadingPrice(priceId);
 
     try {
-      const res = await fetch("/api/stripe/create-checkout", {
+      const endpoint =
+        paymentChoice === "KEEP_CARD"
+          ? "/api/stripe/upgrade-plan"
+          : "/api/stripe/upgrade-plan-checkout";
+
+      const res = await fetch(endpoint, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ priceId }),
+        body: JSON.stringify({
+          priceId,
+        }),
       });
 
-      const data: { url?: string; upgraded?: boolean; error?: string } = await res.json();
+      const data: {
+        ok: boolean;
+        flow?: "KEEP_CARD" | "CHECKOUT";
+        upgraded?: boolean;
+        url?: string;
+        error?: string;
+      } = await res.json();
 
-      if (!res.ok) {
-        throw new Error(data.error || "Erro ao iniciar checkout");
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error || "Erro ao atualizar plano");
       }
 
-      if (data.upgraded) {
-        setShowSuccess(true);
+      // 🔁 Fluxo com checkout (troca de cartão)
+      if (data.url) {
+        window.location.href = data.url;
         return;
       }
 
-      if (!data.url) {
-        throw new Error("URL do checkout não retornada");
-      }
-
-      window.location.href = data.url;
+      // ✅ Upgrade direto (mesmo cartão)
+      setShowSuccess(true);
     } catch (err) {
       console.error("CHECKOUT_FRONTEND_ERROR:", err);
       alert(err instanceof Error ? err.message : "Erro inesperado");
@@ -65,16 +79,14 @@ export function ModalUpgradePlano({ open, onClose }: Props) {
 
   return (
     <>
-      {/*  MODAL DE SUCESSO  */}
+      {/* MODAL DE SUCESSO */}
       {showSuccess && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/50" />
 
           <div className="relative bg-white w-full max-w-sm mx-4 rounded-2xl shadow-xl p-6 text-center">
             <CheckCircle className="mx-auto text-green-600" size={48} />
-
             <h2 className="text-xl font-bold text-[#1A2A4F] mt-4">Plano atualizado com sucesso</h2>
-
             <p className="text-gray-600 mt-2">Seu novo plano já está ativo.</p>
 
             <button
@@ -87,7 +99,7 @@ export function ModalUpgradePlano({ open, onClose }: Props) {
         </div>
       )}
 
-      {/* Modal planos */}
+      {/* MODAL PRINCIPAL */}
       {open && !showSuccess && (
         <div className="fixed inset-0 z-40 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={onClose} />
@@ -100,14 +112,41 @@ export function ModalUpgradePlano({ open, onClose }: Props) {
               <X size={22} />
             </button>
 
-            <h2 className="text-2xl font-bold text-[#1A2A4F] mb-2">Limite do plano atingido</h2>
+            <h2 className="text-2xl font-bold text-[#1A2A4F] mb-2">Upgrade de plano</h2>
 
-            <p className="text-gray-600 mb-6">
-              Para continuar cadastrando imóveis, faça upgrade do seu plano.
-            </p>
+            <p className="text-gray-600 mb-4">Escolha como deseja realizar o pagamento.</p>
 
+            {/* ESCOLHA DO CARTÃO */}
+            <div className="flex gap-3 mb-6">
+              <button
+                onClick={() => setPaymentChoice("KEEP_CARD")}
+                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg border font-semibold transition
+                  ${
+                    paymentChoice === "KEEP_CARD"
+                      ? "bg-[#1A2A4F] text-white border-[#1A2A4F]"
+                      : "bg-gray-100 text-gray-500 border-gray-300"
+                  }`}
+              >
+                <CreditCard size={18} />
+                Manter cartão atual
+              </button>
+
+              <button
+                onClick={() => setPaymentChoice("CHANGE_CARD")}
+                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg border font-semibold transition
+                  ${
+                    paymentChoice === "CHANGE_CARD"
+                      ? "bg-[#1A2A4F] text-white border-[#1A2A4F]"
+                      : "bg-gray-100 text-gray-500 border-gray-300"
+                  }`}
+              >
+                <RefreshCcw size={18} />
+                Usar outro cartão
+              </button>
+            </div>
+
+            {/* PLANOS */}
             <div className="grid md:grid-cols-3 gap-4 text-[#1A2A4F]">
-              {/* PRO */}
               <PlanoCard
                 titulo="Pro"
                 preco="R$ 79,90"
@@ -117,7 +156,6 @@ export function ModalUpgradePlano({ open, onClose }: Props) {
                 onClick={() => handleCheckout(process.env.NEXT_PUBLIC_PRICE_PRO!)}
               />
 
-              {/* START */}
               <PlanoCard
                 titulo="Start"
                 preco="R$ 99,90"
@@ -127,7 +165,6 @@ export function ModalUpgradePlano({ open, onClose }: Props) {
                 onClick={() => handleCheckout(process.env.NEXT_PUBLIC_PRICE_START!)}
               />
 
-              {/* EXPERT */}
               <PlanoCard
                 titulo="Expert"
                 preco="R$ 149,90"

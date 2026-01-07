@@ -10,6 +10,31 @@ import "swiper/css/pagination";
 import "swiper/css/effect-fade";
 
 export default function Home() {
+  async function handleCheckout(priceId: string) {
+    if (!priceId) {
+      alert("Plano inválido. Tente novamente.");
+      return;
+    }
+    try {
+      const res = await fetch("/api/stripe/public-checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ priceId }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.url) {
+        throw new Error(data.error || "Erro ao iniciar checkout");
+      }
+
+      window.location.href = data.url;
+    } catch (err) {
+      alert("Erro ao iniciar pagamento");
+      console.error(err);
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Head>
@@ -309,12 +334,12 @@ export default function Home() {
               <li>• Suporte padrão</li>
             </ul>
 
-            <Link
-              href="LINK_STRIPE_PRO"
-              className="mt-8 block w-full bg-[#1A2A4F] text-white py-3 rounded-lg font-semibold hover:bg-gray-100 hover:text-[#1A2A4F] hover:border"
+            <button
+              onClick={() => handleCheckout(process.env.NEXT_PUBLIC_PRICE_PRO!)}
+              className="mt-8 block w-full bg-[#1A2A4F] text-white py-3 rounded-lg font-semibold"
             >
               Assinar Agora
-            </Link>
+            </button>
           </div>
 
           {/* PLANO START */}
@@ -333,12 +358,12 @@ export default function Home() {
               <li>• Melhor custo-benefício</li>
             </ul>
 
-            <Link
-              href="LINK_STRIPE_START"
-              className="mt-8 block w-full bg-[#1A2A4F] text-white py-3 rounded-lg font-semibold hover:bg-gray-100 hover:text-[#1A2A4F] hover:border"
+            <button
+              onClick={() => handleCheckout(process.env.NEXT_PUBLIC_PRICE_START!)}
+              className="mt-8 block w-full bg-[#1A2A4F] text-white py-3 rounded-lg font-semibold"
             >
               Assinar Agora
-            </Link>
+            </button>
           </div>
           {/* PLANO EXPERT */}
           <div className="shadow-lg p-5 rounded-xl bg-white border-2 border-[#1A2A4F] hover:scale-[1.03] transition">
@@ -365,19 +390,19 @@ export default function Home() {
               <li>• Recursos avançados</li>
             </ul>
 
-            <Link
-              href="LINK_STRIPE_EXPERT_MENSAL"
-              className="mt-4 block w-full bg-[#1A2A4F] text-white py-2 rounded-lg text-sm font-medium hover:bg-gray-100 hover:text-[#1A2A4F] hover:border"
+            <button
+              onClick={() => handleCheckout(process.env.NEXT_PUBLIC_PRICE_EXPERT_MENSAL!)}
+              className="mt-8 block w-full bg-[#1A2A4F] text-white py-3 rounded-lg font-semibold"
             >
-              Assinar Mensal
-            </Link>
+              Assinar Agora
+            </button>
 
-            <Link
-              href="LINK_STRIPE_EXPERT_ANUAL"
-              className="mt-2 block w-full border border-[#1A2A4F] text-[#1A2A4F] py-2 rounded-lg text-sm font-medium hover:bg-[#1A2A4F] hover:text-white"
+            <button
+              onClick={() => handleCheckout(process.env.NEXT_PUBLIC_PRICE_EXPERT_YEARLY!)}
+              className="mt-8 block w-full bg-[#1A2A4F] text-white py-3 rounded-lg font-semibold"
             >
-              Assinar Anual (12 meses)
-            </Link>
+              Assinar Agora
+            </button>
           </div>
         </div>
       </section>

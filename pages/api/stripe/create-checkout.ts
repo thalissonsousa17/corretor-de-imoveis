@@ -7,83 +7,83 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
 
 export default authorize(async (req: AuthApiRequest, res: NextApiResponse) => {
   try {
-    if (req.method === "OPTIONS") {
-      res.status(200).end();
-      return;
-    }
-
     if (req.method !== "POST") {
-      res.status(405).json({ message: "Método não permitido" });
+      res.status(405).json({ error: "Método não permitido" });
       return;
     }
 
-    const { priceId } = req.body as { priceId?: string };
+    const { priceId, source } = req.body as {
+      priceId?: string;
+      source?: "landing" | "upgrade";
+    };
 
     if (!priceId) {
-      res.status(400).json({ error: "ID do preço é obrigatório." });
+      res.status(400).json({ error: "priceId é obrigatório" });
       return;
-    }
-
-    if (!req.user) {
-      res.status(401).json({ error: "Usuário não autenticado." });
-      return;
-    }
-
-    const userId = req.user.id;
-
-    const profile = await prisma.corretorProfile.findUnique({
-      where: { userId },
-    });
-
-    if (!profile) {
-      res.status(404).json({ error: "Perfil de corretor não encontrado." });
-      return;
-    }
-
-    let stripeCustomerId = profile.stripeCustomerId;
-
-    if (!stripeCustomerId) {
-      if (!req.user.email) {
-        res.status(400).json({ error: "Usuário sem e-mail." });
-        return;
-      }
-
-      const customer = await stripe.customers.create({
-        email: req.user.email,
-        metadata: { userId },
-      });
-
-      stripeCustomerId = customer.id;
-
-      await prisma.user.update({
-        where: { id: userId },
-        data: { stripeCustomerId },
-      });
-
-      await prisma.corretorProfile.update({
-        where: { userId },
-        data: { stripeCustomerId },
-      });
     }
 
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
-
     if (!baseUrl) {
-      res.status(500).json({ error: "BASE_URL não configurada." });
+      res.status(500).json({ error: "BASE_URL não configurada" });
       return;
+    }
+
+    let stripeCustomerId: string | undefined;
+    let userId: string | undefined;
+
+    if (req.user) {
+      userId = req.user.id;
+
+      const profile = await prisma.corretorProfile.findUnique({
+        where: { userId },
+      });
+
+      if (profile?.stripeCustomerId) {
+        stripeCustomerId = profile.stripeCustomerId;
+      } else if (req.user.email) {
+        const customer = await stripe.customers.create({
+          email: req.user.email,
+          metadata: { userId },
+        });
+
+        stripeCustomerId = customer.id;
+
+        await prisma.user.update({
+          where: { id: userId },
+          data: { stripeCustomerId },
+        });
+
+        await prisma.corretorProfile.update({
+          where: { userId },
+          data: { stripeCustomerId },
+        });
+      }
     }
 
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       customer: stripeCustomerId,
       line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `${baseUrl}/dashboard/gerenciar-planos?success=true`,
-      cancel_url: `${baseUrl}/dashboard/gerenciar-planos?canceled=true`,
+
+      metadata: {
+        priceId,
+        source: source ?? "landing",
+        ...(userId && { userId }),
+      },
+
+      subscription_data: {
+        metadata: {
+          ...(userId && { userId }),
+        },
+      },
+
+      success_url: `${baseUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}&src=${source ?? "landing"}`,
+      cancel_url: `${baseUrl}/checkout/cancel`,
     });
 
     res.status(200).json({ url: session.url });
-  } catch (err) {
-    console.error("STRIPE_CHECKOUT_ERROR:", err);
-    res.status(500).json({ error: "Erro ao conectar com o Stripe." });
+  } catch (error) {
+    console.error("STRIPE_CREATE_CHECKOUT_ERROR:", error);
+    res.status(500).json({ error: "Erro ao iniciar checkout" });
   }
 });
