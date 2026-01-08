@@ -12,7 +12,7 @@ export default function CheckoutCancel() {
       </Head>
 
       <div className="fixed inset-0 z-50 flex items-center justify-center">
-        <div className="absolute inset-0 bg-black/60" />
+        <div className="absolute inset-0 bg-gray-400" />
 
         <div className="relative bg-white w-full max-w-md mx-4 rounded-2xl shadow-xl p-6 text-center">
           <XCircle className="mx-auto text-gray-400" size={56} />
@@ -28,14 +28,14 @@ export default function CheckoutCancel() {
           <div className="mt-8 flex flex-col gap-3">
             <button
               onClick={() => router.push("/#planos")}
-              className="w-full bg-[#1A2A4F] text-white py-3 rounded-lg font-semibold hover:opacity-90"
+              className="cursor-pointer w-full bg-[#1A2A4F] text-white py-3 rounded-lg font-semibold hover:opacity-90"
             >
               Voltar aos planos
             </button>
 
             <button
               onClick={() => router.push("/")}
-              className="w-full border border-[#1A2A4F] text-[#1A2A4F] py-3 rounded-lg font-semibold hover:bg-[#1A2A4F] hover:text-white transition"
+              className="cursor-pointer w-full border border-[#1A2A4F] text-[#1A2A4F] py-3 rounded-lg font-semibold hover:bg-[#1A2A4F] hover:text-white transition"
             >
               Continuar navegando
             </button>

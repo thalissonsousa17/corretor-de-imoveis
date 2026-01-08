@@ -50,13 +50,11 @@ export function ModalUpgradePlano({ open, onClose }: Props) {
         throw new Error(data.error || "Erro ao atualizar plano");
       }
 
-      // 🔁 Fluxo com checkout (troca de cartão)
       if (data.url) {
         window.location.href = data.url;
         return;
       }
 
-      // ✅ Upgrade direto (mesmo cartão)
       setShowSuccess(true);
     } catch (err) {
       console.error("CHECKOUT_FRONTEND_ERROR:", err);
@@ -79,7 +77,6 @@ export function ModalUpgradePlano({ open, onClose }: Props) {
 
   return (
     <>
-      {/* MODAL DE SUCESSO */}
       {showSuccess && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/50" />
@@ -99,7 +96,6 @@ export function ModalUpgradePlano({ open, onClose }: Props) {
         </div>
       )}
 
-      {/* MODAL PRINCIPAL */}
       {open && !showSuccess && (
         <div className="fixed inset-0 z-40 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={onClose} />
@@ -107,7 +103,7 @@ export function ModalUpgradePlano({ open, onClose }: Props) {
           <div className="relative bg-white w-full max-w-4xl mx-4 rounded-2xl shadow-xl p-6">
             <button
               onClick={onClose}
-              className="absolute top-4 right-4 text-gray-500 hover:text-black"
+              className="cursor-pointer absolute top-4 right-4 text-gray-500 hover:text-black"
             >
               <X size={22} />
             </button>
@@ -116,11 +112,10 @@ export function ModalUpgradePlano({ open, onClose }: Props) {
 
             <p className="text-gray-600 mb-4">Escolha como deseja realizar o pagamento.</p>
 
-            {/* ESCOLHA DO CARTÃO */}
             <div className="flex gap-3 mb-6">
               <button
                 onClick={() => setPaymentChoice("KEEP_CARD")}
-                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg border font-semibold transition
+                className={`cursor-pointer flex-1 flex items-center justify-center gap-2 py-3 rounded-lg border font-semibold transition
                   ${
                     paymentChoice === "KEEP_CARD"
                       ? "bg-[#1A2A4F] text-white border-[#1A2A4F]"
@@ -133,7 +128,7 @@ export function ModalUpgradePlano({ open, onClose }: Props) {
 
               <button
                 onClick={() => setPaymentChoice("CHANGE_CARD")}
-                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg border font-semibold transition
+                className={`cursor-pointer flex-1 flex items-center justify-center gap-2 py-3 rounded-lg border font-semibold transition
                   ${
                     paymentChoice === "CHANGE_CARD"
                       ? "bg-[#1A2A4F] text-white border-[#1A2A4F]"
@@ -145,8 +140,7 @@ export function ModalUpgradePlano({ open, onClose }: Props) {
               </button>
             </div>
 
-            {/* PLANOS */}
-            <div className="grid md:grid-cols-3 gap-4 text-[#1A2A4F]">
+            <div className=" grid md:grid-cols-3 gap-4 text-[#1A2A4F]">
               <PlanoCard
                 titulo="Pro"
                 preco="R$ 79,90"
@@ -177,7 +171,10 @@ export function ModalUpgradePlano({ open, onClose }: Props) {
             </div>
 
             <div className="mt-6 text-center">
-              <button onClick={onClose} className="text-sm text-gray-500 hover:underline">
+              <button
+                onClick={onClose}
+                className="cursor-pointer text-sm text-gray-500 hover:underline"
+              >
                 Talvez depois
               </button>
             </div>
@@ -220,7 +217,7 @@ function PlanoCard({
       <button
         onClick={onClick}
         disabled={disabled}
-        className="mt-4 w-full bg-[#1A2A4F] text-white py-2 rounded-lg font-semibold disabled:opacity-50"
+        className="cursor-pointer mt-4 w-full bg-[#1A2A4F] text-white py-2 rounded-lg font-semibold disabled:opacity-50"
       >
         {loading ? "Processando..." : "Assinar"}
       </button>

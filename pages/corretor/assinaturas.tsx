@@ -189,8 +189,8 @@ export default function Assinaturas() {
         {alertaVencimento()}
 
         {perfil.planoStatus === "ATIVO" && (
-          <div className="p-4 bg-blue-100 text-blue-700 border border-blue-300 rounded-lg">
-            🎉 Sua assinatura está ativa!
+          <div className="flex justify-center p-4 bg-blue-100 text-blue-700 border border-blue-300 rounded-lg">
+            Sua assinatura está ativa!
           </div>
         )}
 
@@ -243,7 +243,7 @@ export default function Assinaturas() {
           {perfil.plano !== "GRATUITO" && (
             <button
               onClick={abrirPortal}
-              className="px-6 py-3 bg-[#1A2A4F] text-white rounded-lg hover:bg-[#15203E] transition w-full"
+              className="cursor-pointer px-6 py-3 bg-[#1A2A4F] text-white rounded-lg hover:bg-[#15203E] transition w-full"
             >
               Gerenciar assinatura
             </button>
@@ -251,7 +251,7 @@ export default function Assinaturas() {
 
           <button
             onClick={() => setShowModal(true)}
-            className="px-6 py-3 border border-[#1A2A4F] text-[#1A2A4F] rounded-lg hover:bg-[#1A2A4F] hover:text-white transition w-full"
+            className="cursor-pointer px-6 py-3 border border-[#1A2A4F] text-[#1A2A4F] rounded-lg hover:bg-[#1A2A4F] hover:text-white transition w-full"
           >
             {perfil.plano === "GRATUITO"
               ? "Ver planos"
@@ -271,8 +271,9 @@ export default function Assinaturas() {
           />
         )}
 
-        <div className="p-4 bg-green-100 text-green-700 rounded-lg text-sm">
-          👉 Dica: personalize sua página pública para melhorar suas conversões!
+        <div className="flex  justify-center p-4 bg-green-100 text-green-700 rounded-lg text-sm">
+          <span className="font-semibold"> Dica:</span> personalize sua página pública para melhorar
+          suas conversões!
         </div>
       </div>
     </CorretorLayout>

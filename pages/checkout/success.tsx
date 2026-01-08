@@ -36,7 +36,7 @@ export default function CheckoutSuccess() {
       </Head>
 
       <div className="fixed inset-0 z-50 flex items-center justify-center">
-        <div className="absolute inset-0 bg-black/60" />
+        <div className="absolute inset-0 bg-gray-400" />
 
         <div className="relative bg-white w-full max-w-md mx-4 rounded-2xl shadow-xl p-6 text-center">
           <CheckCircle className="mx-auto text-green-600" size={56} />
@@ -72,7 +72,7 @@ export default function CheckoutSuccess() {
 
           <button
             onClick={handleGoNow}
-            className="mt-6 w-full bg-[#1A2A4F] text-white py-3 rounded-lg font-semibold hover:opacity-90"
+            className="cursor-pointer mt-6 w-full bg-[#1A2A4F] text-white py-3 rounded-lg font-semibold hover:opacity-90"
           >
             OK, ir agora
           </button>
