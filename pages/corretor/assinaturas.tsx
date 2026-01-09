@@ -264,6 +264,7 @@ export default function Assinaturas() {
         {showModal && (
           <ModalUpgradePlano
             open={showModal}
+            hasSubscription={perfil.plano !== "GRATUITO"}
             onClose={() => {
               setShowModal(false);
               atualizarPerfil();
