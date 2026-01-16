@@ -7,10 +7,10 @@ import crypto from "crypto";
 import { mapPriceToPlano } from "@/lib/stripe";
 import { PlanoTipo, PlanoStatus } from "@prisma/client";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-11-17.clover",
-});
-
+// const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+//   apiVersion: "2025-11-17.clover",
+// });
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
 export const config = {
   api: { bodyParser: false },
 };

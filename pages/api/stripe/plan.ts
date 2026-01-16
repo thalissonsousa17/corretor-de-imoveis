@@ -3,17 +3,12 @@ import Stripe from "stripe";
 import { prisma } from "@/lib/prisma";
 import { AuthApiRequest, authorize } from "@/lib/authMiddleware";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-  apiVersion: "2025-11-17.clover",
-});
+// const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
+//   apiVersion: "2025-11-17.clover",
+// });
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
 
-/**
- * Ações possíveis de billing
- */
-type BillingAction =
-  | "SUBSCRIBE" // gratuito → pago
-  | "UPGRADE_KEEP" // pago → pago (mesmo cartão)
-  | "UPGRADE_CHANGE"; // pago → pago (novo cartão)
+type BillingAction = "SUBSCRIBE" | "UPGRADE_KEEP" | "UPGRADE_CHANGE";
 
 type Body = {
   priceId?: string;
@@ -75,19 +70,9 @@ export default authorize(
         return res.status(404).json({ ok: false, error: "Perfil não encontrado" });
       }
 
-      /**
-       * Define ação padrão
-       * - Se NÃO tem assinatura → SUBSCRIBE
-       * - Se tem assinatura → UPGRADE_KEEP
-       */
       const billingAction: BillingAction =
         action ?? (profile.stripeSubscriptionId ? "UPGRADE_KEEP" : "SUBSCRIBE");
 
-      /**
-       * ============================
-       * GARANTIR CUSTOMER (LIVE)
-       * ============================
-       */
       let customerId = profile.stripeCustomerId ?? null;
 
       if (customerId) {
@@ -120,12 +105,6 @@ export default authorize(
         });
       }
 
-      /**
-       * ============================
-       * FLUXO 1 — SUBSCRIBE
-       * (plano gratuito → pago)
-       * ============================
-       */
       if (billingAction === "SUBSCRIBE") {
         const session = await stripe.checkout.sessions.create({
           mode: "subscription",
@@ -150,10 +129,6 @@ export default authorize(
         });
       }
 
-      /**
-       * Daqui para baixo:
-       * usuário PRECISA ter assinatura ativa
-       */
       if (!profile.stripeSubscriptionId) {
         return res.status(400).json({
           ok: false,
@@ -161,11 +136,6 @@ export default authorize(
         });
       }
 
-      /**
-       * ============================
-       * FLUXO 2 — UPGRADE_KEEP
-       * ============================
-       */
       if (billingAction === "UPGRADE_KEEP") {
         const subscription = await stripe.subscriptions.retrieve(profile.stripeSubscriptionId, {
           expand: ["items.data"],
@@ -198,11 +168,6 @@ export default authorize(
         });
       }
 
-      /**
-       * ============================
-       * FLUXO 3 — UPGRADE_CHANGE
-       * ============================
-       */
       const setupSession = await stripe.checkout.sessions.create({
         mode: "setup",
         customer: customerId,

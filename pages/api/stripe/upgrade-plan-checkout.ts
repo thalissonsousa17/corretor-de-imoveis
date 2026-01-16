@@ -3,10 +3,10 @@ import Stripe from "stripe";
 import { prisma } from "@/lib/prisma";
 import { AuthApiRequest, authorize } from "@/lib/authMiddleware";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-  apiVersion: "2025-11-17.clover",
-});
-
+// const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
+//   apiVersion: "2025-11-17.clover",
+// });
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
 type Body = {
   priceId?: string;
 };
