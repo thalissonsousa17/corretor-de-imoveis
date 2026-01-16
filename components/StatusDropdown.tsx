@@ -57,7 +57,12 @@ export default function StatusDropdown({
     setIsOpen(false);
 
     try {
-      await axios.patch(`/api/imoveis/${imovelId}`, { status: newStatus });
+      await axios.patch(
+        `/api/public/imovel/${imovelId}/status`,
+        { status: newStatus },
+        { withCredentials: true }
+      );
+
       onUpdate();
     } catch (err) {
       console.error("Erro ao atualizar status:", err);
