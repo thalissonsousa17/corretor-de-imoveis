@@ -336,7 +336,7 @@ export default function Home() {
 
             <button
               onClick={() => handleCheckout(process.env.NEXT_PUBLIC_PRICE_PRO!)}
-              className="mt-8 block w-full bg-[#1A2A4F] text-white py-3 rounded-lg font-semibold"
+              className="cursor-pointer mt-8 block w-full bg-[#1A2A4F] text-white hover:bg-white hover:text-[#1A2A4F] hover:border hover:border-[#1A2A4F] py-3 rounded-lg font-semibold"
             >
               Assinar Agora
             </button>
@@ -360,7 +360,7 @@ export default function Home() {
 
             <button
               onClick={() => handleCheckout(process.env.NEXT_PUBLIC_PRICE_START!)}
-              className="mt-8 block w-full bg-[#1A2A4F] text-white py-3 rounded-lg font-semibold"
+              className="cursor-pointer mt-8 block w-full bg-[#1A2A4F] text-white py-3 rounded-lg font-semibold hover:bg-white hover:text-[#1A2A4F] hover:border hover:border-[#1A2A4F]"
             >
               Assinar Agora
             </button>
@@ -379,8 +379,12 @@ export default function Home() {
             {/* Anual */}
             <div className="mt-3 bg-[#1A2A4F] text-white rounded-lg p-3">
               <p className="text-xs uppercase font-semibold">Oferta anual (12 meses)</p>
+
               <p className="text-lg font-extrabold">R$ 119,90 / mês</p>
-              <p className="text-xs opacity-90">Economia de R$ 360,00 por ano</p>
+
+              <p className="text-sm font-medium opacity-90">Cobrança única anual de R$ 1.438,80</p>
+
+              <p className="text-xs opacity-80 mt-1">Parcelamento disponível conforme o cartão</p>
             </div>
 
             <ul className="mt-4 text-left text-sm space-y-1.5">
@@ -392,14 +396,14 @@ export default function Home() {
 
             <button
               onClick={() => handleCheckout(process.env.NEXT_PUBLIC_PRICE_EXPERT_MENSAL!)}
-              className="mt-8 block w-full bg-[#1A2A4F] text-white py-3 rounded-lg font-semibold"
+              className="cursor-pointer mt-8 block w-full bg-[#1A2A4F] text-white py-3 rounded-lg font-semibold hover:bg-white hover:text-[#1A2A4F] hover:border hover:border-[#1A2A4F]"
             >
               Assinar Agora
             </button>
 
             <button
               onClick={() => handleCheckout(process.env.NEXT_PUBLIC_PRICE_EXPERT_YEARLY!)}
-              className="mt-8 block w-full bg-[#1A2A4F] text-white py-3 rounded-lg font-semibold"
+              className="cursor-pointer mt-8 block w-full bg-[#1A2A4F] text-white py-3 rounded-lg font-semibold hover:bg-white hover:text-[#1A2A4F] hover:border hover:border-[#1A2A4F]"
             >
               Assinar Agora
             </button>
