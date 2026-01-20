@@ -41,6 +41,24 @@ export default function Home() {
         <title>ImobHub • Plataforma Profissional para Corretores</title>
       </Head>
 
+      <header className="bg-white shadow">
+        <div className="container mx-auto px-6 py-4 flex items-center justify-between">
+          <Link href="/" className="text-2xl font-bold text-[#1A2A4F]">
+            ImobHub
+          </Link>
+          <nav className="space-x-6">
+            <Link href="/login" className="text-gray-600 hover:text-[#1A2A4F]">
+              Entrar
+            </Link>
+            <Link
+              href="/register"
+              className="bg-[#1A2A4F] text-white px-4 py-2 rounded-lg font-semibold hover:bg-white hover:text-[#1A2A4F] hover:border hover:border-[#1A2A4F] transition"
+            >
+              Começar gratuitamente
+            </Link>
+          </nav>
+        </div>
+      </header>
       <section className="container mx-auto px-6 py-24 text-center">
         <h2 className="text-5xl font-extrabold text-[#1A2A4F] leading-tight">
           A plataforma inteligente para Corretores de Imóveis
