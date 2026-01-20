@@ -60,11 +60,11 @@ const handleDelete = async (req: AuthApiRequest, res: NextApiResponse): Promise<
       return;
     }
 
-    const uploadDir = path.join(process.cwd(), "public");
+    const uploadDir = path.join(process.cwd(), "public", "uploads");
 
     await Promise.all(
       imovel.fotos.map(async (foto: Foto) => {
-        const filePath = path.join(uploadDir, normalizeUrl(foto.url));
+        const filePath = path.join(uploadDir, foto.url.replace("/uploads/", ""));
         try {
           await fs.unlink(filePath);
         } catch {
@@ -147,13 +147,13 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse): Promise<voi
     }
 
     if (fotosRemoverIds.length > 0) {
-      const uploadDir = path.join(process.cwd(), "public");
+      const uploadDir = path.join(process.cwd(), "public", "uploads");
 
       const fotosParaExcluir = imovelExistente.fotos.filter((f) => fotosRemoverIds.includes(f.id));
 
       await Promise.all(
         fotosParaExcluir.map(async (foto) => {
-          const filePath = path.join(uploadDir, normalizeUrl(foto.url));
+          const filePath = path.join(uploadDir, foto.url.replace("/uploads/", ""));
           try {
             await fs.unlink(filePath);
           } catch {}
