@@ -44,14 +44,24 @@ const FotosUploader: React.FC<FotosUploaderProps> = ({
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-    const previews = Array.from(files).map((file) => ({
-      url: URL.createObjectURL(file),
-      isNew: true,
-    }));
+    const previews = Array.from(files).map((file) => {
+      const url = URL.createObjectURL(file);
+      return { url, isNew: true };
+    });
 
     setFotos((prev) => [...prev, ...previews]);
     onChange(e);
   };
+
+  useEffect(() => {
+    return () => {
+      fotos.forEach((foto) => {
+        if (foto.isNew) {
+          URL.revokeObjectURL(foto.url);
+        }
+      });
+    };
+  }, [fotos]);
 
   const handleDeleteFoto = (foto: Foto) => {
     if (foto.id && onDeleteExisting) onDeleteExisting(foto.id);

@@ -3,9 +3,7 @@ import { prisma } from "../../../lib/prisma";
 import { AuthApiRequest, authorize } from "../../../lib/authMiddleware";
 import fs from "fs/promises";
 import path from "path";
-import type { Imovel, Foto } from "@prisma/client";
-import type { ImovelStatus } from "@prisma/client";
-
+import type { Imovel, Foto, ImovelStatus } from "@prisma/client";
 import formidable from "formidable";
 
 export const config = {
@@ -42,6 +40,9 @@ function normalizeUrl(url: string | null | undefined): string {
   return clean;
 }
 
+/* =========================
+   DELETE
+========================= */
 const handleDelete = async (req: AuthApiRequest, res: NextApiResponse): Promise<void> => {
   const { id } = req.query;
   if (typeof id !== "string") {
@@ -72,9 +73,7 @@ const handleDelete = async (req: AuthApiRequest, res: NextApiResponse): Promise<
         const filePath = path.join(uploadDir, foto.url.replace("/uploads/", ""));
         try {
           await fs.unlink(filePath);
-        } catch {
-          console.warn("Falha ao excluir:", filePath);
-        }
+        } catch {}
       })
     );
 
@@ -88,6 +87,9 @@ const handleDelete = async (req: AuthApiRequest, res: NextApiResponse): Promise<
   }
 };
 
+/* =========================
+   PUT
+========================= */
 const handlePut = async (req: AuthApiRequest, res: NextApiResponse): Promise<void> => {
   const { id } = req.query;
 
@@ -128,10 +130,7 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse): Promise<voi
       return;
     }
 
-    /* ========================
-       DADOS DO IMÓVEL
-    ======================== */
-
+    /* ===== DADOS ===== */
     const data: Partial<Imovel> = {};
 
     if (fields.titulo) data.titulo = String(fields.titulo);
@@ -150,18 +149,13 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse): Promise<voi
       if (!isNaN(preco)) data.preco = preco;
     }
 
-    /* ========================
-       REMOVER FOTOS
-    ======================== */
-
+    /* ===== REMOVER FOTOS ===== */
     let fotosRemoverIds: string[] = [];
 
     if (fields.fotosRemover) {
       try {
         fotosRemoverIds = JSON.parse(String(fields.fotosRemover));
-      } catch {
-        console.warn("fotosRemover inválido");
-      }
+      } catch {}
     }
 
     if (fotosRemoverIds.length > 0) {
@@ -183,10 +177,7 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse): Promise<voi
       });
     }
 
-    /* ========================
-       ADICIONAR NOVAS FOTOS
-    ======================== */
-
+    /* ===== ADICIONAR FOTOS ===== */
     const fotosFiles: UploadedFile[] = Array.isArray(files?.fotos)
       ? (files.fotos as UploadedFile[])
       : files?.fotos
@@ -202,38 +193,35 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse): Promise<voi
 
       const ordemBase = ultimaFoto?.ordem ?? 0;
 
-      const fotosData = fotosFiles.map((file, index) => {
-        const filePath = file.filepath ?? file.path;
-
-        if (!filePath) {
-          throw new Error("Arquivo recebido sem caminho válido");
-        }
-
-        return {
-          url: `/uploads/${path.basename(filePath)}`,
-          ordem: ordemBase + index + 1,
-          imovelId: id,
-        };
-      });
-
       await prisma.foto.createMany({
-        data: fotosData,
+        data: fotosFiles.map((file, index) => {
+          const filePath = file.filepath ?? file.path;
+          if (!filePath) throw new Error("Arquivo sem caminho válido");
+
+          return {
+            url: `/uploads/${path.basename(filePath)}`,
+            ordem: ordemBase + index + 1,
+            imovelId: id,
+          };
+        }),
       });
     }
 
-    /* ========================
-       ATUALIZAR IMÓVEL
-    ======================== */
+    await prisma.imovel.update({ where: { id }, data });
 
-    const atualizado = await prisma.imovel.update({
+    const imovelAtualizado = await prisma.imovel.findUnique({
       where: { id },
-      data,
-      include: { fotos: true },
+      include: { fotos: { orderBy: { ordem: "asc" } } },
     });
 
+    if (!imovelAtualizado) {
+      res.status(404).json({ message: "Imóvel não encontrado após atualização." });
+      return;
+    }
+
     res.status(200).json({
-      ...atualizado,
-      fotos: atualizado.fotos.map((f) => ({
+      ...imovelAtualizado,
+      fotos: imovelAtualizado.fotos.map((f) => ({
         ...f,
         url: normalizeUrl(f.url),
       })),
@@ -244,92 +232,42 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse): Promise<voi
   }
 };
 
-const handleGetById = async (req: AuthApiRequest, res: NextApiResponse): Promise<void> => {
+/* =========================
+   GET / PATCH
+========================= */
+const handleGetById = async (req: AuthApiRequest, res: NextApiResponse) => {
   const { id } = req.query;
+  if (typeof id !== "string") return res.status(400).json({ message: "ID inválido." });
 
-  if (typeof id !== "string") {
-    res.status(400).json({ message: "ID inválido." });
-    return;
-  }
+  const imovel = await prisma.imovel.findUnique({
+    where: { id },
+    include: { fotos: { orderBy: { ordem: "asc" } } },
+  });
 
-  try {
-    const imovel = await prisma.imovel.findUnique({
-      where: { id },
-      include: {
-        fotos: { orderBy: { ordem: "asc" } },
-      },
-    });
+  if (!imovel) return res.status(404).json({ message: "Imóvel não encontrado." });
 
-    if (!imovel) {
-      res.status(404).json({ message: "Imóvel não encontrado." });
-      return;
-    }
-
-    const perfil = await prisma.corretorProfile.findUnique({
-      where: { userId: imovel.corretorId },
-      include: { user: true },
-    });
-
-    if (!perfil) {
-      res.status(404).json({ message: "Corretor não encontrado." });
-      return;
-    }
-
-    res.status(200).json({
-      ...imovel,
-      fotos: imovel.fotos.map((f) => ({ ...f, url: normalizeUrl(f.url) })),
-      corretor: {
-        id: perfil.userId,
-        name: perfil.user.name,
-        email: perfil.user.email,
-        creci: perfil.creci,
-        avatarUrl: normalizeUrl(perfil.avatarUrl),
-        bannerUrl: normalizeUrl(perfil.bannerUrl),
-        logoUrl: normalizeUrl(perfil.logoUrl),
-        biografia: perfil.biografia,
-        instagram: perfil.instagram,
-        facebook: perfil.facebook,
-        linkedin: perfil.linkedin,
-        whatsapp: perfil.whatsapp,
-        slug: perfil.slug,
-      },
-    });
-  } catch (error) {
-    console.error("Erro GET:", error);
-    res.status(500).json({ message: "Erro ao buscar imóvel." });
-  }
+  res.status(200).json({
+    ...imovel,
+    fotos: imovel.fotos.map((f) => ({ ...f, url: normalizeUrl(f.url) })),
+  });
 };
 
 const handlePatch = async (req: AuthApiRequest, res: NextApiResponse) => {
   const { id } = req.query;
   const { status } = req.body;
 
-  if (typeof id !== "string") {
-    return res.status(400).json({ message: "ID inválido." });
-  }
+  if (!id || !status) return res.status(400).json({ message: "Dados inválidos." });
 
-  if (!status || !["DISPONIVEL", "VENDIDO", "ALUGADO", "INATIVO"].includes(status)) {
-    return res.status(400).json({ message: "Status inválido." });
-  }
+  const updated = await prisma.imovel.update({
+    where: { id: String(id) },
+    data: { status: status as ImovelStatus },
+    include: { fotos: true },
+  });
 
-  try {
-    const updated = await prisma.imovel.update({
-      where: { id },
-      data: { status: status as ImovelStatus },
-      include: { fotos: true },
-    });
-
-    return res.status(200).json({
-      ...updated,
-      fotos: updated.fotos.map((f) => ({
-        ...f,
-        url: normalizeUrl(f.url),
-      })),
-    });
-  } catch (error) {
-    console.error("Erro PATCH:", error);
-    return res.status(500).json({ message: "Erro ao atualizar status." });
-  }
+  res.status(200).json({
+    ...updated,
+    fotos: updated.fotos.map((f) => ({ ...f, url: normalizeUrl(f.url) })),
+  });
 };
 
 export default async function handler(req: AuthApiRequest, res: NextApiResponse) {
