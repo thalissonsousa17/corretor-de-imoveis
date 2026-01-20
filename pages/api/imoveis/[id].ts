@@ -17,22 +17,9 @@ type UploadedFile = formidable.File & {
   path?: string;
 };
 
-interface UpdateImovelInput {
-  titulo?: string;
-  descricao?: string;
-  preco?: string | number;
-  tipo?: string;
-  localizacao?: string;
-  cidade?: string;
-  estado?: string;
-  bairro?: string;
-  rua?: string;
-  numero?: string;
-  cep?: string;
-  fotosRemover?: string;
-  status?: ImovelStatus | string;
-}
-
+/* =========================
+   HELPERS
+========================= */
 function normalizeUrl(url: string | null | undefined): string {
   if (!url) return "";
   let clean = url.replace(/\\/g, "/");
@@ -40,14 +27,30 @@ function normalizeUrl(url: string | null | undefined): string {
   return clean;
 }
 
+async function filtrarFotosValidas(fotos: Foto[]): Promise<Foto[]> {
+  const baseDir = path.join(process.cwd(), "public");
+  const validas: Foto[] = [];
+
+  for (const foto of fotos) {
+    try {
+      const filePath = path.join(baseDir, foto.url);
+      await fs.access(filePath);
+      validas.push(foto);
+    } catch {
+      // arquivo não existe → ignora
+    }
+  }
+
+  return validas;
+}
+
 /* =========================
    DELETE
 ========================= */
-const handleDelete = async (req: AuthApiRequest, res: NextApiResponse): Promise<void> => {
+const handleDelete = async (req: AuthApiRequest, res: NextApiResponse) => {
   const { id } = req.query;
   if (typeof id !== "string") {
-    res.status(400).json({ message: "ID inválido." });
-    return;
+    return res.status(400).json({ message: "ID inválido." });
   }
 
   try {
@@ -66,13 +69,12 @@ const handleDelete = async (req: AuthApiRequest, res: NextApiResponse): Promise<
       return;
     }
 
-    const uploadDir = path.join(process.cwd(), "public", "uploads");
+    const uploadDir = path.join(process.cwd(), "public/uploads");
 
     await Promise.all(
-      imovel.fotos.map(async (foto: Foto) => {
-        const filePath = path.join(uploadDir, foto.url.replace("/uploads/", ""));
+      imovel.fotos.map(async (foto) => {
         try {
-          await fs.unlink(filePath);
+          await fs.unlink(path.join(uploadDir, foto.url.replace("/uploads/", "")));
         } catch {}
       })
     );
@@ -81,21 +83,20 @@ const handleDelete = async (req: AuthApiRequest, res: NextApiResponse): Promise<
     await prisma.imovel.delete({ where: { id } });
 
     res.status(204).end();
+    return;
   } catch (error) {
     console.error("Erro DELETE:", error);
-    res.status(500).json({ message: "Erro ao deletar imóvel." });
+    return res.status(500).json({ message: "Erro ao deletar imóvel." });
   }
 };
 
 /* =========================
-   PUT
+   PUT (ATUALIZAR IMÓVEL + FOTOS)
 ========================= */
-const handlePut = async (req: AuthApiRequest, res: NextApiResponse): Promise<void> => {
+const handlePut = async (req: AuthApiRequest, res: NextApiResponse) => {
   const { id } = req.query;
-
   if (typeof id !== "string") {
-    res.status(400).json({ message: "ID inválido." });
-    return;
+    return res.status(400).json({ message: "ID inválido." });
   }
 
   try {
@@ -120,15 +121,9 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse): Promise<voi
       include: { fotos: true },
     });
 
-    if (!imovelExistente) {
-      res.status(404).json({ message: "Imóvel não encontrado." });
-      return;
-    }
-
-    if (imovelExistente.corretorId !== req.user!.id) {
-      res.status(403).json({ message: "Acesso negado." });
-      return;
-    }
+    if (!imovelExistente) return res.status(404).json({ message: "Imóvel não encontrado." });
+    if (imovelExistente.corretorId !== req.user!.id)
+      return res.status(403).json({ message: "Acesso negado." });
 
     /* ===== DADOS ===== */
     const data: Partial<Imovel> = {};
@@ -151,7 +146,6 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse): Promise<voi
 
     /* ===== REMOVER FOTOS ===== */
     let fotosRemoverIds: string[] = [];
-
     if (fields.fotosRemover) {
       try {
         fotosRemoverIds = JSON.parse(String(fields.fotosRemover));
@@ -165,9 +159,8 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse): Promise<voi
 
       await Promise.all(
         fotosParaExcluir.map(async (foto) => {
-          const filePath = path.join(uploadDir, foto.url.replace("/uploads/", ""));
           try {
-            await fs.unlink(filePath);
+            await fs.unlink(path.join(uploadDir, foto.url.replace("/uploads/", "")));
           } catch {}
         })
       );
@@ -214,26 +207,26 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse): Promise<voi
       include: { fotos: { orderBy: { ordem: "asc" } } },
     });
 
-    if (!imovelAtualizado) {
-      res.status(404).json({ message: "Imóvel não encontrado após atualização." });
-      return;
-    }
+    if (!imovelAtualizado)
+      return res.status(404).json({ message: "Imóvel não encontrado após atualização." });
 
-    res.status(200).json({
+    const fotosValidas = await filtrarFotosValidas(imovelAtualizado.fotos);
+
+    return res.status(200).json({
       ...imovelAtualizado,
-      fotos: imovelAtualizado.fotos.map((f) => ({
+      fotos: fotosValidas.map((f) => ({
         ...f,
         url: normalizeUrl(f.url),
       })),
     });
   } catch (error) {
     console.error("Erro PUT:", error);
-    res.status(500).json({ message: "Erro ao atualizar imóvel." });
+    return res.status(500).json({ message: "Erro ao atualizar imóvel." });
   }
 };
 
 /* =========================
-   GET / PATCH
+   GET
 ========================= */
 const handleGetById = async (req: AuthApiRequest, res: NextApiResponse) => {
   const { id } = req.query;
@@ -246,12 +239,17 @@ const handleGetById = async (req: AuthApiRequest, res: NextApiResponse) => {
 
   if (!imovel) return res.status(404).json({ message: "Imóvel não encontrado." });
 
-  res.status(200).json({
+  const fotosValidas = await filtrarFotosValidas(imovel.fotos);
+
+  return res.status(200).json({
     ...imovel,
-    fotos: imovel.fotos.map((f) => ({ ...f, url: normalizeUrl(f.url) })),
+    fotos: fotosValidas.map((f) => ({ ...f, url: normalizeUrl(f.url) })),
   });
 };
 
+/* =========================
+   PATCH (STATUS)
+========================= */
 const handlePatch = async (req: AuthApiRequest, res: NextApiResponse) => {
   const { id } = req.query;
   const { status } = req.body;
@@ -264,17 +262,22 @@ const handlePatch = async (req: AuthApiRequest, res: NextApiResponse) => {
     include: { fotos: true },
   });
 
-  res.status(200).json({
+  const fotosValidas = await filtrarFotosValidas(updated.fotos);
+
+  return res.status(200).json({
     ...updated,
-    fotos: updated.fotos.map((f) => ({ ...f, url: normalizeUrl(f.url) })),
+    fotos: fotosValidas.map((f) => ({ ...f, url: normalizeUrl(f.url) })),
   });
 };
 
+/* =========================
+   HANDLER
+========================= */
 export default async function handler(req: AuthApiRequest, res: NextApiResponse) {
   if (req.method === "DELETE") return authorize(handleDelete, "CORRETOR")(req, res);
   if (req.method === "PUT") return authorize(handlePut, "CORRETOR")(req, res);
   if (req.method === "PATCH") return authorize(handlePatch, "CORRETOR")(req, res);
   if (req.method === "GET") return handleGetById(req, res);
 
-  res.status(405).json({ message: "Método não permitido." });
+  return res.status(405).json({ message: "Método não permitido." });
 }
