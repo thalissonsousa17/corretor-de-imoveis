@@ -14,6 +14,11 @@ export const config = {
   },
 };
 
+type UploadedFile = formidable.File & {
+  filepath?: string;
+  path?: string;
+};
+
 interface UpdateImovelInput {
   titulo?: string;
   descricao?: string;
@@ -92,14 +97,19 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse): Promise<voi
   }
 
   try {
-    const form = formidable({ multiples: true });
+    const form = formidable({
+      multiples: true,
+      uploadDir: path.join(process.cwd(), "public/uploads"),
+      keepExtensions: true,
+    });
 
-    const { fields } = await new Promise<{
+    const { fields, files } = await new Promise<{
       fields: formidable.Fields;
+      files: formidable.Files;
     }>((resolve, reject) => {
-      form.parse(req, (err, fields) => {
+      form.parse(req, (err, fields, files) => {
         if (err) reject(err);
-        else resolve({ fields });
+        else resolve({ fields, files });
       });
     });
 
@@ -117,6 +127,10 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse): Promise<voi
       res.status(403).json({ message: "Acesso negado." });
       return;
     }
+
+    /* ========================
+       DADOS DO IMÓVEL
+    ======================== */
 
     const data: Partial<Imovel> = {};
 
@@ -136,6 +150,10 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse): Promise<voi
       if (!isNaN(preco)) data.preco = preco;
     }
 
+    /* ========================
+       REMOVER FOTOS
+    ======================== */
+
     let fotosRemoverIds: string[] = [];
 
     if (fields.fotosRemover) {
@@ -147,7 +165,7 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse): Promise<voi
     }
 
     if (fotosRemoverIds.length > 0) {
-      const uploadDir = path.join(process.cwd(), "public", "uploads");
+      const uploadDir = path.join(process.cwd(), "public/uploads");
 
       const fotosParaExcluir = imovelExistente.fotos.filter((f) => fotosRemoverIds.includes(f.id));
 
@@ -164,6 +182,48 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse): Promise<voi
         where: { id: { in: fotosRemoverIds } },
       });
     }
+
+    /* ========================
+       ADICIONAR NOVAS FOTOS
+    ======================== */
+
+    const fotosFiles: UploadedFile[] = Array.isArray(files?.fotos)
+      ? (files.fotos as UploadedFile[])
+      : files?.fotos
+        ? [files.fotos as UploadedFile]
+        : [];
+
+    if (fotosFiles.length > 0) {
+      const ultimaFoto = await prisma.foto.findFirst({
+        where: { imovelId: id },
+        orderBy: { ordem: "desc" },
+        select: { ordem: true },
+      });
+
+      const ordemBase = ultimaFoto?.ordem ?? 0;
+
+      const fotosData = fotosFiles.map((file, index) => {
+        const filePath = file.filepath ?? file.path;
+
+        if (!filePath) {
+          throw new Error("Arquivo recebido sem caminho válido");
+        }
+
+        return {
+          url: `/uploads/${path.basename(filePath)}`,
+          ordem: ordemBase + index + 1,
+          imovelId: id,
+        };
+      });
+
+      await prisma.foto.createMany({
+        data: fotosData,
+      });
+    }
+
+    /* ========================
+       ATUALIZAR IMÓVEL
+    ======================== */
 
     const atualizado = await prisma.imovel.update({
       where: { id },

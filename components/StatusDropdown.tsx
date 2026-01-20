@@ -89,7 +89,7 @@ export default function StatusDropdown({
         <div
           className="
             absolute right-0 
-            bottom-full 
+            top-full 
             mb-2 
             text-gray-700 
             w-36 sm:w-40 
