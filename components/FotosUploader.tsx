@@ -61,22 +61,11 @@ const FotosUploader: React.FC<FotosUploaderProps> = ({
   };
 
   useEffect(() => {
-    if (fotosExternas === null) {
-      if (!imovelId) {
-        setFotos([]);
-      } else {
-        setFotos(
-          existingPhotos.map((f) => {
-            let url = f.url.replace(/\\/g, "/");
-            if (!url.startsWith("/")) url = "/" + url;
-            return { id: f.id, url };
-          })
-        );
-      }
-
+    if (fotosExternas === null && !imovelId) {
+      setFotos([]);
       if (inputRef.current) inputRef.current.value = "";
     }
-  }, [fotosExternas, imovelId, existingPhotos]);
+  }, [fotosExternas, imovelId]);
 
   return (
     <div className="border border-gray-300 rounded-xl bg-white mt-6 p-4 md:p-6 text-center shadow-sm w-full">
