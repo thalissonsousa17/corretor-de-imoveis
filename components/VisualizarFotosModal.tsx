@@ -8,6 +8,20 @@ interface VisualizarFotosModalProps {
 const VisualizarFotosModal: React.FC<VisualizarFotosModalProps> = ({ fotos, onClose }) => {
   if (!fotos || fotos.length === 0) return null;
 
+  function resolveFotoUrl(url: string) {
+    if (!url) return "";
+    if (url.startsWith("blob:")) return url;
+    if (url.startsWith("http")) return url;
+    if (url.startsWith("/uploads/")) return url;
+
+    const clean = url
+      .replace(/\\/g, "/")
+      .replace(/^\/+/, "")
+      .replace(/^uploads\//, "");
+
+    return `/uploads/${clean}`;
+  }
+
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl p-4 sm:p-6 w-full max-w-3xl shadow-lg overflow-y-auto max-h-[90vh]">
@@ -19,7 +33,7 @@ const VisualizarFotosModal: React.FC<VisualizarFotosModalProps> = ({ fotos, onCl
           {fotos.map((foto) => (
             <div key={foto.id} className="rounded-lg overflow-hidden shadow-md">
               <img
-                src={foto.url}
+                src={resolveFotoUrl(foto.url)}
                 alt="Foto do imóvel"
                 className="w-full aspect-video object-cover"
               />
