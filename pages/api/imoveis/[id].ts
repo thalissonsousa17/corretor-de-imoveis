@@ -17,9 +17,7 @@ type UploadedFile = formidable.File & {
   path?: string;
 };
 
-/* =========================
-   HELPERS
-========================= */
+/*    HELPERS */
 function normalizeUrl(url: string | null | undefined): string {
   if (!url) return "";
   let clean = url.replace(/\\/g, "/");
@@ -36,17 +34,13 @@ async function filtrarFotosValidas(fotos: Foto[]): Promise<Foto[]> {
       const filePath = path.join(baseDir, foto.url);
       await fs.access(filePath);
       validas.push(foto);
-    } catch {
-      // arquivo não existe → ignora
-    }
+    } catch {}
   }
 
   return validas;
 }
 
-/* =========================
-   DELETE
-========================= */
+/*    DELETE */
 const handleDelete = async (req: AuthApiRequest, res: NextApiResponse) => {
   const { id } = req.query;
   if (typeof id !== "string") {
@@ -90,9 +84,7 @@ const handleDelete = async (req: AuthApiRequest, res: NextApiResponse) => {
   }
 };
 
-/* =========================
-   PUT (ATUALIZAR IMÓVEL + FOTOS)
-========================= */
+/*    PUT (ATUALIZAR IMÓVEL + FOTOS) */
 const handlePut = async (req: AuthApiRequest, res: NextApiResponse) => {
   const { id } = req.query;
   if (typeof id !== "string") {
@@ -102,7 +94,6 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse) => {
   try {
     const form = formidable({
       multiples: true,
-      uploadDir: path.join(process.cwd(), "public/uploads"),
       keepExtensions: true,
     });
 
@@ -122,10 +113,11 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse) => {
     });
 
     if (!imovelExistente) return res.status(404).json({ message: "Imóvel não encontrado." });
+
     if (imovelExistente.corretorId !== req.user!.id)
       return res.status(403).json({ message: "Acesso negado." });
 
-    /* ===== DADOS ===== */
+    /*  DADOS  */
     const data: Partial<Imovel> = {};
 
     if (fields.titulo) data.titulo = String(fields.titulo);
@@ -144,7 +136,7 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse) => {
       if (!isNaN(preco)) data.preco = preco;
     }
 
-    /* ===== REMOVER FOTOS ===== */
+    /*  REMOVER FOTOS  */
     let fotosRemoverIds: string[] = [];
     if (fields.fotosRemover) {
       try {
@@ -152,9 +144,10 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse) => {
       } catch {}
     }
 
-    if (fotosRemoverIds.length > 0) {
-      const uploadDir = path.join(process.cwd(), "public/uploads");
+    const uploadDir = path.join(process.cwd(), "public/uploads");
+    await fs.mkdir(uploadDir, { recursive: true });
 
+    if (fotosRemoverIds.length > 0) {
       const fotosParaExcluir = imovelExistente.fotos.filter((f) => fotosRemoverIds.includes(f.id));
 
       await Promise.all(
@@ -170,7 +163,7 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse) => {
       });
     }
 
-    /* ===== ADICIONAR FOTOS ===== */
+    /*  ADICIONAR FOTOS  */
     const fotosFiles: UploadedFile[] = Array.isArray(files?.fotos)
       ? (files.fotos as UploadedFile[])
       : files?.fotos
@@ -186,21 +179,37 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse) => {
 
       const ordemBase = ultimaFoto?.ordem ?? 0;
 
-      await prisma.foto.createMany({
-        data: fotosFiles.map((file, index) => {
-          const filePath = file.filepath ?? file.path;
-          if (!filePath) throw new Error("Arquivo sem caminho válido");
+      const fotosData: {
+        url: string;
+        ordem: number;
+        imovelId: string;
+      }[] = [];
 
-          return {
-            url: `/uploads/${path.basename(filePath)}`,
-            ordem: ordemBase + index + 1,
-            imovelId: id,
-          };
-        }),
-      });
+      for (let index = 0; index < fotosFiles.length; index++) {
+        const file = fotosFiles[index];
+        const tempPath = file.filepath ?? file.path;
+        if (!tempPath) throw new Error("Arquivo sem caminho válido");
+
+        const fileName = path.basename(tempPath);
+        const finalPath = path.join(uploadDir, fileName);
+
+        await fs.rename(tempPath, finalPath);
+
+        fotosData.push({
+          url: `/uploads/${fileName}`,
+          ordem: ordemBase + index + 1,
+          imovelId: id,
+        });
+      }
+
+      await prisma.foto.createMany({ data: fotosData });
     }
 
-    await prisma.imovel.update({ where: { id }, data });
+    /*  ATUALIZAR IMÓVEL  */
+    await prisma.imovel.update({
+      where: { id },
+      data,
+    });
 
     const imovelAtualizado = await prisma.imovel.findUnique({
       where: { id },
@@ -225,9 +234,7 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse) => {
   }
 };
 
-/* =========================
-   GET
-========================= */
+/* GET */
 const handleGetById = async (req: AuthApiRequest, res: NextApiResponse) => {
   const { id } = req.query;
   if (typeof id !== "string") return res.status(400).json({ message: "ID inválido." });
@@ -247,9 +254,7 @@ const handleGetById = async (req: AuthApiRequest, res: NextApiResponse) => {
   });
 };
 
-/* =========================
-   PATCH (STATUS)
-========================= */
+/*  PATCH (STATUS) */
 const handlePatch = async (req: AuthApiRequest, res: NextApiResponse) => {
   const { id } = req.query;
   const { status } = req.body;
@@ -270,9 +275,7 @@ const handlePatch = async (req: AuthApiRequest, res: NextApiResponse) => {
   });
 };
 
-/* =========================
-   HANDLER
-========================= */
+/*    HANDLER */
 export default async function handler(req: AuthApiRequest, res: NextApiResponse) {
   if (req.method === "DELETE") return authorize(handleDelete, "CORRETOR")(req, res);
   if (req.method === "PUT") return authorize(handlePut, "CORRETOR")(req, res);
