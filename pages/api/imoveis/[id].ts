@@ -5,6 +5,7 @@ import fs from "fs/promises";
 import path from "path";
 import type { Imovel, Foto, ImovelStatus } from "@prisma/client";
 import formidable from "formidable";
+import crypto from "crypto";
 
 export const config = {
   api: {
@@ -31,10 +32,15 @@ async function filtrarFotosValidas(fotos: Foto[]): Promise<Foto[]> {
 
   for (const foto of fotos) {
     try {
-      const filePath = path.join(baseDir, foto.url);
+      const rel = (foto.url || "").replace(/\\/g, "/").replace(/^\/+/, "");
+      const filePath = path.join(baseDir, rel);
+
       await fs.access(filePath);
       validas.push(foto);
-    } catch {}
+    } catch (error) {
+      console.error(`Arquivo de foto não encontrado: `, error);
+      console.log(`Tentado acessar: ${path.join(baseDir, foto.url || "")}`);
+    }
   }
 
   return validas;
@@ -68,8 +74,16 @@ const handleDelete = async (req: AuthApiRequest, res: NextApiResponse) => {
     await Promise.all(
       imovel.fotos.map(async (foto) => {
         try {
-          await fs.unlink(path.join(uploadDir, foto.url.replace("/uploads/", "")));
-        } catch {}
+          const name = (foto.url || "")
+            .replace(/\\/g, "/")
+            .replace(/^\/+/, "")
+            .replace(/^uploads\//, "");
+
+          await fs.unlink(path.join(uploadDir, name));
+        } catch (error) {
+          console.error(`Erro ao deletar arquivo de foto:`, error);
+          console.log(`Tentado deletar: ${path.join(uploadDir, foto.url || "")}`);
+        }
       })
     );
 
@@ -117,7 +131,7 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse) => {
     if (imovelExistente.corretorId !== req.user!.id)
       return res.status(403).json({ message: "Acesso negado." });
 
-    /*  DADOS  */
+    /* ===== DADOS ===== */
     const data: Partial<Imovel> = {};
 
     if (fields.titulo) data.titulo = String(fields.titulo);
@@ -136,7 +150,7 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse) => {
       if (!isNaN(preco)) data.preco = preco;
     }
 
-    /*  REMOVER FOTOS  */
+    /* ===== REMOVER FOTOS ===== */
     let fotosRemoverIds: string[] = [];
     if (fields.fotosRemover) {
       try {
@@ -153,8 +167,15 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse) => {
       await Promise.all(
         fotosParaExcluir.map(async (foto) => {
           try {
-            await fs.unlink(path.join(uploadDir, foto.url.replace("/uploads/", "")));
-          } catch {}
+            const name = (foto.url || "")
+              .replace(/\\/g, "/")
+              .replace(/^\/+/, "")
+              .replace(/^uploads\//, "");
+
+            await fs.unlink(path.join(uploadDir, name));
+          } catch (e) {
+            console.error(`Erro ao deletar foto: ${foto.url}`, e);
+          }
         })
       );
 
@@ -163,7 +184,7 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse) => {
       });
     }
 
-    /*  ADICIONAR FOTOS  */
+    /* ===== ADICIONAR FOTOS ===== */
     const fotosFiles: UploadedFile[] = Array.isArray(files?.fotos)
       ? (files.fotos as UploadedFile[])
       : files?.fotos
@@ -190,7 +211,9 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse) => {
         const tempPath = file.filepath ?? file.path;
         if (!tempPath) throw new Error("Arquivo sem caminho válido");
 
-        const fileName = path.basename(tempPath);
+        // ✅ NOME FINAL SEGURO (VPS/PRODUÇÃO)
+        const ext = path.extname(tempPath) || ".jpg";
+        const fileName = `${Date.now()}-${crypto.randomBytes(8).toString("hex")}${ext}`;
         const finalPath = path.join(uploadDir, fileName);
 
         await fs.rename(tempPath, finalPath);
@@ -205,7 +228,7 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse) => {
       await prisma.foto.createMany({ data: fotosData });
     }
 
-    /*  ATUALIZAR IMÓVEL  */
+    /* ===== ATUALIZAR IMÓVEL ===== */
     await prisma.imovel.update({
       where: { id },
       data,
