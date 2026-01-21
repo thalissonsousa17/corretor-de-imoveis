@@ -35,6 +35,14 @@ type Feedback = {
   message: string;
 } | null;
 
+function resolveFotoUrl(url: string) {
+  if (!url) return "";
+  if (url.startsWith("blob:")) return url; // preview local
+  if (url.startsWith("http")) return url; // externo
+  if (url.startsWith("/uploads/")) return url; // já correto
+  return `/uploads/${url}`; // 🔥 FIX
+}
+
 function SortableFoto({
   foto,
   index,
@@ -67,7 +75,11 @@ function SortableFoto({
       className={`relative w-full h-36 sm:h-40 rounded-xl overflow-hidden border shadow-sm bg-gray-100 
       ${isDragging ? "ring-2 ring-blue-400 ring-offset-2" : ""}`}
     >
-      <img src={foto.url} alt={`Foto ${index + 1}`} className="w-full h-full object-cover" />
+      <img
+        src={resolveFotoUrl(foto.url)}
+        alt={`Foto ${index + 1}`}
+        className="w-full h-full object-cover"
+      />
 
       <div className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-black/60 to-transparent" />
 
