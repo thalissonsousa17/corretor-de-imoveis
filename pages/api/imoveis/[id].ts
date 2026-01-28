@@ -191,6 +191,7 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse) => {
         ? [files.fotos as UploadedFile]
         : [];
 
+    /* ===== ADICIONAR FOTOS (VERSÃO CORRIGIDA) ===== */
     if (fotosFiles.length > 0) {
       const ultimaFoto = await prisma.foto.findFirst({
         where: { imovelId: id },
@@ -199,33 +200,34 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse) => {
       });
 
       const ordemBase = ultimaFoto?.ordem ?? 0;
-
-      const fotosData: {
-        url: string;
-        ordem: number;
-        imovelId: string;
-      }[] = [];
+      const fotosData = [];
 
       for (let index = 0; index < fotosFiles.length; index++) {
         const file = fotosFiles[index];
         const tempPath = file.filepath ?? file.path;
-        if (!tempPath) throw new Error("Arquivo sem caminho válido");
+        if (!tempPath) continue;
 
-        // ✅ NOME FINAL SEGURO (VPS/PRODUÇÃO)
-        const ext = path.extname(tempPath) || ".jpg";
-        const fileName = `${Date.now()}-${crypto.randomBytes(8).toString("hex")}${ext}`;
+        // Forçamos a extensão correta e limpamos sufixos estranhos
+        const originalExt = path.extname(file.originalFilename || "").toLowerCase() || ".jpg";
+        const fileName = `${Date.now()}-${crypto.randomBytes(4).toString("hex")}${originalExt}`;
         const finalPath = path.join(uploadDir, fileName);
 
-        await fs.rename(tempPath, finalPath);
+        try {
+          await fs.rename(tempPath, finalPath);
 
-        fotosData.push({
-          url: `/uploads/${fileName}`,
-          ordem: ordemBase + index + 1,
-          imovelId: id,
-        });
+          fotosData.push({
+            url: `/uploads/${fileName}`,
+            ordem: ordemBase + index + 1,
+            imovelId: id,
+          });
+        } catch (moveError) {
+          console.error("Erro ao mover arquivo:", moveError);
+        }
       }
 
-      await prisma.foto.createMany({ data: fotosData });
+      if (fotosData.length > 0) {
+        await prisma.foto.createMany({ data: fotosData });
+      }
     }
 
     /* ===== ATUALIZAR IMÓVEL ===== */
