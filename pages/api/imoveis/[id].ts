@@ -27,23 +27,9 @@ function normalizeUrl(url: string | null | undefined): string {
 }
 
 async function filtrarFotosValidas(fotos: Foto[]): Promise<Foto[]> {
-  const baseDir = path.join(process.cwd(), "public");
-  const validas: Foto[] = [];
-
-  for (const foto of fotos) {
-    try {
-      const rel = (foto.url || "").replace(/\\/g, "/").replace(/^\/+/, "");
-      const filePath = path.join(baseDir, rel);
-
-      await fs.access(filePath);
-      validas.push(foto);
-    } catch (error) {
-      console.error(`Arquivo de foto não encontrado: `, error);
-      console.log(`Tentado acessar: ${path.join(baseDir, foto.url || "")}`);
-    }
-  }
-
-  return validas;
+  // O banco de dados agora é o dono da verdade.
+  // Retornamos todas as fotos sem validar o arquivo físico para evitar o erro 404 falso na VPS.
+  return fotos;
 }
 
 /*    DELETE */
