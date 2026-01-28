@@ -10,16 +10,17 @@ const VisualizarFotosModal: React.FC<VisualizarFotosModalProps> = ({ fotos, onCl
 
   function resolveFotoUrl(url: string) {
     if (!url) return "";
-    if (url.startsWith("blob:")) return url;
+    if (url.startsWith("blob:")) return url; // Para o preview de novas fotos
     if (url.startsWith("http")) return url;
+
+    // Se a URL já começa com /uploads/, não mexa nela
     if (url.startsWith("/uploads/")) return url;
 
-    const clean = url
-      .replace(/\\/g, "/")
-      .replace(/^\/+/, "")
-      .replace(/^uploads\//, "");
+    // Se por algum motivo vir sem a barra inicial
+    if (url.startsWith("uploads/")) return `/${url}`;
 
-    return `/uploads/${clean}`;
+    // Caso receba apenas o nome do arquivo
+    return `/uploads/${url}`;
   }
 
   return (

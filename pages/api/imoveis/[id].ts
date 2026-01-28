@@ -55,7 +55,7 @@ const handleDelete = async (req: AuthApiRequest, res: NextApiResponse) => {
       return;
     }
 
-    const uploadDir = path.join(process.cwd(), "public/uploads");
+    const uploadDir = "/projects/corretor-de-imoveis/public/uploads";
 
     await Promise.all(
       imovel.fotos.map(async (foto) => {
@@ -144,7 +144,7 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse) => {
       } catch {}
     }
 
-    const uploadDir = path.join(process.cwd(), "public/uploads");
+    const uploadDir = "/projects/corretor-de-imoveis/public/uploads";
     await fs.mkdir(uploadDir, { recursive: true });
 
     if (fotosRemoverIds.length > 0) {
@@ -153,14 +153,14 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse) => {
       await Promise.all(
         fotosParaExcluir.map(async (foto) => {
           try {
-            const name = (foto.url || "")
-              .replace(/\\/g, "/")
-              .replace(/^\/+/, "")
-              .replace(/^uploads\//, "");
+            // Extrai apenas o nome do arquivo final
+            const fileName = path.basename(foto.url);
+            const filePath = path.join(uploadDir, fileName);
 
-            await fs.unlink(path.join(uploadDir, name));
+            await fs.unlink(filePath);
           } catch (e) {
-            console.error(`Erro ao deletar foto: ${foto.url}`, e);
+            // Este erro é esperado para as fotos que você já deletou via terminal (rm)
+            console.error(`Aviso: Arquivo já não existia no disco: ${foto.url}`);
           }
         })
       );
