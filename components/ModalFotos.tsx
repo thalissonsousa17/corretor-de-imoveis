@@ -35,12 +35,21 @@ type Feedback = {
   message: string;
 } | null;
 
+/**
+ * CORREÇÃO AQUI:
+ * Esta função agora garante que qualquer foto salva no disco seja acessada
+ * via API dinâmica, evitando o cache/atraso da pasta public do Next.js.
+ */
 function resolveFotoUrl(url: string) {
   if (!url) return "";
-  if (url.startsWith("blob:")) return url;
-  if (url.startsWith("http")) return url;
-  if (url.startsWith("/uploads/")) return url;
-  return `/uploads/${url}`;
+  if (url.startsWith("blob:")) return url; // Previsualização local antes de salvar
+  if (url.startsWith("http")) return url; // URLs externas
+
+  // Extraímos apenas o nome do arquivo (ex: "foto123.jpg")
+  const fileName = url.split("/").pop();
+
+  // Forçamos a rota da API dinâmica que criamos no arquivo [...path].ts
+  return `/api/uploads/${fileName}`;
 }
 
 function SortableFoto({
@@ -62,6 +71,7 @@ function SortableFoto({
     transform: CSS.Transform.toString(transform),
     transition,
     cursor: "grab",
+    zIndex: isDragging ? 50 : 1,
   };
 
   const isPrincipal = index === 0;
@@ -73,23 +83,24 @@ function SortableFoto({
       {...attributes}
       {...listeners}
       className={`relative w-full h-36 sm:h-40 rounded-xl overflow-hidden border shadow-sm bg-gray-100 
-      ${isDragging ? "ring-2 ring-blue-400 ring-offset-2" : ""}`}
+      ${isDragging ? "ring-2 ring-blue-400 ring-offset-2 opacity-50" : ""}`}
     >
       <img
         src={resolveFotoUrl(foto.url)}
         alt={`Foto ${index + 1}`}
         className="w-full h-full object-cover"
+        draggable={false}
       />
 
       <div className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-black/60 to-transparent" />
 
       {isPrincipal && (
-        <div className="absolute top-2 left-2 bg-emerald-500 text-xs font-semibold px-2 py-1 rounded-full shadow text-white">
+        <div className="absolute top-2 left-2 bg-emerald-500 text-xs font-semibold px-2 py-1 rounded-full shadow text-white z-10">
           ⭐ Principal
         </div>
       )}
 
-      <div className="absolute bottom-2 left-2 bg-black/70 text-white text-[11px] px-2 py-1 rounded-full">
+      <div className="absolute bottom-2 left-2 bg-black/70 text-white text-[11px] px-2 py-1 rounded-full z-10">
         Foto #{index + 1}
       </div>
 
@@ -99,7 +110,7 @@ function SortableFoto({
           e.stopPropagation();
           onDeleteFoto(foto);
         }}
-        className="cursor-pointer absolute top-2 right-2 bg-red-600 text-white rounded-full p-1 hover:bg-red-700 shadow"
+        className="cursor-pointer absolute top-2 right-2 bg-red-600 text-white rounded-full p-1 hover:bg-red-700 shadow z-20"
       >
         <X size={14} />
       </button>
@@ -111,7 +122,7 @@ function SortableFoto({
             e.stopPropagation();
             onSetPrincipal();
           }}
-          className="cursor-pointer absolute bottom-2 right-2 bg-white/85 text-[11px] text-gray-800 px-2 py-1 rounded-full hover:bg-white shadow"
+          className="cursor-pointer absolute bottom-2 right-2 bg-white/85 text-[11px] text-gray-800 px-2 py-1 rounded-full hover:bg-white shadow z-20"
         >
           Definir principal
         </button>
@@ -206,7 +217,7 @@ const ModalFotos: React.FC<ModalFotosProps> = ({ fotos, imovelId, onClose, onDel
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 sm:p-6 z-50"
+        className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 sm:p-6 z-[60]"
       >
         <motion.div
           key="modal-content"
@@ -219,7 +230,7 @@ const ModalFotos: React.FC<ModalFotosProps> = ({ fotos, imovelId, onClose, onDel
           <button
             type="button"
             onClick={onClose}
-            className="absolute top-3 right-3 text-gray-500 hover:text-red-600"
+            className="absolute top-3 right-3 text-gray-500 hover:text-red-600 z-[70]"
           >
             <X size={22} />
           </button>
@@ -263,7 +274,7 @@ const ModalFotos: React.FC<ModalFotosProps> = ({ fotos, imovelId, onClose, onDel
           >
             <SortableContext items={lista.map((f) => f.id || f.url)} strategy={rectSortingStrategy}>
               {lista.length > 0 ? (
-                <div className="max-h-[60vh] overflow-y-auto pr-2">
+                <div className="max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
                   <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4 mb-4">
                     {lista.map((foto, i) => (
                       <SortableFoto
@@ -284,16 +295,16 @@ const ModalFotos: React.FC<ModalFotosProps> = ({ fotos, imovelId, onClose, onDel
             </SortableContext>
           </DndContext>
 
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-2">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-4 border-t pt-4">
             <p className="text-xs text-gray-500">
-              Dica: a primeira foto da lista é usada como foto principal do imóvel.
+              Dica: a primeira foto da lista é usada como foto principal.
             </p>
 
             <div className="flex justify-end gap-2">
               <button
                 type="button"
                 onClick={onClose}
-                className="cursor-pointer px-4 py-2 text-sm rounded-lg border border-gray-300 text-gray-700 bg-white hover:text-gray-100 hover:bg-gray-700"
+                className="cursor-pointer px-4 py-2 text-sm rounded-lg border border-gray-300 text-gray-700 bg-white hover:bg-gray-800 hover:text-white transition-colors"
               >
                 Fechar
               </button>

@@ -13,30 +13,39 @@ export const config = {
   },
 };
 
+// Caminho absoluto da pasta na sua VPS
+const UPLOAD_DIR_ABSOLUTE = "/projects/corretor-de-imoveis/public/uploads";
+
 type UploadedFile = formidable.File & {
   filepath?: string;
   path?: string;
 };
 
-/* --- HELPERS --- */
+/* --- O SEGREDO ESTÁ AQUI --- */
+/* Essa função transforma a URL estática (que precisa de restart)
+   em uma URL dinâmica (que carrega na hora via API) */
 function normalizeUrl(url: string | null | undefined): string {
   if (!url) return "";
-  let clean = url.replace(/\\/g, "/");
-  if (!clean.startsWith("/")) clean = "/" + clean;
-  return clean;
+
+  // Se já for uma URL completa externa, mantém
+  if (url.startsWith("http")) return url;
+
+  // Pega apenas o nome do arquivo (ex: 'foto-123.jpg')
+  const fileName = path.basename(url);
+
+  // Retorna o caminho que passa pela API de leitura em tempo real
+  return `/api/uploads/${fileName}`;
 }
 
 async function filtrarFotosValidas(fotos: Foto[]): Promise<Foto[]> {
+  // Opcional: Aqui você poderia verificar se o arquivo existe no disco antes de retornar
   return fotos;
 }
 
 /* --- DELETE --- */
-const handleDelete = async (req: AuthApiRequest, res: NextApiResponse): Promise<void> => {
+const handleDelete = async (req: AuthApiRequest, res: NextApiResponse) => {
   const { id } = req.query;
-  if (typeof id !== "string") {
-    res.status(400).json({ message: "ID inválido." });
-    return;
-  }
+  if (typeof id !== "string") return res.status(400).json({ message: "ID inválido." });
 
   try {
     const imovel = await prisma.imovel.findUnique({
@@ -44,27 +53,15 @@ const handleDelete = async (req: AuthApiRequest, res: NextApiResponse): Promise<
       include: { fotos: true },
     });
 
-    if (!imovel) {
-      res.status(404).json({ message: "Imóvel não encontrado." });
-      return;
-    }
-
-    if (imovel.corretorId !== req.user!.id) {
-      res.status(403).json({ message: "Acesso negado." });
-      return;
-    }
-
-    const uploadDir = "/projects/corretor-de-imoveis/public/uploads";
+    if (!imovel) return res.status(404).json({ message: "Imóvel não encontrado." });
+    if (imovel.corretorId !== req.user!.id)
+      return res.status(403).json({ message: "Acesso negado." });
 
     await Promise.all(
       imovel.fotos.map(async (foto) => {
         try {
-          const name = (foto.url || "")
-            .replace(/\\/g, "/")
-            .replace(/^\/+/, "")
-            .replace(/^uploads\//, "");
-
-          await fs.unlink(path.join(uploadDir, name));
+          const fileName = path.basename(foto.url);
+          await fs.unlink(path.join(UPLOAD_DIR_ABSOLUTE, fileName));
         } catch (error) {
           console.error(`Erro ao deletar arquivo de foto:`, error);
         }
@@ -82,18 +79,12 @@ const handleDelete = async (req: AuthApiRequest, res: NextApiResponse): Promise<
 };
 
 /* --- PUT (ATUALIZAR) --- */
-const handlePut = async (req: AuthApiRequest, res: NextApiResponse): Promise<void> => {
+const handlePut = async (req: AuthApiRequest, res: NextApiResponse) => {
   const { id } = req.query;
-  if (typeof id !== "string") {
-    res.status(400).json({ message: "ID inválido." });
-    return;
-  }
+  if (typeof id !== "string") return res.status(400).json({ message: "ID inválido." });
 
   try {
-    const form = formidable({
-      multiples: true,
-      keepExtensions: true,
-    });
+    const form = formidable({ multiples: true, keepExtensions: true });
 
     const { fields, files } = await new Promise<{
       fields: formidable.Fields;
@@ -114,7 +105,6 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse): Promise<voi
       res.status(404).json({ message: "Imóvel não encontrado." });
       return;
     }
-
     if (imovelExistente.corretorId !== req.user!.id) {
       res.status(403).json({ message: "Acesso negado." });
       return;
@@ -122,7 +112,6 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse): Promise<voi
 
     /* ===== DADOS ===== */
     const data: Partial<Imovel> = {};
-
     if (fields.titulo) data.titulo = String(fields.titulo);
     if (fields.descricao) data.descricao = String(fields.descricao);
     if (fields.tipo) data.tipo = String(fields.tipo);
@@ -133,7 +122,6 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse): Promise<voi
     if (fields.rua) data.rua = String(fields.rua);
     if (fields.numero) data.numero = String(fields.numero);
     if (fields.cep) data.cep = String(fields.cep);
-
     if (fields.preco) {
       const preco = parseFloat(String(fields.preco));
       if (!isNaN(preco)) data.preco = preco;
@@ -147,27 +135,24 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse): Promise<voi
       } catch {}
     }
 
-    const uploadDir = "/projects/corretor-de-imoveis/public/uploads";
-    await fs.mkdir(uploadDir, { recursive: true });
+    // Garante que a pasta existe
+    try {
+      await fs.mkdir(UPLOAD_DIR_ABSOLUTE, { recursive: true });
+    } catch {}
 
     if (fotosRemoverIds.length > 0) {
       const fotosParaExcluir = imovelExistente.fotos.filter((f) => fotosRemoverIds.includes(f.id));
-
       await Promise.all(
         fotosParaExcluir.map(async (foto) => {
           try {
             const fileName = path.basename(foto.url);
-            const filePath = path.join(uploadDir, fileName);
-            await fs.unlink(filePath);
+            await fs.unlink(path.join(UPLOAD_DIR_ABSOLUTE, fileName));
           } catch (e) {
-            console.error(`Aviso: Arquivo já não existia no disco: ${foto.url}`);
+            console.error(`Aviso: Arquivo já não existia: ${foto.url}`);
           }
         })
       );
-
-      await prisma.foto.deleteMany({
-        where: { id: { in: fotosRemoverIds } },
-      });
+      await prisma.foto.deleteMany({ where: { id: { in: fotosRemoverIds } } });
     }
 
     /* ===== ADICIONAR FOTOS ===== */
@@ -194,11 +179,11 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse): Promise<voi
 
         const originalExt = path.extname(file.originalFilename || "").toLowerCase() || ".jpg";
         const fileName = `${Date.now()}-${crypto.randomBytes(4).toString("hex")}${originalExt}`;
-        const finalPath = path.join(uploadDir, fileName);
+        const finalPath = path.join(UPLOAD_DIR_ABSOLUTE, fileName);
 
         try {
           await fs.rename(tempPath, finalPath);
-
+          // Salva no banco como /uploads/ (padrão), mas a API vai entregar como /api/uploads/
           fotosData.push({
             url: `/uploads/${fileName}`,
             ordem: ordemBase + index + 1,
@@ -214,30 +199,25 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse): Promise<voi
       }
     }
 
-    /* ===== ATUALIZAR IMÓVEL ===== */
-    await prisma.imovel.update({
-      where: { id },
-      data,
-    });
+    /* ===== RESPOSTA ===== */
+    await prisma.imovel.update({ where: { id }, data });
 
     const imovelAtualizado = await prisma.imovel.findUnique({
       where: { id },
       include: { fotos: { orderBy: { ordem: "asc" } } },
     });
 
-    if (!imovelAtualizado) {
-      res.status(404).json({ message: "Imóvel não encontrado após atualização." });
-      return;
-    }
+    if (!imovelAtualizado) return res.status(404).json({ message: "Erro ao recuperar imóvel." });
 
-    const fotosValidas = await filtrarFotosValidas(imovelAtualizado.fotos);
+    // AQUI: Normalizamos as URLs para usar a API dinâmica
+    const fotosFormatadas = imovelAtualizado.fotos.map((f) => ({
+      ...f,
+      url: normalizeUrl(f.url),
+    }));
 
     res.status(200).json({
       ...imovelAtualizado,
-      fotos: fotosValidas.map((f) => ({
-        ...f,
-        url: normalizeUrl(f.url),
-      })),
+      fotos: fotosFormatadas,
     });
   } catch (error) {
     console.error("Erro PUT:", error);
@@ -246,40 +226,35 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse): Promise<voi
 };
 
 /* --- GET --- */
-const handleGetById = async (req: AuthApiRequest, res: NextApiResponse): Promise<void> => {
+const handleGetById = async (req: AuthApiRequest, res: NextApiResponse) => {
   const { id } = req.query;
-  if (typeof id !== "string") {
-    res.status(400).json({ message: "ID inválido." });
-    return;
-  }
+  if (typeof id !== "string") return res.status(400).json({ message: "ID inválido." });
 
   const imovel = await prisma.imovel.findUnique({
     where: { id },
     include: { fotos: { orderBy: { ordem: "asc" } } },
   });
 
-  if (!imovel) {
-    res.status(404).json({ message: "Imóvel não encontrado." });
-    return;
-  }
+  if (!imovel) return res.status(404).json({ message: "Imóvel não encontrado." });
 
-  const fotosValidas = await filtrarFotosValidas(imovel.fotos);
+  // AQUI: Normalizamos as URLs para usar a API dinâmica
+  const fotosFormatadas = imovel.fotos.map((f) => ({
+    ...f,
+    url: normalizeUrl(f.url),
+  }));
 
-  res.status(200).json({
+  return res.status(200).json({
     ...imovel,
-    fotos: fotosValidas.map((f) => ({ ...f, url: normalizeUrl(f.url) })),
+    fotos: fotosFormatadas,
   });
 };
 
 /* --- PATCH --- */
-const handlePatch = async (req: AuthApiRequest, res: NextApiResponse): Promise<void> => {
+const handlePatch = async (req: AuthApiRequest, res: NextApiResponse) => {
   const { id } = req.query;
   const { status } = req.body;
 
-  if (!id || !status) {
-    res.status(400).json({ message: "Dados inválidos." });
-    return;
-  }
+  if (!id || !status) return res.status(400).json({ message: "Dados inválidos." });
 
   const updated = await prisma.imovel.update({
     where: { id: String(id) },
@@ -287,11 +262,14 @@ const handlePatch = async (req: AuthApiRequest, res: NextApiResponse): Promise<v
     include: { fotos: true },
   });
 
-  const fotosValidas = await filtrarFotosValidas(updated.fotos);
+  const fotosFormatadas = updated.fotos.map((f) => ({
+    ...f,
+    url: normalizeUrl(f.url),
+  }));
 
-  res.status(200).json({
+  return res.status(200).json({
     ...updated,
-    fotos: fotosValidas.map((f) => ({ ...f, url: normalizeUrl(f.url) })),
+    fotos: fotosFormatadas,
   });
 };
 
