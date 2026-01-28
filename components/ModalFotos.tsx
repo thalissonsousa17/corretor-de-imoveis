@@ -37,10 +37,14 @@ type Feedback = {
 
 function resolveFotoUrl(url: string) {
   if (!url) return "";
-  if (url.startsWith("blob:")) return url; // preview local
-  if (url.startsWith("http")) return url; // externo
-  if (url.startsWith("/uploads/")) return url; // já correto
-  return `/uploads/${url}`; // 🔥 FIX
+  if (url.startsWith("blob:")) return url;
+  if (url.startsWith("http")) return url;
+
+  // Extrai apenas o nome do arquivo, independente de como venha do banco
+  const fileName = url.split("/").pop();
+
+  // Agora chamamos a nossa NOVA API que lê o disco em tempo real
+  return `/api/uploads/${fileName}`;
 }
 
 function SortableFoto({

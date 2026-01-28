@@ -10,17 +10,14 @@ const VisualizarFotosModal: React.FC<VisualizarFotosModalProps> = ({ fotos, onCl
 
   function resolveFotoUrl(url: string) {
     if (!url) return "";
-    if (url.startsWith("blob:")) return url; // Para o preview de novas fotos
+    if (url.startsWith("blob:")) return url;
     if (url.startsWith("http")) return url;
 
-    // Se a URL já começa com /uploads/, não mexa nela
-    if (url.startsWith("/uploads/")) return url;
+    // Extrai apenas o nome do arquivo, independente de como venha do banco
+    const fileName = url.split("/").pop();
 
-    // Se por algum motivo vir sem a barra inicial
-    if (url.startsWith("uploads/")) return `/${url}`;
-
-    // Caso receba apenas o nome do arquivo
-    return `/uploads/${url}`;
+    // Agora chamamos a nossa NOVA API que lê o disco em tempo real
+    return `/api/uploads/${fileName}`;
   }
 
   return (

@@ -27,8 +27,6 @@ function normalizeUrl(url: string | null | undefined): string {
 }
 
 async function filtrarFotosValidas(fotos: Foto[]): Promise<Foto[]> {
-  // O banco de dados agora é o dono da verdade.
-  // Retornamos todas as fotos sem validar o arquivo físico para evitar o erro 404 falso na VPS.
   return fotos;
 }
 
