@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Imovel } from "@/types/Imovel";
-import { FiRefreshCw } from "react-icons/fi";
 import StatusDropdown from "./StatusDropdown";
 import EdtiImovel from "./EditImovel";
 import DeleteImovelModal from "./DeleteImovelModal";
@@ -10,11 +9,10 @@ import FiltroImoveis from "./FiltroImoveis";
 import Paginacao from "./Paginacao";
 import VisualizarFotosModal from "@/components/VisualizarFotosModal";
 
-// --- FUNÇÃO DE NORMALIZAÇÃO (A VACINA CONTRA O 404) ---
 const normalizeImageUrl = (url: string | null | undefined) => {
   if (!url) return "/placeholder.png";
   if (url.startsWith("http")) return url;
-  // Extrai apenas o nome do arquivo, limpando caminhos como C:\ ou /uploads/
+
   const fileName = url.split(/[\\/]/).pop();
   return `/api/uploads/${fileName}`;
 };
@@ -42,7 +40,6 @@ const ImovelListagemCorretor: React.FC<ImovelListagemCorretorProps> = ({ onImove
     setLoading(true);
     setError("");
     try {
-      // Esta rota DEVE retornar os imóveis do corretor logado
       const response = await axios.get("/api/users/me/imoveis");
       setImoveis(response.data);
     } catch {
@@ -56,12 +53,11 @@ const ImovelListagemCorretor: React.FC<ImovelListagemCorretorProps> = ({ onImove
     fetchImoveis();
   }, []);
 
-  // Handler para abrir o modal de fotos com URLs corrigidas
   const handleVerFotos = (imovel: Imovel) => {
     if (imovel.fotos?.length) {
       const fotosNormalizadas = imovel.fotos.map((f) => ({
         id: f.id,
-        url: normalizeImageUrl(f.url), // Aplica a normalização aqui
+        url: normalizeImageUrl(f.url),
       }));
       setFotosSelecionadas(fotosNormalizadas);
       setFotosModalOpen(true);
@@ -144,7 +140,7 @@ const ImovelListagemCorretor: React.FC<ImovelListagemCorretorProps> = ({ onImove
                       className="relative p-2 hover:bg-gray-200 rounded-full transition-colors"
                     >
                       <Camera className="w-5 h-5 text-gray-700" />
-                      {/* Badge indicando quantidade de fotos */}
+                      {/*  indicando quantidade de fotos */}
                       {imovel.fotos && imovel.fotos.length > 0 && (
                         <span className="absolute top-0 right-0 bg-blue-600 text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center">
                           {imovel.fotos.length}
@@ -159,7 +155,7 @@ const ImovelListagemCorretor: React.FC<ImovelListagemCorretorProps> = ({ onImove
         </div>
       )}
 
-      {/* MODAIS (Mantidos conforme original) */}
+      {/* MODAIS  */}
       {imovelSelecionado && (
         <EdtiImovel
           imovel={imovelSelecionado}
