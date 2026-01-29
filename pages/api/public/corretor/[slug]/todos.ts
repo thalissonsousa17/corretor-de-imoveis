@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 import path from "path";
 
-/* --- O MESMO SEGREDO DO [ID].TS --- */
+/* --- A MESMA LÓGICA DO SEU [ID].TS --- */
 function normalizeUrl(url: string | null | undefined): string {
   if (!url) return "";
 
@@ -11,7 +11,7 @@ function normalizeUrl(url: string | null | undefined): string {
   if (url.startsWith("http")) return url;
 
   // Pega apenas o nome do arquivo (ex: 'foto-123.jpg')
-  // Isso resolve o problema de caminhos quebrados no banco
+  // Resolve o erro de imagem quebrada e 404
   const fileName = path.basename(url);
 
   // Retorna o caminho que passa pela API de leitura em tempo real
@@ -26,7 +26,7 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
   }
 
   try {
-    // 1. Busca o perfil do corretor (usando select para ser mais rápido)
+    // 1. Busca o perfil do corretor
     const profile = await prisma.corretorProfile.findUnique({
       where: { slug },
       include: {
@@ -64,32 +64,37 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
       }
     }
 
-    // 3. Busca os imóveis (usando include fotos como no [id].ts)
+    // 3. Busca os imóveis (Exatamente como a estrutura do [id].ts funciona)
     const imoveisRaw = await prisma.imovel.findMany({
       where,
       orderBy: { createdAt: "desc" },
       include: {
         fotos: {
           orderBy: { ordem: "asc" },
-          take: 1, // Para a listagem, apenas a capa
+          take: 1, // Capa para a listagem
         },
       },
-      take: 24, // Limite para garantir performance
+      take: 24, // Limite para acabar com a lentidão extrema
     });
 
-    // 4. APLICAÇÃO DA NORMALIZAÇÃO (Igual ao seu [id].ts)
-    const imoveis = imoveisRaw.map((imovel) => ({
-      ...imovel,
-      // Criamos a propriedade fotoPrincipal para o frontend usar com segurança
-      fotoPrincipal: imovel.fotos.length > 0 ? normalizeUrl(imovel.fotos[0].url) : null,
-      // Também normalizamos o array de fotos caso o frontend precise
-      fotos: imovel.fotos.map((f) => ({
-        ...f,
-        url: normalizeUrl(f.url),
-      })),
-    }));
+    // 4. APLICAÇÃO DA NORMALIZAÇÃO (O segredo do seu [id].ts)
+    const imoveis = imoveisRaw.map((imovel) => {
+      // Verificação segura para evitar 'Application Error'
+      const primeiraFotoUrl = imovel.fotos && imovel.fotos.length > 0 ? imovel.fotos[0].url : null;
 
-    // 5. Retorno formatado com URLs dinâmicas
+      return {
+        ...imovel,
+        // Injetamos a URL normalizada que a API de streaming entende
+        fotoPrincipal: normalizeUrl(primeiraFotoUrl),
+        // Normalizamos o array de fotos para manter o padrão
+        fotos: imovel.fotos.map((f) => ({
+          ...f,
+          url: normalizeUrl(f.url),
+        })),
+      };
+    });
+
+    // 5. Retorno com dados do corretor também normalizados
     return res.status(200).json({
       corretor: {
         id: profile.userId,
@@ -100,7 +105,6 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
         bannerUrl: normalizeUrl(profile.bannerUrl),
         logoUrl: normalizeUrl(profile.logoUrl),
         whatsapp: profile.whatsapp,
-        instagram: profile.instagram,
         slug: profile.slug,
       },
       imoveis,
