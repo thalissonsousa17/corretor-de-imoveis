@@ -4,24 +4,34 @@ import { Prisma } from "@prisma/client";
 import path from "path";
 
 /* --- O MESMO SEGREDO DO SEU [ID].TS --- */
-function normalizeUrl(url: string | null | undefined): string {
-  if (!url) return "";
+function normalizeUrl(url: string | null | undefined, context: string = "desconhecido"): string {
+  console.log(`[DEBUG NORMALIZE] (${context}) URL Original do Banco:`, url);
 
-  // Se já for uma URL completa externa, mantém
-  if (url.startsWith("http")) return url;
+  if (!url) {
+    console.log(`[DEBUG NORMALIZE] (${context}) URL vazia, retornando string vazia.`);
+    return "";
+  }
 
-  // IMPORTANTE: Pega apenas o nome do arquivo final (ex: 'foto.jpg')
-  // Isso remove caminhos de disco como 'C:\projects\' ou '/uploads/' que causam o 404
+  if (url.startsWith("http")) {
+    console.log(`[DEBUG NORMALIZE] (${context}) URL externa detectada:`, url);
+    return url;
+  }
+
   const fileName = path.basename(url);
+  const finalUrl = `/api/uploads/${fileName}`;
 
-  // Retorna o caminho que obriga o navegador a usar sua API de streaming rápida
-  return `/api/uploads/${fileName}`;
+  console.log(
+    `[DEBUG NORMALIZE] (${context}) Nome extraído: ${fileName} -> URL Final: ${finalUrl}`
+  );
+  return finalUrl;
 }
 
 export default async function handle(req: NextApiRequest, res: NextApiResponse) {
   const { slug, filtro } = req.query;
+  console.log(`\n--- [INICIO REQUISIÇÃO API TODOS] Slug: ${slug} | Filtro: ${filtro} ---`);
 
   if (typeof slug !== "string") {
+    console.error("[ERRO] Slug inválido.");
     return res.status(400).json({ message: "Slug inválido." });
   }
 
@@ -33,13 +43,17 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
       },
     });
 
-    if (!profile) return res.status(404).json({ message: "Corretor não encontrado." });
+    if (!profile) {
+      console.error(`[ERRO] Perfil não encontrado para o slug: ${slug}`);
+      return res.status(404).json({ message: "Corretor não encontrado." });
+    }
+
+    console.log(`[SUCESSO] Perfil encontrado: ${profile.user.name} (ID: ${profile.userId})`);
 
     const where: Prisma.ImovelWhereInput = {
       corretorId: profile.userId,
     };
 
-    // Filtros de finalidade
     if (typeof filtro === "string") {
       const f = filtro.toUpperCase();
       if (f === "VENDA" || f === "ALUGUEL") {
@@ -50,44 +64,47 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
       }
     }
 
-    // Busca os imóveis com a tipagem correta para evitar erros no VS Code
+    console.log("[DEBUG QUERY] Buscando imóveis com filtro:", JSON.stringify(where));
+
     const imoveisRaw = await prisma.imovel.findMany({
       where,
       orderBy: { createdAt: "desc" },
       include: {
         fotos: {
           orderBy: { ordem: "asc" },
-          take: 1, // Só precisamos de 1 foto para a capa da listagem
+          take: 1,
         },
       },
-      take: 24, // Limite para manter a velocidade do carregamento
+      take: 24,
     });
 
-    // MAPEAMENTO PARA RESOLVER O 404 E A LENTIDÃO
-    const imoveis = imoveisRaw.map((imovel) => {
+    console.log(`[DEBUG DATA] Imóveis encontrados: ${imoveisRaw.length}`);
+
+    const imoveis = imoveisRaw.map((imovel, index) => {
       const primeiraFoto = imovel.fotos && imovel.fotos.length > 0 ? imovel.fotos[0].url : null;
 
       return {
         ...imovel,
-        // Injetamos a URL normalizada que sua VPS consegue ler em tempo real
-        fotoPrincipal: normalizeUrl(primeiraFoto),
-        // Removemos o campo 'fotos' original para o JSON ficar leve (fim da lentidão)
+        fotoPrincipal: normalizeUrl(primeiraFoto, `Imóvel index ${index}`),
         fotos: undefined,
       };
     });
 
-    return res.status(200).json({
+    const responseData = {
       corretor: {
         id: profile.userId,
         name: profile.user.name,
-        avatarUrl: normalizeUrl(profile.avatarUrl),
+        avatarUrl: normalizeUrl(profile.avatarUrl, "Avatar Corretor"),
         whatsapp: profile.whatsapp,
         slug: profile.slug,
       },
       imoveis,
-    });
+    };
+
+    console.log("--- [FIM REQUISIÇÃO API TODOS] Resposta enviada com sucesso ---\n");
+    return res.status(200).json(responseData);
   } catch (error) {
-    console.error("Erro na API pública:", error);
+    console.error("[ERRO FATAL API TODOS]:", error);
     return res.status(500).json({ message: "Erro interno." });
   }
 }
