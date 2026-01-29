@@ -17,20 +17,11 @@ type Imovel = {
   fotos: Foto[];
 };
 
-/** normaliza pra sempre servir via /api/uploads */
-const resolveFotoUrl = (url?: string | null) => {
-  if (!url) return "/placeholder.jpg";
-  if (url.startsWith("http")) return url;
-  if (url.startsWith("/api/uploads/")) return url;
-
-  const fileName = url.split(/[\\/]/).pop();
-  return fileName ? `/api/uploads/${fileName}` : "/placeholder.jpg";
-};
-
 export default function CarrosselDestaques({ imoveis }: { imoveis: Imovel[] }) {
   if (!imoveis || imoveis.length === 0) return null;
 
   const destaques = imoveis.filter((i) => i.status !== "VENDIDO");
+
   if (destaques.length === 0) return null;
 
   return (
@@ -45,7 +36,7 @@ export default function CarrosselDestaques({ imoveis }: { imoveis: Imovel[] }) {
           id="btn-prev"
           className="
             absolute left-1 top-1/2 -translate-y-1/2 z-20
-            p-2 sm:p-3 rounded-full
+            p-2 sm:p-3 rounded-full 
             bg-black/40 hover:bg-black/60
             text-white shadow-lg cursor-pointer
             hidden md:block
@@ -59,7 +50,7 @@ export default function CarrosselDestaques({ imoveis }: { imoveis: Imovel[] }) {
           id="btn-next"
           className="
             absolute right-1 top-1/2 -translate-y-1/2 z-20
-            p-2 sm:p-3 rounded-full
+            p-2 sm:p-3 rounded-full 
             bg-black/40 hover:bg-black/60
             text-white shadow-lg cursor-pointer
             hidden md:block
@@ -85,31 +76,29 @@ export default function CarrosselDestaques({ imoveis }: { imoveis: Imovel[] }) {
           className="pb-8"
         >
           {destaques.slice(0, 12).map((imovel) => {
-            const capaRaw = imovel.fotos?.[0]?.url;
-            const capa = resolveFotoUrl(capaRaw);
+            const capa = imovel.fotos?.[0]?.url;
 
             return (
               <SwiperSlide key={imovel.id} className="group">
                 <div
                   className="
-                    relative rounded-2xl overflow-hidden shadow-xl
-                    transition-all duration-300
+                    relative rounded-2xl overflow-hidden shadow-xl 
+                    transition-all duration-300 
                     group-hover:scale-[1.03]
                     bg-gray-200
                   "
                 >
-                  <img
-                    src={capa}
-                    alt={imovel.titulo}
-                    className="
-                      w-full
-                      h-48 sm:h-56 md:h-60 lg:h-64
-                      object-cover
-                    "
-                    onError={(e) => {
-                      (e.currentTarget as HTMLImageElement).src = "/placeholder.jpg";
-                    }}
-                  />
+                  {capa && (
+                    <img
+                      src={capa}
+                      alt={imovel.titulo}
+                      className="
+                        w-full 
+                        h-48 sm:h-56 md:h-60 lg:h-64 
+                        object-cover
+                      "
+                    />
+                  )}
 
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
 
@@ -132,14 +121,15 @@ export default function CarrosselDestaques({ imoveis }: { imoveis: Imovel[] }) {
 
                   {/* BADGE */}
                   <span
-                    className="
-                      absolute top-2 left-2 px-2 sm:px-3 py-1
+                    className={`
+                      absolute top-2 left-2 px-2 sm:px-3 py-1 
                       text-[10px] sm:text-xs font-bold rounded-full
-                    "
-                    style={{
-                      backgroundColor: imovel.finalidade === "VENDA" ? "#16a34a" : "#2563eb",
-                      color: "white",
-                    }}
+                      ${
+                        imovel.finalidade === "VENDA"
+                          ? "bg-green-600 text-white"
+                          : "bg-blue-600 text-white"
+                      }
+                    `}
                   >
                     {imovel.finalidade === "VENDA" ? "À VENDA" : "ALUGUEL"}
                   </span>
