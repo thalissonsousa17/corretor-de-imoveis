@@ -25,7 +25,6 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
       corretorId: profile.userId,
     };
 
-    // Filtros
     if (typeof filtro === "string") {
       switch (filtro.toUpperCase()) {
         case "VENDA":
@@ -50,7 +49,6 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
       orderBy: { createdAt: "desc" },
       include: {
         fotos: {
-          select: { url: true },
           orderBy: { ordem: "asc" },
           take: 1,
         },
@@ -59,11 +57,12 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
     });
 
     const imoveis = imoveisRaw.map((imovel) => {
-      const primeiraFoto = imovel.fotos && imovel.fotos.length > 0 ? imovel.fotos[0].url : null;
+      const temFotos = imovel.fotos && imovel.fotos.length > 0;
+      const urlOriginal = temFotos ? imovel.fotos[0].url : null;
 
       return {
         ...imovel,
-        fotoPrincipal: normalizeUrl(primeiraFoto),
+        fotoPrincipal: normalizeUrl(urlOriginal),
         fotos: undefined,
       };
     });
