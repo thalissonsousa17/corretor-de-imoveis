@@ -9,6 +9,16 @@ import {
   RiWhatsappLine,
 } from "react-icons/ri";
 
+/** Normaliza qualquer URL de imagem pra sempre servir via /api/uploads */
+const resolveFotoUrl = (url?: string | null) => {
+  if (!url) return "/placeholder.jpg";
+  if (url.startsWith("http")) return url;
+  if (url.startsWith("/api/uploads/")) return url;
+
+  const fileName = url.split(/[\\/]/).pop();
+  return fileName ? `/api/uploads/${fileName}` : "/placeholder.jpg";
+};
+
 type Corretor = {
   name: string;
   email?: string;
@@ -37,6 +47,7 @@ type ImovelCompleto = {
   status: string;
   fotos: Foto[];
 };
+
 interface Props {
   corretor: Corretor;
   todos: ImovelCompleto[];
@@ -64,12 +75,13 @@ function buildSocialUrl(
 
 export const getServerSideProps: GetServerSideProps<Props> = async (ctx) => {
   const slug = ctx.params?.slug as string;
-
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || `http://${ctx.req.headers.host}`;
 
   const [corretorRes, todosRes] = await Promise.all([
-    fetch(`${baseUrl}/api/public/corretor/${slug}`),
-    fetch(`${baseUrl}/api/public/corretor/${slug}/todos`),
+    fetch(`${baseUrl}/api/public/corretor/${slug}`, { headers: { "cache-control": "no-cache" } }),
+    fetch(`${baseUrl}/api/public/corretor/${slug}/todos`, {
+      headers: { "cache-control": "no-cache" },
+    }),
   ]);
 
   if (!corretorRes.ok) return { notFound: true };
@@ -77,10 +89,28 @@ export const getServerSideProps: GetServerSideProps<Props> = async (ctx) => {
   const corretorJson = await corretorRes.json();
   const todosJson = todosRes.ok ? await todosRes.json() : { imoveis: [] };
 
+  // ✅ Normaliza corretor (avatar/banner/logo)
+  const corretorRaw = corretorJson.corretor as Corretor;
+  const corretor: Corretor = {
+    ...corretorRaw,
+    avatarUrl: resolveFotoUrl(corretorRaw.avatarUrl),
+    bannerUrl: resolveFotoUrl(corretorRaw.bannerUrl),
+    logoUrl: resolveFotoUrl(corretorRaw.logoUrl),
+  };
+
+  // ✅ Normaliza TODAS as fotos dos imóveis (isso mata o /uploads 404)
+  const todos: ImovelCompleto[] = (todosJson.imoveis || []).map((im: ImovelCompleto) => ({
+    ...im,
+    fotos: (im.fotos || []).map((f) => ({
+      ...f,
+      url: resolveFotoUrl(f.url),
+    })),
+  }));
+
   return {
     props: {
-      corretor: corretorJson.corretor,
-      todos: todosJson.imoveis,
+      corretor,
+      todos,
     },
   };
 };
@@ -131,13 +161,13 @@ export default function PerfilProfissional({ corretor, todos }: Props) {
                   Creci {corretor.creci}
                 </span>
               </p>
+
               {/* E-MAIL */}
               {corretor.email && (
                 <p className="mt-3 text-gray-700 font-medium text-lg font-sans">{corretor.email}</p>
               )}
 
               {/* REDES SOCIAIS */}
-
               <div className="flex items-center gap-6 mt-6 text-3xl">
                 {instagramUrl && (
                   <a
@@ -188,12 +218,11 @@ export default function PerfilProfissional({ corretor, todos }: Props) {
               <div className="mt-10 text-lg leading-relaxed text-gray-800 max-w-2xl whitespace-pre-line font-sans">
                 {corretor.biografia || "Biografia não preenchida."}
               </div>
-
-              <div></div>
             </div>
           </div>
         </div>
 
+        {/* ✅ Agora o carrossel recebe fotos já normalizadas */}
         <CarrosselDestaques imoveis={todos} />
       </LayoutCorretor>
     </>
