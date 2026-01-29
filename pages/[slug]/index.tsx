@@ -6,7 +6,7 @@ import HeaderCorretor from "@/components/Header";
 import DOMPurify from "isomorphic-dompurify";
 import type { GetServerSidePropsContext, GetServerSidePropsResult } from "next";
 import LayoutCorretor from "@/components/LayoutCorretor";
-import { FaWhatsapp, FaInstagram, FaFacebook, FaGlobeAmericas } from "react-icons/fa";
+import { FaWhatsapp, FaInstagram, FaFacebook } from "react-icons/fa";
 import { MdEmail } from "react-icons/md";
 import "swiper/css";
 import "swiper/css/navigation";
@@ -51,6 +51,7 @@ interface PageProps {
   texto?: string;
   todos?: Imovel[];
 }
+
 type Filtro = "VENDA" | "ALUGUEL" | "VENDIDO" | "ALUGADO" | "INATIVO";
 
 export const getServerSideProps = async (
@@ -71,14 +72,24 @@ export const getServerSideProps = async (
 export default function CorretorHome({ corretor, imoveis }: PageProps) {
   const [safeHtml, setSafeHtml] = useState("");
 
-  // normalize whatsapp link to string | undefined to satisfy href typing
   const wa = toWaLink(corretor.whatsapp) ?? undefined;
   const [filtro, setFiltro] = useState<Filtro>("VENDA");
   const [busca, setBusca] = useState("");
 
+  const resolveFotoUrl = (url?: string | null) => {
+    if (!url) return "/placeholder.png";
+    if (url.startsWith("http")) return url;
+    if (url.startsWith("/api/uploads/")) return url;
+
+    const fileName = url.split(/[\\/]/).pop();
+    return fileName ? `/api/uploads/${fileName}` : "/placeholder.png";
+  };
+
   useEffect(() => {
     if (typeof window !== "undefined" && corretor.biografia) {
       setSafeHtml(DOMPurify.sanitize(corretor.biografia));
+    } else {
+      setSafeHtml("");
     }
   }, [corretor.biografia]);
 
@@ -103,6 +114,7 @@ export default function CorretorHome({ corretor, imoveis }: PageProps) {
     <LayoutCorretor corretor={corretor}>
       <div>
         <HeaderCorretor corretor={corretor} />
+
         <Head>
           <title>{`${corretor?.name ?? "Corretor"} • Imóveis`}</title>
           <meta
@@ -111,16 +123,20 @@ export default function CorretorHome({ corretor, imoveis }: PageProps) {
           />
         </Head>
 
-        {/* Banner  */}
-
+        {/* Banner */}
         {corretor?.bannerUrl && (
           <section className="relative w-full h-[530px] sm:h-screen overflow-hidden">
             <img
-              src={corretor.bannerUrl}
+              src={resolveFotoUrl(corretor.bannerUrl)}
               alt="Banner do corretor"
               className="w-full h-full object-cover"
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).src = "/placeholder.png";
+              }}
             />
+
             <div className="absolute inset-0 bg-black/30" />
+
             <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-white ">
               <div className="mt-10 bg-white/90 backdrop-blur-md rounded-full flex items-center px-4 py-2 w-[90%] max-w-xl shadow-lg">
                 <input
@@ -144,9 +160,12 @@ export default function CorretorHome({ corretor, imoveis }: PageProps) {
               {corretor.avatarUrl && (
                 <div className="absolute bottom-0 right-2 sm:right-6 md:right-12 flex justify-end pointer-events-none">
                   <img
-                    src={corretor.avatarUrl ?? ""}
+                    src={resolveFotoUrl(corretor.avatarUrl)}
                     alt={corretor.name}
                     className="w-[180px] sm:w-[260px] md:w-[320px] lg:w-[360px] h-auto object-contain translate-y-6 sm:translate-y-0"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).src = "/placeholder.png";
+                    }}
                   />
                 </div>
               )}
@@ -169,32 +188,33 @@ export default function CorretorHome({ corretor, imoveis }: PageProps) {
                 {/* Listagem de cards */}
                 <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                   {imoveisFiltrados.slice(0, 9).map((imovel) => {
-                    const capa = imovel.fotos?.[0]?.url;
+                    const capa = resolveFotoUrl(imovel.fotos?.[0]?.url);
+
                     return (
-                      // card do imóvel
                       <article
                         key={imovel.id}
                         className="group bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100"
                       >
-                        {/* Imagem */}
                         <div className="relative h-56 w-full overflow-hidden">
                           <img
                             src={capa}
                             alt={imovel.titulo}
                             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                            onError={(e) => {
+                              (e.currentTarget as HTMLImageElement).src = "/placeholder.png";
+                            }}
                           />
 
-                          {/* Badge */}
                           <span
                             className={`absolute top-3 left-3 text-xs font-bold px-3 py-1 rounded-full shadow
-        ${
-          imovel.status === "VENDIDO"
-            ? "bg-red-600 text-white"
-            : imovel.finalidade === "VENDA"
-              ? "bg-green-600 text-white"
-              : "bg-blue-600 text-white"
-        }
-      `}
+                              ${
+                                imovel.status === "VENDIDO"
+                                  ? "bg-red-600 text-white"
+                                  : imovel.finalidade === "VENDA"
+                                    ? "bg-green-600 text-white"
+                                    : "bg-blue-600 text-white"
+                              }
+                            `}
                           >
                             {imovel.status === "VENDIDO"
                               ? "VENDIDO"
@@ -204,13 +224,11 @@ export default function CorretorHome({ corretor, imoveis }: PageProps) {
                           </span>
                         </div>
 
-                        {/* CONTEÚDO */}
                         <div className="p-5 space-y-3">
                           <h3 className="font-bold text-lg text-gray-900 line-clamp-1">
                             {imovel.titulo}
                           </h3>
 
-                          {/* Rodapé estilo */}
                           <div className="grid grid-cols-2 gap-3 text-sm bg-gray-50 rounded-xl p-3 border border-gray-100">
                             <div>
                               <p className="font-semibold text-gray-700">Tipo</p>
@@ -240,7 +258,6 @@ export default function CorretorHome({ corretor, imoveis }: PageProps) {
                             </div>
                           </div>
 
-                          {/* Botão */}
                           <Link
                             href={`/${corretor.slug}/imovel/${imovel.id}`}
                             className="mt-4 inline-block w-full text-center rounded-xl bg-[#1A2A4F] text-white hover:text-[#D4AC3A] py-2 font-medium transition"
@@ -265,14 +282,12 @@ export default function CorretorHome({ corretor, imoveis }: PageProps) {
               </div>
             </section>
           </div>
-          {/* BIOGRAFIA  */}
+
+          {/* BIOGRAFIA */}
           <div className="bg-white">
-            {/* HERO CLEAN */}
             <section id="perfil" className="relative bg-gray-100 py-20">
               <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-10 px-6">
-                {/* Coluna texto */}
                 <div className="flex-1 text-gray-700">
-                  {/* NOME + CRECI */}
                   <h1 className="text-4xl font-bold text-[#1A2A4F] mb-1">{corretor.name}</h1>
 
                   {corretor.creci && (
@@ -281,69 +296,73 @@ export default function CorretorHome({ corretor, imoveis }: PageProps) {
                     </p>
                   )}
 
-                  {/* BIOGRAFIA FORMATADA */}
-                  {corretor.biografia && (
+                  {/* BIOGRAFIA (HTML SANITIZADO) */}
+                  {corretor.biografia ? (
                     <div
                       className="
-    text-gray-800 
-    leading-relaxed 
-    whitespace-pre-wrap   /* ← mantém exatamente como o usuário escreveu */
-    text-[clamp(1rem,1vw,1.15rem)]
-  "
+                        text-gray-800
+                        leading-relaxed
+                        whitespace-pre-wrap
+                        text-[clamp(1rem,1vw,1.15rem)]
+                      "
+                      dangerouslySetInnerHTML={{ __html: safeHtml }}
+                    />
+                  ) : (
+                    <div
+                      className="
+                        text-gray-800
+                        leading-relaxed
+                        whitespace-pre-wrap
+                        text-[clamp(1rem,1vw,1.15rem)]
+                      "
                     >
-                      {corretor.biografia}
+                      Biografia não preenchida.
                     </div>
                   )}
 
                   {/* REDES SOCIAIS / CONTATOS */}
                   <div className="mt-10">
                     <div className="flex items-center gap-4">
-                      {/* EMAIL */}
                       {corretor.email && (
                         <a
                           href={`mailto:${corretor.email}`}
-                          className="p-3 rounded-full bg-white  hover:bg-gray-100 shadow-sm 
-        transition flex items-center justify-center"
+                          className="p-3 rounded-full bg-white hover:bg-gray-100 shadow-sm transition flex items-center justify-center"
                           title="Enviar e-mail"
                         >
                           <MdEmail className="text-red-500 text-2xl" />
                         </a>
                       )}
 
-                      {/* INSTAGRAM */}
                       {corretor.instagram && (
                         <a
                           href={`https://instagram.com/${corretor.instagram}`}
                           target="_blank"
-                          className="p-3 rounded-full bg-white  hover:bg-gray-100 shadow-sm 
-        transition flex items-center justify-center"
+                          rel="noreferrer"
+                          className="p-3 rounded-full bg-white hover:bg-gray-100 shadow-sm transition flex items-center justify-center"
                           title="Instagram"
                         >
                           <FaInstagram className="text-pink-600 text-2xl" />
                         </a>
                       )}
 
-                      {/* FACEBOOK */}
                       {corretor.facebook && (
                         <a
                           href={`https://facebook.com/${corretor.facebook}`}
                           target="_blank"
-                          className="p-3 rounded-full bg-white  hover:bg-gray-100 shadow-sm 
-        transition flex items-center justify-center"
+                          rel="noreferrer"
+                          className="p-3 rounded-full bg-white hover:bg-gray-100 shadow-sm transition flex items-center justify-center"
                           title="Facebook"
                         >
                           <FaFacebook className="text-blue-600 text-2xl" />
                         </a>
                       )}
 
-                      {/* WHATSAPP */}
                       {corretor.whatsapp && (
                         <a
                           href={wa}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="p-3 rounded-full bg-white  hover:bg-gray-100 shadow-sm 
-        transition flex items-center justify-center"
+                          className="p-3 rounded-full bg-white hover:bg-gray-100 shadow-sm transition flex items-center justify-center"
                           title="WhatsApp"
                         >
                           <FaWhatsapp className="text-green-600 text-2xl" />
@@ -353,13 +372,15 @@ export default function CorretorHome({ corretor, imoveis }: PageProps) {
                   </div>
                 </div>
 
-                {/* Coluna avatar */}
                 <div className="flex-1 flex justify-center md:justify-end">
                   {corretor.avatarUrl ? (
                     <img
-                      src={corretor.avatarUrl}
+                      src={resolveFotoUrl(corretor.avatarUrl)}
                       alt={corretor.name}
                       className="w-80 h-auto rounded-xl object-cover shadow-lg"
+                      onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).src = "/placeholder.png";
+                      }}
                     />
                   ) : (
                     <div className="w-80 h-96 bg-gray-300 rounded-xl" />
@@ -368,12 +389,10 @@ export default function CorretorHome({ corretor, imoveis }: PageProps) {
               </div>
             </section>
 
-            {/* NOTÍCIAS PRINCIPAIS */}
             <div className="max-w-6xl mx-auto px-4">
               <NoticiasPrincipais />
             </div>
 
-            {/* CARROSSEL DE NOTÍCIAS */}
             <div className="max-w-6xl mx-auto px-4 mt-12">
               <NoticiasCarrossel />
             </div>
