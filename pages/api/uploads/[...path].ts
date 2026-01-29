@@ -5,23 +5,28 @@ import { NextApiRequest, NextApiResponse } from "next";
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
   const { path: pathArray } = req.query;
 
-  // Caminho absoluto que vimos no seu terminal
-  const uploadDir = path.join(process.cwd(), "public", "uploads");
-  const fileName = Array.isArray(pathArray) ? pathArray.join("/") : pathArray;
-  const filePath = path.join(uploadDir, fileName || "");
+  // Pega o nome do arquivo (ex: "foto.jpg")
+  const fileName = Array.isArray(pathArray) ? pathArray.pop() : pathArray;
 
-  if (!fs.existsSync(filePath)) {
-    // Log para você ver no 'pm2 logs' onde ele está tentando buscar a foto
-    console.error(`Arquivo não encontrado no disco: ${filePath}`);
-    return res.status(404).json({ error: "Arquivo não encontrado" });
+  if (!fileName) return res.status(400).end();
+
+  // ATENÇÃO: Verifique se este caminho no Linux está 100% correto
+  const uploadDir = "/projects/corretor-de-imoveis/public/uploads";
+  const filePath = path.join(uploadDir, fileName);
+
+  if (fs.existsSync(filePath)) {
+    const fileBuffer = fs.readFileSync(filePath);
+
+    // Identifica o tipo para o navegador não baixar o arquivo em vez de exibir
+    const ext = path.extname(fileName).toLowerCase();
+    const contentType = ext === ".png" ? "image/png" : "image/jpeg";
+
+    res.setHeader("Content-Type", contentType);
+    res.setHeader("Cache-Control", "public, max-age=31536000"); // Cache para ficar rápido
+    return res.send(fileBuffer);
   }
 
-  const ext = path.extname(filePath).toLowerCase();
-  const contentType = ext === ".png" ? "image/png" : "image/jpeg";
-
-  res.setHeader("Content-Type", contentType);
-  res.setHeader("Cache-Control", "no-store, max-age=0"); // Desativa cache para teste
-
-  const imageBuffer = fs.readFileSync(filePath);
-  return res.send(imageBuffer);
+  // LOG PARA VOCÊ VER NO TERMINAL O QUE ESTÁ ERRADO
+  console.error("ERRO: Arquivo não existe em:", filePath);
+  return res.status(404).json({ error: "Imagem não encontrada" });
 }

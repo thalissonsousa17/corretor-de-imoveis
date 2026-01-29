@@ -35,20 +35,13 @@ type Feedback = {
   message: string;
 } | null;
 
-/**
- * CORREÇÃO AQUI:
- * Esta função agora garante que qualquer foto salva no disco seja acessada
- * via API dinâmica, evitando o cache/atraso da pasta public do Next.js.
- */
 function resolveFotoUrl(url: string) {
   if (!url) return "";
-  if (url.startsWith("blob:")) return url; // Previsualização local antes de salvar
-  if (url.startsWith("http")) return url; // URLs externas
+  if (url.startsWith("blob:")) return url;
+  if (url.startsWith("http")) return url;
 
-  // Extraímos apenas o nome do arquivo (ex: "foto123.jpg")
   const fileName = url.split("/").pop();
 
-  // Forçamos a rota da API dinâmica que criamos no arquivo [...path].ts
   return `/api/uploads/${fileName}`;
 }
 

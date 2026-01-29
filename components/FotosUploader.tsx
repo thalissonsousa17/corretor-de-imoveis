@@ -34,9 +34,7 @@ const FotosUploader: React.FC<FotosUploaderProps> = ({
   useEffect(() => {
     setFotos(
       existingPhotos.map((f) => {
-        // Limpa barras invertidas (comum em Windows) e garante o caminho limpo
-        const cleanUrl = f.url.replace(/\\/g, "/");
-        return { id: f.id, url: cleanUrl };
+        return { id: f.id, url: f.url };
       })
     );
   }, [existingPhotos]);
