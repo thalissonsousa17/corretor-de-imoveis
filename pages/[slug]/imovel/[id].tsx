@@ -163,6 +163,69 @@ export default function ImovelDetalhe({ imovel, corretor, imoveis }: Props) {
           )}
         </main>
 
+        {/* DETALHES (PREÇO / CONTATO) + DESCRIÇÃO */}
+        <main className="flex-1 w-full max-w-6xl mx-auto px-4 pb-12">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-10 items-start bg-white rounded-2xl shadow-md border border-gray-100 p-6">
+            {/* COLUNA ESQUERDA: PREÇO / CONTATO */}
+            <aside className="bg-[#1A2A4F] border border-gray-200 rounded-3xl shadow-sm p-6 w-full">
+              <p
+                className={`text-2xl font-bold mb-1
+          ${
+            imovel.status === "VENDIDO"
+              ? "text-white bg-red-600 px-3 py-1 rounded-lg inline-block"
+              : "text-[#D4AC3A]"
+          }`}
+              >
+                {imovel.status === "VENDIDO"
+                  ? "VENDIDO"
+                  : Number(imovel.preco).toLocaleString("pt-BR", {
+                      style: "currency",
+                      currency: "BRL",
+                    })}
+              </p>
+
+              <p className="text-[#D4AC3A] font-medium">
+                {imovel.cidade} - {imovel.estado}
+              </p>
+
+              {wa && (
+                <a
+                  href={wa}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-4 inline-block w-full text-center rounded-xl bg-[#D4AC3A] text-[#1A2A4F] hover:text-white py-2 font-medium transition"
+                >
+                  Tenho interesse
+                </a>
+              )}
+            </aside>
+
+            {/* COLUNA DIREITA: DESCRIÇÃO + ENDEREÇO */}
+            <div>
+              <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-6">
+                <h2 className="text-xl font-semibold text-gray-800 mb-4">Descrição</h2>
+
+                <div
+                  className="text-gray-700 leading-relaxed whitespace-pre-line"
+                  dangerouslySetInnerHTML={{
+                    __html: DOMPurify.sanitize(
+                      (imovel.descricao || "")
+                        .trim()
+                        .replace(/\n{2,}/g, "<br>")
+                        .replace(/\n/g, " ")
+                    ),
+                  }}
+                />
+              </div>
+
+              <h2 className="bg-white rounded-2xl shadow-md border border-gray-100 p-6 mt-4 text-gray-700">
+                <span className="font-bold">Endereço:</span> {imovel.rua}, {imovel.numero},{" "}
+                {imovel.bairro} — {imovel.cidade} — {imovel.estado} — CEP: {imovel.cep}
+              </h2>
+            </div>
+          </div>
+        </main>
+
         {/* MODAL */}
         {open && (
           <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center">
