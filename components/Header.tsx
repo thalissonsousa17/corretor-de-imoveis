@@ -1,8 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { Phone, Menu, X } from "lucide-react";
-import Image from "next/image";
 
 interface Corretor {
   name?: string;
@@ -16,9 +15,21 @@ interface HeaderCorretorProps {
   corretor: Corretor;
 }
 
+const resolveAssetUrl = (url?: string | null) => {
+  if (!url) return "";
+  const trimmed = url.trim();
+  if (!trimmed) return "";
+  if (trimmed.startsWith("http")) return trimmed;
+  if (trimmed.startsWith("/api/uploads/")) return trimmed;
+
+  const fileName = trimmed.split(/[\\/]/).pop();
+  return fileName ? `/api/uploads/${fileName}` : "";
+};
+
 export default function HeaderCorretor({ corretor }: HeaderCorretorProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [logoFailed, setLogoFailed] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -29,16 +40,12 @@ export default function HeaderCorretor({ corretor }: HeaderCorretorProps) {
 
   const slug = corretor?.slug;
 
-  const logoSrc =
-    corretor.logoUrl && corretor.logoUrl.trim() !== ""
-      ? corretor.logoUrl.startsWith("http")
-        ? corretor.logoUrl.replace("http://", "https://")
-        : `${
-            corretor.logoUrl.startsWith("/")
-              ? `${router.basePath}${corretor.logoUrl}`
-              : `${(process.env.NEXT_PUBLIC_BASE_URL || "https://localhost:3000").replace("http://", "https://")}/${corretor.logoUrl}`
-          }`
-      : null;
+  const logoSrc = useMemo(() => {
+    const resolved = resolveAssetUrl(corretor.logoUrl);
+    return resolved;
+  }, [corretor.logoUrl]);
+
+  const waHref = corretor.whatsapp ? `https://wa.me/${corretor.whatsapp.replace(/\D/g, "")}` : "";
 
   return (
     <>
@@ -51,12 +58,13 @@ export default function HeaderCorretor({ corretor }: HeaderCorretorProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex justify-between items-center">
           {/* LOGO */}
           <div className="flex items-center gap-3">
-            {logoSrc ? (
-              <div className="relative h-10 sm:h-10 w-auto aspect-auto">
+            {!logoFailed && logoSrc ? (
+              <div className="relative h-10 sm:h-10 w-auto">
                 <img
                   src={logoSrc}
                   alt={corretor.name || "Logo"}
                   className="object-contain h-full w-auto"
+                  onError={() => setLogoFailed(true)}
                 />
               </div>
             ) : (
@@ -68,8 +76,9 @@ export default function HeaderCorretor({ corretor }: HeaderCorretorProps) {
           <div className="hidden sm:flex items-center text-[#1A2A4F] font-bold">
             {corretor.whatsapp && (
               <a
-                href={`https://wa.me/${corretor.whatsapp.replace(/\D/g, "")}`}
+                href={waHref}
                 target="_blank"
+                rel="noopener noreferrer"
                 className="flex items-center gap-2 hover:text-[#D4AC3A]"
               >
                 <Phone size={18} /> {corretor.whatsapp}
@@ -157,6 +166,18 @@ export default function HeaderCorretor({ corretor }: HeaderCorretorProps) {
                   onClick={() => setMenuOpen(false)}
                 />
               </>
+            )}
+
+            {/* WHATSAPP no mobile */}
+            {corretor.whatsapp && (
+              <a
+                href={waHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 flex items-center gap-2 text-[#1A2A4F] font-semibold hover:text-[#D4AC3A] transition"
+              >
+                <Phone size={18} /> WhatsApp
+              </a>
             )}
           </div>
         </div>

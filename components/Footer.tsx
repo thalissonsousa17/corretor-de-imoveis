@@ -1,11 +1,4 @@
-import {
-  FaCheckCircle,
-  FaFacebook,
-  FaInstagram,
-  FaMapMarkerAlt,
-  FaShieldAlt,
-  FaWhatsapp,
-} from "react-icons/fa";
+import { FaCheckCircle, FaFacebook, FaInstagram, FaShieldAlt, FaWhatsapp } from "react-icons/fa";
 import QRCode from "react-qr-code";
 import { toWaLink } from "@/lib/phone";
 
@@ -16,6 +9,15 @@ type FooterProps = {
   instagram?: string | null;
   facebook?: string | null;
   logoUrl?: string | null;
+};
+
+const resolveAssetUrl = (url?: string | null) => {
+  if (!url) return "";
+  if (url.startsWith("http")) return url;
+  if (url.startsWith("/api/uploads/")) return url;
+
+  const fileName = url.split(/[\\/]/).pop();
+  return fileName ? `/api/uploads/${fileName}` : "";
 };
 
 export default function Footer({
@@ -29,6 +31,8 @@ export default function Footer({
   const ano = new Date().getFullYear();
   const wa = whatsapp ? toWaLink(whatsapp) : "";
 
+  const logoResolved = resolveAssetUrl(logoUrl);
+
   return (
     <footer className="bg-[#0D1B3A] text-white pt-16 mt-20 relative">
       {/* Linha dourada */}
@@ -39,16 +43,30 @@ export default function Footer({
         <div className="text-center">
           <h3 className="text-base font-semibold mb-3">WhatsApp direto</h3>
 
-          <div className="bg-white p-3 rounded-xl w-fit mx-auto shadow">
-            <QRCode value={wa || ""} size={80} />
-          </div>
-
-          <p className="mt-2 text-sm text-gray-300">Aponte a câmera</p>
+          {wa ? (
+            <>
+              <div className="bg-white p-3 rounded-xl w-fit mx-auto shadow">
+                <QRCode value={wa} size={80} />
+              </div>
+              <p className="mt-2 text-sm text-gray-300">Aponte a câmera</p>
+            </>
+          ) : (
+            <p className="mt-2 text-sm text-gray-300">WhatsApp não informado</p>
+          )}
         </div>
 
         {/* LOGO + INFO */}
         <div className="text-center flex flex-col items-center">
-          {logoUrl && <img src={logoUrl} alt={nome} className="h-16 w-auto object-contain mb-2" />}
+          {logoResolved ? (
+            <img
+              src={logoResolved}
+              alt={nome}
+              className="h-16 w-auto object-contain mb-2"
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).style.display = "none";
+              }}
+            />
+          ) : null}
 
           <p className="text-xl font-semibold text-[#D4AC3A]">{nome}</p>
           {creci && <p className="text-sm text-gray-300 mb-2">CRECI {creci}</p>}
@@ -62,6 +80,7 @@ export default function Footer({
               <a
                 href={`https://instagram.com/${instagram}`}
                 target="_blank"
+                rel="noreferrer"
                 className="hover:text-[#D4AC3A] transition"
               >
                 <FaInstagram />
@@ -71,13 +90,19 @@ export default function Footer({
               <a
                 href={`https://facebook.com/${facebook}`}
                 target="_blank"
+                rel="noreferrer"
                 className="hover:text-[#D4AC3A] transition"
               >
                 <FaFacebook />
               </a>
             )}
-            {whatsapp && (
-              <a href={wa || ""} target="_blank" className="hover:text-[#D4AC3A] transition">
+            {wa && (
+              <a
+                href={wa}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-[#D4AC3A] transition"
+              >
                 <FaWhatsapp />
               </a>
             )}
