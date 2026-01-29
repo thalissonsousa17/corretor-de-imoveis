@@ -13,7 +13,6 @@ export const config = {
   },
 };
 
-// Caminho absoluto da pasta na sua VPS
 const UPLOAD_DIR_ABSOLUTE = "/projects/corretor-de-imoveis/public/uploads";
 
 type UploadedFile = formidable.File & {
@@ -21,24 +20,17 @@ type UploadedFile = formidable.File & {
   path?: string;
 };
 
-/* --- O SEGREDO ESTÁ AQUI --- */
-/* Essa função transforma a URL estática (que precisa de restart)
-   em uma URL dinâmica (que carrega na hora via API) */
 function normalizeUrl(url: string | null | undefined): string {
   if (!url) return "";
 
-  // Se já for uma URL completa externa, mantém
   if (url.startsWith("http")) return url;
 
-  // Pega apenas o nome do arquivo (ex: 'foto-123.jpg')
   const fileName = path.basename(url);
 
-  // Retorna o caminho que passa pela API de leitura em tempo real
   return `/api/uploads/${fileName}`;
 }
 
 async function filtrarFotosValidas(fotos: Foto[]): Promise<Foto[]> {
-  // Opcional: Aqui você poderia verificar se o arquivo existe no disco antes de retornar
   return fotos;
 }
 
@@ -78,7 +70,7 @@ const handleDelete = async (req: AuthApiRequest, res: NextApiResponse) => {
   }
 };
 
-/* --- PUT (ATUALIZAR) --- */
+/* --- PUT --- */
 const handlePut = async (req: AuthApiRequest, res: NextApiResponse) => {
   const { id } = req.query;
   if (typeof id !== "string") return res.status(400).json({ message: "ID inválido." });
@@ -135,7 +127,6 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse) => {
       } catch {}
     }
 
-    // Garante que a pasta existe
     try {
       await fs.mkdir(UPLOAD_DIR_ABSOLUTE, { recursive: true });
     } catch {}
@@ -183,7 +174,6 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse) => {
 
         try {
           await fs.rename(tempPath, finalPath);
-          // Salva no banco como /uploads/ (padrão), mas a API vai entregar como /api/uploads/
           fotosData.push({
             url: `/uploads/${fileName}`,
             ordem: ordemBase + index + 1,
@@ -199,7 +189,6 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse) => {
       }
     }
 
-    /* ===== RESPOSTA ===== */
     await prisma.imovel.update({ where: { id }, data });
 
     const imovelAtualizado = await prisma.imovel.findUnique({
@@ -209,7 +198,6 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse) => {
 
     if (!imovelAtualizado) return res.status(404).json({ message: "Erro ao recuperar imóvel." });
 
-    // AQUI: Normalizamos as URLs para usar a API dinâmica
     const fotosFormatadas = imovelAtualizado.fotos.map((f) => ({
       ...f,
       url: normalizeUrl(f.url),
@@ -237,7 +225,6 @@ const handleGetById = async (req: AuthApiRequest, res: NextApiResponse) => {
 
   if (!imovel) return res.status(404).json({ message: "Imóvel não encontrado." });
 
-  // AQUI: Normalizamos as URLs para usar a API dinâmica
   const fotosFormatadas = imovel.fotos.map((f) => ({
     ...f,
     url: normalizeUrl(f.url),

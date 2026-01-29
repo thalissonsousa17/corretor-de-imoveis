@@ -1,11 +1,13 @@
 "use client";
 
+import React, { useId, useMemo } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Navigation } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
 
 type Foto = { url: string };
+
 type Imovel = {
   id: string;
   titulo: string;
@@ -14,15 +16,36 @@ type Imovel = {
   estado: string;
   status: string;
   finalidade: string;
-  fotos: Foto[];
+
+  // ✅ pode vir de um endpoint
+  fotos?: Foto[];
+
+  // ✅ pode vir de outro endpoint
+  fotoPrincipal?: string | null;
+};
+
+const resolveFotoUrl = (url?: string | null) => {
+  if (!url) return "/placeholder.png";
+  if (url.startsWith("http")) return url;
+  if (url.startsWith("/api/uploads/")) return url;
+
+  const fileName = url.split(/[\\/]/).pop();
+  return fileName ? `/api/uploads/${fileName}` : "/placeholder.png";
 };
 
 export default function CarrosselDestaques({ imoveis }: { imoveis: Imovel[] }) {
-  if (!imoveis || imoveis.length === 0) return null;
+  const uid = useId();
+  const prevId = `btn-prev-${uid}`;
+  const nextId = `btn-next-${uid}`;
 
-  const destaques = imoveis.filter((i) => i.status !== "VENDIDO");
+  const destaques = useMemo(() => {
+    if (!imoveis?.length) return [];
+    return imoveis.filter((i) => i.status !== "VENDIDO");
+  }, [imoveis]);
 
-  if (destaques.length === 0) return null;
+  if (!destaques.length) return null;
+
+  const canLoop = destaques.length > 1;
 
   return (
     <section className="bg-white py-10 sm:py-14 md:py-16">
@@ -33,37 +56,39 @@ export default function CarrosselDestaques({ imoveis }: { imoveis: Imovel[] }) {
       <div className="max-w-7xl mx-auto px-3 sm:px-4 relative">
         {/* BOTÃO ESQUERDO */}
         <button
-          id="btn-prev"
+          id={prevId}
           className="
             absolute left-1 top-1/2 -translate-y-1/2 z-20
-            p-2 sm:p-3 rounded-full 
+            p-2 sm:p-3 rounded-full
             bg-black/40 hover:bg-black/60
             text-white shadow-lg cursor-pointer
             hidden md:block
           "
+          aria-label="Anterior"
         >
           ‹
         </button>
 
         {/* BOTÃO DIREITO */}
         <button
-          id="btn-next"
+          id={nextId}
           className="
             absolute right-1 top-1/2 -translate-y-1/2 z-20
-            p-2 sm:p-3 rounded-full 
+            p-2 sm:p-3 rounded-full
             bg-black/40 hover:bg-black/60
             text-white shadow-lg cursor-pointer
             hidden md:block
           "
+          aria-label="Próximo"
         >
           ›
         </button>
 
         <Swiper
           modules={[Autoplay, Navigation]}
-          navigation={{ prevEl: "#btn-prev", nextEl: "#btn-next" }}
-          autoplay={{ delay: 2200, disableOnInteraction: false }}
-          loop={true}
+          navigation={{ prevEl: `#${prevId}`, nextEl: `#${nextId}` }}
+          autoplay={canLoop ? { delay: 2200, disableOnInteraction: false } : false}
+          loop={canLoop}
           grabCursor={true}
           spaceBetween={16}
           breakpoints={{
@@ -76,31 +101,30 @@ export default function CarrosselDestaques({ imoveis }: { imoveis: Imovel[] }) {
           className="pb-8"
         >
           {destaques.slice(0, 12).map((imovel) => {
-            const capa = imovel.fotos?.[0]?.url;
+            // ✅ pega de onde vier (fotos[0] OU fotoPrincipal)
+            const capaRaw = imovel.fotos?.[0]?.url ?? imovel.fotoPrincipal ?? null;
+            const capa = resolveFotoUrl(capaRaw);
 
             return (
               <SwiperSlide key={imovel.id} className="group">
                 <div
                   className="
-                    relative rounded-2xl overflow-hidden shadow-xl 
-                    transition-all duration-300 
+                    relative rounded-2xl overflow-hidden shadow-xl
+                    transition-all duration-300
                     group-hover:scale-[1.03]
                     bg-gray-200
                   "
                 >
-                  {capa && (
-                    <img
-                      src={capa}
-                      alt={imovel.titulo}
-                      className="
-                        w-full 
-                        h-48 sm:h-56 md:h-60 lg:h-64 
-                        object-cover
-                      "
-                    />
-                  )}
+                  <img
+                    src={capa}
+                    alt={imovel.titulo}
+                    className="w-full h-48 sm:h-56 md:h-60 lg:h-64 object-cover"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).src = "/placeholder.png";
+                    }}
+                  />
 
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 
                   <div className="absolute bottom-3 left-3 text-white">
                     <h3 className="font-bold text-base sm:text-lg drop-shadow-sm line-clamp-1">
@@ -119,16 +143,11 @@ export default function CarrosselDestaques({ imoveis }: { imoveis: Imovel[] }) {
                     </p>
                   </div>
 
-                  {/* BADGE */}
                   <span
                     className={`
-                      absolute top-2 left-2 px-2 sm:px-3 py-1 
+                      absolute top-2 left-2 px-2 sm:px-3 py-1
                       text-[10px] sm:text-xs font-bold rounded-full
-                      ${
-                        imovel.finalidade === "VENDA"
-                          ? "bg-green-600 text-white"
-                          : "bg-blue-600 text-white"
-                      }
+                      ${imovel.finalidade === "VENDA" ? "bg-green-600 text-white" : "bg-blue-600 text-white"}
                     `}
                   >
                     {imovel.finalidade === "VENDA" ? "À VENDA" : "ALUGUEL"}

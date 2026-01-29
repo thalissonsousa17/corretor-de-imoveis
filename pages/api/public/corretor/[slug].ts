@@ -1,6 +1,16 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
+import path from "path";
+
+function resolveFotoUrl(url?: string | null) {
+  if (!url) return "";
+  if (url.startsWith("http")) return url;
+  if (url.startsWith("/api/uploads/")) return url;
+
+  const fileName = path.basename(url);
+  return `/api/uploads/${fileName}`;
+}
 
 export default async function handle(req: NextApiRequest, res: NextApiResponse) {
   const { slug, filtro } = req.query;
@@ -41,7 +51,7 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
       }
     }
 
-    const imoveis = await prisma.imovel.findMany({
+    const imoveisRaw = await prisma.imovel.findMany({
       where,
       orderBy: { createdAt: "desc" },
       include: {
@@ -53,15 +63,33 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
       take: 50,
     });
 
+    const imoveis = imoveisRaw.map((imovel) => {
+      const capaRaw = imovel.fotos?.[0]?.url ?? null;
+
+      return {
+        ...imovel,
+
+        fotoPrincipal: resolveFotoUrl(capaRaw),
+
+        fotos:
+          imovel.fotos?.map((f) => ({
+            ...f,
+            url: resolveFotoUrl(f.url),
+          })) ?? [],
+      };
+    });
+
     res.json({
       corretor: {
         id: profile.userId,
         name: profile.user.name,
         email: profile.user.email,
         creci: profile.creci,
-        avatarUrl: profile.avatarUrl,
-        bannerUrl: profile.bannerUrl,
-        logoUrl: profile.logoUrl,
+
+        avatarUrl: resolveFotoUrl(profile.avatarUrl),
+        bannerUrl: resolveFotoUrl(profile.bannerUrl),
+        logoUrl: resolveFotoUrl(profile.logoUrl),
+
         biografia: profile.biografia,
         instagram: profile.instagram,
         facebook: profile.facebook,

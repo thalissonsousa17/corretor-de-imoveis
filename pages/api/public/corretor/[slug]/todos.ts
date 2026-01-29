@@ -3,7 +3,6 @@ import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 import path from "path";
 
-// Definindo o tipo esperado para evitar erro de linting
 type ImovelComFotos = Prisma.ImovelGetPayload<{
   include: { fotos: true };
 }>;
@@ -12,7 +11,6 @@ function normalizeUrl(url: string | null | undefined): string {
   if (!url) return "";
   if (url.startsWith("http")) return url;
   const fileName = path.basename(url);
-  // Força a rota da API porque o acesso direto via /uploads/ dá 404
   return `/api/uploads/${fileName}`;
 }
 
@@ -39,7 +37,6 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
     const imoveisRaw = (await prisma.imovel.findMany({
       where: {
         corretorId: profile.userId,
-        // Adicione aqui a lógica do filtro se necessário
       },
       include: {
         fotos: {
