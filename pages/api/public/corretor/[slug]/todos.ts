@@ -16,6 +16,16 @@ function normalizeUrl(url: string | null | undefined): string {
   return `/api/uploads/${fileName}`;
 }
 
+function absoluteUrl(req: NextApiRequest, p: string) {
+  if (!p) return "";
+  if (p.startsWith("http")) return p;
+
+  const proto = (req.headers["x-forwarded-proto"] as string) || "http";
+  const host = (req.headers["x-forwarded-host"] as string) || req.headers.host;
+
+  return `${proto}://${host}${p}`;
+}
+
 export default async function handle(req: NextApiRequest, res: NextApiResponse) {
   const { slug, filtro } = req.query;
 
@@ -26,7 +36,6 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
 
     if (!profile) return res.status(404).json({ message: "Corretor não encontrado." });
 
-    // Busca com a tipagem correta que o ESLint exige
     const imoveisRaw = (await prisma.imovel.findMany({
       where: {
         corretorId: profile.userId,
@@ -39,27 +48,24 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
         },
       },
       take: 24,
-    })) as ImovelComFotos[]; // Cast correto para o TS parar de reclamar
+    })) as ImovelComFotos[];
 
     const imoveis = imoveisRaw.map((imovel) => {
-      // Agora o TS sabe que 'fotos' existe!
       const primeiraFotoUrl = imovel.fotos.length > 0 ? imovel.fotos[0].url : null;
 
-      // LOG PARA DIAGNÓSTICO REAL
       console.log(`[LOG] Imóvel: ${imovel.titulo} | Foto Original: ${primeiraFotoUrl}`);
 
       return {
         ...imovel,
-        // A mágica que mata o 404
-        fotoPrincipal: normalizeUrl(primeiraFotoUrl),
+        fotoPrincipal: absoluteUrl(req, normalizeUrl(primeiraFotoUrl)),
         fotos: undefined,
       };
     });
 
     return res.status(200).json({
       corretor: {
-        name: profile.slug, // ou profile.user.name se tiver o include
-        avatarUrl: normalizeUrl(profile.avatarUrl),
+        name: profile.slug,
+        avatarUrl: absoluteUrl(req, normalizeUrl(profile.avatarUrl)),
       },
       imoveis,
     });
