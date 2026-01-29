@@ -26,14 +26,27 @@ type Props = {
   todos: Imovel[];
 };
 
+const resolveFotoUrl = (url?: string | null) => {
+  if (!url) return "/placeholder.png";
+  if (url.startsWith("http")) return url;
+  if (url.startsWith("/api/uploads/")) return url;
+
+  const fileName = url.split(/[\\/]/).pop();
+  return fileName ? `/api/uploads/${fileName}` : "/placeholder.png";
+};
+
 export const getServerSideProps: GetServerSideProps<Props> = async (ctx) => {
   const slug = ctx.params?.slug as string;
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || `http://${ctx.req.headers.host}`;
 
   const [topoRes, vendasRes, todosRes] = await Promise.all([
-    fetch(`${baseUrl}/api/public/corretor/${slug}`),
-    fetch(`${baseUrl}/api/public/corretor/${slug}/vendas`),
-    fetch(`${baseUrl}/api/public/corretor/${slug}/todos`),
+    fetch(`${baseUrl}/api/public/corretor/${slug}`, { headers: { "cache-control": "no-cache" } }),
+    fetch(`${baseUrl}/api/public/corretor/${slug}/vendas`, {
+      headers: { "cache-control": "no-cache" },
+    }),
+    fetch(`${baseUrl}/api/public/corretor/${slug}/todos`, {
+      headers: { "cache-control": "no-cache" },
+    }),
   ]);
 
   if (!topoRes.ok || !vendasRes.ok) return { notFound: true };
@@ -76,7 +89,7 @@ export default function Vendas({ slug, imoveis, corretor, todos }: Props) {
         ) : (
           <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
             {imoveis.map((i) => {
-              const capa = i.fotos?.[0]?.url;
+              const capa = resolveFotoUrl(i.fotos?.[0]?.url);
 
               const badgeText =
                 i.status === "VENDIDO"
@@ -107,6 +120,9 @@ export default function Vendas({ slug, imoveis, corretor, todos }: Props) {
                       src={capa}
                       alt={i.titulo}
                       className="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+                      onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).src = "/placeholder.png";
+                      }}
                     />
 
                     {/* BADGE */}
