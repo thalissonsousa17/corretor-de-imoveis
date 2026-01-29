@@ -10,6 +10,15 @@ import FiltroImoveis from "./FiltroImoveis";
 import Paginacao from "./Paginacao";
 import VisualizarFotosModal from "@/components/VisualizarFotosModal";
 
+// --- FUNÇÃO DE NORMALIZAÇÃO (A VACINA CONTRA O 404) ---
+const normalizeImageUrl = (url: string | null | undefined) => {
+  if (!url) return "/placeholder.png";
+  if (url.startsWith("http")) return url;
+  // Extrai apenas o nome do arquivo, limpando caminhos como C:\ ou /uploads/
+  const fileName = url.split(/[\\/]/).pop();
+  return `/api/uploads/${fileName}`;
+};
+
 type Finalidade = "VENDA" | "ALUGUEL";
 type Status = "DISPONIVEL" | "VENDIDO" | "ALUGADO" | "INATIVO";
 
@@ -18,12 +27,11 @@ interface ImovelListagemCorretorProps {
   onImovelChange: () => void;
 }
 
-const ImovelListagemCorretor: React.FC<ImovelListagemCorretorProps> = () => {
+const ImovelListagemCorretor: React.FC<ImovelListagemCorretorProps> = ({ onImovelChange }) => {
   const [imoveis, setImoveis] = useState<Imovel[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
-  const [statusFiltro, setStatusFiltro] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
@@ -34,6 +42,7 @@ const ImovelListagemCorretor: React.FC<ImovelListagemCorretorProps> = () => {
     setLoading(true);
     setError("");
     try {
+      // Esta rota DEVE retornar os imóveis do corretor logado
       const response = await axios.get("/api/users/me/imoveis");
       setImoveis(response.data);
     } catch {
@@ -47,9 +56,21 @@ const ImovelListagemCorretor: React.FC<ImovelListagemCorretorProps> = () => {
     fetchImoveis();
   }, []);
 
-  const imoveisFiltrados = imoveis
-    .filter((i) => i.titulo.toLowerCase().includes(search.toLowerCase()))
-    .filter((i) => (statusFiltro ? i.status === statusFiltro : true));
+  // Handler para abrir o modal de fotos com URLs corrigidas
+  const handleVerFotos = (imovel: Imovel) => {
+    if (imovel.fotos?.length) {
+      const fotosNormalizadas = imovel.fotos.map((f) => ({
+        id: f.id,
+        url: normalizeImageUrl(f.url), // Aplica a normalização aqui
+      }));
+      setFotosSelecionadas(fotosNormalizadas);
+      setFotosModalOpen(true);
+    }
+  };
+
+  const imoveisFiltrados = imoveis.filter((i) =>
+    i.titulo.toLowerCase().includes(search.toLowerCase())
+  );
 
   const totalPages = Math.ceil(imoveisFiltrados.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -57,13 +78,6 @@ const ImovelListagemCorretor: React.FC<ImovelListagemCorretorProps> = () => {
 
   const [imovelSelecionadoDelete, setImovelSelecionadoDelete] = useState<Imovel | null>(null);
   const [imovelSelecionado, setImovelSelecionado] = useState<Imovel | null>(null);
-
-  const handleVerFotos = (imovel: Imovel) => {
-    if (imovel.fotos?.length) {
-      setFotosSelecionadas(imovel.fotos.map((f) => ({ id: f.id, url: f.url })));
-      setFotosModalOpen(true);
-    }
-  };
 
   if (loading) return <p className="p-4 text-center text-gray-600">Carregando...</p>;
   if (error) return <p className="p-4 text-red-500">{error}</p>;
@@ -82,11 +96,10 @@ const ImovelListagemCorretor: React.FC<ImovelListagemCorretorProps> = () => {
                 <th className="px-4 py-2 text-left text-xs font-semibold text-gray-900 uppercase">
                   Título / Endereço
                 </th>
-                <th className="px-4 py-2 text-center text-xs font-semibold">Valor</th>
-                <th className="px-4 py-2 text-center text-xs font-semibold">Finalidade</th>
-                <th className="px-4 py-2 text-center text-xs font-semibold">Status</th>
-                <th className="px-4 py-2 text-center text-xs font-semibold">Ações</th>
-                <th className="px-4 py-2 text-center text-xs font-semibold">Fotos</th>
+                <th className="px-4 py-2 text-center text-xs font-semibold uppercase">Valor</th>
+                <th className="px-4 py-2 text-center text-xs font-semibold uppercase">Status</th>
+                <th className="px-4 py-2 text-center text-xs font-semibold uppercase">Ações</th>
+                <th className="px-4 py-2 text-center text-xs font-semibold uppercase">Fotos</th>
               </tr>
             </thead>
 
@@ -94,38 +107,19 @@ const ImovelListagemCorretor: React.FC<ImovelListagemCorretorProps> = () => {
               {currentImoveis.map((imovel) => (
                 <tr
                   key={imovel.id}
-                  className="grid md:table-row border md:border-none p-3 md:p-0 mb-4 md:mb-0 rounded-lg md:rounded-none bg-white shadow-md md:shadow-none"
+                  className="grid md:table-row border md:border-none p-3 mb-4 bg-white shadow-md md:shadow-none"
                 >
-                  {/* TÍTULO */}
                   <td className="px-4 py-2 text-sm text-gray-700">
-                    <div className="font-semibold text-base md:text-sm">{imovel.titulo}</div>
-                    <div className="text-xs text-gray-600">
-                      {imovel.rua}, {imovel.numero}
-                    </div>
-                    <div className="text-xs text-gray-600">
+                    <div className="font-semibold">{imovel.titulo}</div>
+                    <div className="text-xs text-gray-500">
                       {imovel.cidade} - {imovel.estado}
                     </div>
                   </td>
 
-                  {/* VALOR */}
-                  <td className="px-4 py-2 text-center font-bold text-gray-700 text-sm">
+                  <td className="px-4 py-2 text-center font-bold text-gray-700">
                     R$ {imovel.preco?.toLocaleString("pt-BR")}
                   </td>
 
-                  {/* FINALIDADE */}
-                  <td className="px-4 py-2 text-center">
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                        imovel.finalidade === "VENDA"
-                          ? "bg-blue-100 text-blue-700"
-                          : "bg-purple-100 text-purple-700"
-                      }`}
-                    >
-                      {imovel.finalidade === "VENDA" ? "Venda" : "Aluguel"}
-                    </span>
-                  </td>
-
-                  {/* STATUS */}
                   <td className="px-4 py-2 text-center">
                     <StatusDropdown
                       imovelId={imovel.id}
@@ -135,21 +129,27 @@ const ImovelListagemCorretor: React.FC<ImovelListagemCorretorProps> = () => {
                     />
                   </td>
 
-                  {/* AÇÕES */}
-                  <td className="px-4 py-2 flex md:table-cell justify-center gap-3 ">
+                  <td className="px-4 py-2 flex justify-center gap-3">
                     <button onClick={() => setImovelSelecionado(imovel)}>
-                      <Pencil className="w-5 h-5 text-orange-500 cursor-pointer" />
+                      <Pencil className="w-5 h-5 text-orange-500" />
                     </button>
-
                     <button onClick={() => setImovelSelecionadoDelete(imovel)}>
-                      <span className="text-red-600 text-xl cursor-pointer">🗑️</span>
+                      <span className="text-red-600 text-xl">🗑️</span>
                     </button>
                   </td>
 
-                  {/* FOTOS */}
                   <td className="px-4 py-2 text-center">
-                    <button onClick={() => handleVerFotos(imovel)}>
-                      <Camera className="w-5 h-5 text-gray-700 cursor-pointer" />
+                    <button
+                      onClick={() => handleVerFotos(imovel)}
+                      className="relative p-2 hover:bg-gray-200 rounded-full transition-colors"
+                    >
+                      <Camera className="w-5 h-5 text-gray-700" />
+                      {/* Badge indicando quantidade de fotos */}
+                      {imovel.fotos && imovel.fotos.length > 0 && (
+                        <span className="absolute top-0 right-0 bg-blue-600 text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center">
+                          {imovel.fotos.length}
+                        </span>
+                      )}
                     </button>
                   </td>
                 </tr>
@@ -159,7 +159,7 @@ const ImovelListagemCorretor: React.FC<ImovelListagemCorretorProps> = () => {
         </div>
       )}
 
-      {/* MODAIS */}
+      {/* MODAIS (Mantidos conforme original) */}
       {imovelSelecionado && (
         <EdtiImovel
           imovel={imovelSelecionado}
@@ -167,6 +167,7 @@ const ImovelListagemCorretor: React.FC<ImovelListagemCorretorProps> = () => {
           onSave={() => {
             fetchImoveis();
             setImovelSelecionado(null);
+            onImovelChange();
           }}
         />
       )}
@@ -175,7 +176,10 @@ const ImovelListagemCorretor: React.FC<ImovelListagemCorretorProps> = () => {
         <DeleteImovelModal
           imovel={imovelSelecionadoDelete}
           onClose={() => setImovelSelecionadoDelete(null)}
-          onDeleteSuccess={() => fetchImoveis()}
+          onDeleteSuccess={() => {
+            fetchImoveis();
+            onImovelChange();
+          }}
         />
       )}
 
