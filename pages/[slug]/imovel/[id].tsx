@@ -8,6 +8,7 @@ import { useRouter } from "next/router";
 import CarrosselDestaques from "@/components/CarrosselDestaques";
 import NoticiasCarrossel from "@/components/Noticias/NoticiasCarrossel";
 import dynamic from "next/dynamic";
+import CompartilharBotao from "@/components/CompartilharBotao";
 
 const Mapa = dynamic(() => import("@/components/Mapa"), { ssr: false });
 
@@ -101,6 +102,8 @@ export default function ImovelDetalhe({ imovel, corretor, imoveis }: Props) {
     return () => document.removeEventListener("keydown", onKey);
   }, [open, prev, next]);
 
+  const urlCompartilhamento = typeof window !== "undefined" ? window.location.href : "";
+
   return (
     <LayoutCorretor corretor={corretor}>
       <div className="bg-gray-100 overflow-x-hidden">
@@ -110,7 +113,7 @@ export default function ImovelDetalhe({ imovel, corretor, imoveis }: Props) {
           <div className="flex justify-start mb-4">
             <button
               onClick={() => router.back()}
-              className="px-4 py-2 bg-[#1A2A4F] text-white hover:text-[#D4AC3A] rounded-lg transition font-medium"
+              className="px-4 py-2 bg-[#1A2A4F] text-white hover:text-[#D4AC3A] rounded-lg transition font-medium cursor-pointer"
             >
               ← Voltar
             </button>
@@ -148,6 +151,7 @@ export default function ImovelDetalhe({ imovel, corretor, imoveis }: Props) {
               )}
             </aside>
           </div>
+          <br />
 
           <div className="max-w-6xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-8">
             <div className="text-gray-700 text-center lg:text-left">
@@ -248,6 +252,10 @@ export default function ImovelDetalhe({ imovel, corretor, imoveis }: Props) {
             {/* DESCRIÇÃO */}
             <div className="lg:pr-4">
               <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-6">
+                <div className="flex justify-end mb-4 ">
+                  {/* Botão compartilhar */}
+                  <CompartilharBotao titulo={imovel.titulo} url={urlCompartilhamento} />
+                </div>
                 <h2 className="text-xl font-semibold text-gray-800 mb-4">Descrição</h2>
 
                 <div
