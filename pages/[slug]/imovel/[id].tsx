@@ -103,17 +103,19 @@ export default function ImovelDetalhe({ imovel, corretor, imoveis }: Props) {
 
   return (
     <LayoutCorretor corretor={corretor}>
-      <div className="bg-gray-100">
+      <div className="bg-gray-100 overflow-x-hidden">
         {/* TOPO */}
         <section className="py-4 px-6 bg-white rounded-2xl shadow border border-gray-100 p-6">
-          <div className="flex items-center  justify-between mt-10 gap-4">
+          <br />
+          <div className="flex justify-start mb-4">
             <button
               onClick={() => router.back()}
-              className="px-4 py-2 bg-[#1A2A4F] text-white hover:text-[#D4AC3A] hover:bg-[#1A2A4F] rounded-lg transition font-medium"
+              className="px-4 py-2 bg-[#1A2A4F] text-white hover:text-[#D4AC3A] rounded-lg transition font-medium"
             >
               ← Voltar
             </button>
-            <br />
+          </div>
+          <div className="flex items-center  justify-end mt-10 gap-4">
             <aside className="bg-[#1A2A4F] border border-gray-200 rounded-3xl shadow-sm p-6 w-full lg:w-[360px] shrink-0 lg:sticky lg:top-6">
               <p
                 className={`text-2xl font-bold mb-1 ${

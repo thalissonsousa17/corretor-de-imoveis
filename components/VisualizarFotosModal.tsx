@@ -32,11 +32,9 @@ const VisualizarFotosModal: React.FC<VisualizarFotosModalProps> = ({ fotos, onCl
         src={resolveFotoUrl(fotos[0].url)}
         alt="Foto do imóvel"
         className="
-      max-w-[98vw]
-      max-h-[95vh]
+      w-screen
+      h-[100dvh]
       object-contain
-      rounded-xl
-      shadow-2xl
     "
       />
     </div>
