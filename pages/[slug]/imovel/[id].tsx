@@ -39,12 +39,12 @@ type Imovel = {
   status: "DISPONIVEL" | "VENDIDO" | "ALUGADO" | "INATIVO";
   fotos: Foto[];
 };
-
 type Props = {
   imovel: Imovel;
   corretor: CorretorProps;
   slug: string;
   imoveis: Imovel[];
+  urlCompartilhamento: string;
 };
 
 export const getServerSideProps: GetServerSideProps<Props> = async (ctx) => {
@@ -71,11 +71,12 @@ export const getServerSideProps: GetServerSideProps<Props> = async (ctx) => {
       corretor: dataCorretor.corretor,
       slug,
       imoveis: dataCorretor.imoveis,
+      urlCompartilhamento: `${baseUrl}/${slug}/imovel/${id}`,
     },
   };
 };
 
-export default function ImovelDetalhe({ imovel, corretor, imoveis }: Props) {
+export default function ImovelDetalhe({ imovel, corretor, imoveis, urlCompartilhamento }: Props) {
   const [open, setOpen] = useState(false);
   const [idx, setIdx] = useState(0);
   const router = useRouter();
@@ -103,12 +104,16 @@ export default function ImovelDetalhe({ imovel, corretor, imoveis }: Props) {
     return () => document.removeEventListener("keydown", onKey);
   }, [open, prev, next]);
 
-  const urlCompartilhamento =
-    typeof window !== "undefined"
-      ? window.location.href
-      : `${process.env.NEXT_PUBLIC_BASE_URL}/${corretor.slug}/imovel/${imovel.id}`;
-
-  const imagemOg = resolveFotoUrl(imovel.fotos?.[0]?.url);
+  const imagemOg = `${process.env.NEXT_PUBLIC_BASE_URL}/api/og/imovel?titulo=${encodeURIComponent(
+    imovel.titulo
+  )}&preco=${encodeURIComponent(
+    Number(imovel.preco).toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    })
+  )}&cidade=${encodeURIComponent(
+    `${imovel.cidade} - ${imovel.estado}`
+  )}&imagem=${encodeURIComponent(resolveFotoUrl(imovel.fotos?.[0]?.url))}`;
 
   return (
     <>
