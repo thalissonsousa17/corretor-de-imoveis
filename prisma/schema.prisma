@@ -47,6 +47,14 @@ model CorretorProfile {
   ultimos4               String?  
   assinaturaCriadaEm     DateTime?
   ultimoPagamentoEm      DateTime?
+
+// Campos para domínio personalizado
+
+  dominioPersonalizado      String?   @unique
+  dominioStatus             DominioStatus @default(PENDENTE)
+  dominioVerificadoEm       DateTime?
+  dominioUltimaVerificacao  DateTime?
+
   user                   User        @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
@@ -118,4 +126,13 @@ enum ImovelStatus {
   VENDIDO
   ALUGADO
   INATIVO
+}
+
+// Status do domínio personalizado para corretores
+
+enum DominioStatus {
+  PENDENTE
+  ATIVO
+  ERRO
+  BLOQUEADO
 }
