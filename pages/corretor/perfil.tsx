@@ -3,6 +3,8 @@ import axios, { AxiosError } from "axios";
 import CorretorLayout from "@/components/CorretorLayout";
 import { FiFacebook, FiInstagram, FiLinkedin, FiPhone } from "react-icons/fi";
 
+import { DominioCard } from "@/components/dominio";
+
 interface Perfil {
   name?: string;
   email?: string;
@@ -19,6 +21,7 @@ interface Perfil {
   whatsapp?: string;
   metaTitle?: string;
   metaDescription?: string;
+  plano?: "GRATUITO" | "EXPERT";
 }
 
 type SocialField = keyof Pick<Perfil, "instagram" | "facebook" | "linkedin" | "whatsapp">;
@@ -430,6 +433,14 @@ export default function PerfilPage() {
               </p>
             )}
           </section>
+
+          {/* DOMÍNIO PERSONALIZADO */}
+          {perfil.plano === "EXPERT" && (
+            <section className="rounded-2xl bg-white p-8 shadow-md border text-[#1A2A4F]">
+              <h3 className="text-lg font-semibold mb-4">🌍 Domínio Personalizado</h3>
+              <DominioCard />
+            </section>
+          )}
 
           {/*   ALTERAR SENHA */}
           <section className="rounded-2xl bg-white p-8 shadow-md border text-[#1A2A4F]">

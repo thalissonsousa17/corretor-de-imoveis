@@ -1,27 +1,22 @@
-import type { NextApiRequest, NextApiResponse } from "next";
+import type { NextApiResponse } from "next";
 import { prisma } from "@/lib/prisma";
-import { getUserFromApiRequest } from "@/lib/auth-api";
+import { AuthApiRequest, authorize } from "@/lib/authMiddleware";
 import { verificarCnameDominio } from "@/lib/dns";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default authorize(async function handler(req: AuthApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Método não permitido" });
   }
 
-  const user = await getUserFromApiRequest(req);
-  if (!user) {
-    return res.status(401).json({ error: "Não autenticado" });
-  }
-
   const profile = await prisma.corretorProfile.findUnique({
-    where: { userId: user.id },
+    where: { userId: req.user!.id },
     select: {
       dominioPersonalizado: true,
       plano: true,
     },
   });
 
-  // segurança extra (apesar de você já garantir que sempre existe)
+  // segurança extra (ok manter)
   if (!profile) {
     return res.status(404).json({ error: "Perfil não encontrado" });
   }
@@ -39,12 +34,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const resultado = await verificarCnameDominio(profile.dominioPersonalizado);
-
   const agora = new Date();
 
   if (!resultado.ok) {
     await prisma.corretorProfile.update({
-      where: { userId: user.id },
+      where: { userId: req.user!.id },
       data: {
         dominioStatus: "PENDENTE",
         dominioUltimaVerificacao: agora,
@@ -62,7 +56,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   await prisma.corretorProfile.update({
-    where: { userId: user.id },
+    where: { userId: req.user!.id },
     data: {
       dominioStatus: "ATIVO",
       dominioVerificadoEm: agora,
@@ -76,4 +70,4 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     dominio: profile.dominioPersonalizado,
     mensagem: "Domínio verificado e ativado com sucesso",
   });
-}
+});
