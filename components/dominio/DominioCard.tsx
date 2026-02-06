@@ -15,10 +15,19 @@ export default function DominioCard() {
   const [erro, setErro] = useState<string | null>(null);
 
   async function carregar() {
-    const res = await axios.get<DominioData>("/api/profile/dominio");
-    setData(res.data);
+    try {
+      const res = await axios.get<DominioData>("/api/profile/dominio", {
+        withCredentials: true,
+      });
+      setData(res.data);
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err) && err.response?.status === 401) {
+        setErro("Sessão expirada. Por favor, faça login novamente.");
+      } else {
+        console.error("Erro ao carregar:", err);
+      }
+    }
   }
-
   useEffect(() => {
     carregar();
   }, []);
@@ -29,16 +38,19 @@ export default function DominioCard() {
     setMensagem(null);
 
     try {
-      const res = await axios.post<{ mensagem: string }>("/api/dominio/salvar", { dominio });
+      const res = await axios.post<{ mensagem: string }>(
+        "/api/profile/dominio", // URL ajustada para bater com o arquivo corrigido
+        { dominio },
+        { withCredentials: true }
+      );
 
       setMensagem(res.data.mensagem);
       await carregar();
     } catch (error: unknown) {
-      setErro(
-        axios.isAxiosError(error)
-          ? ((error.response?.data as { error?: string })?.error ?? "Erro ao salvar domínio")
-          : "Erro ao salvar domínio"
-      );
+      const message = axios.isAxiosError(error)
+        ? (error.response?.data as { error?: string })?.error || "Erro ao salvar"
+        : "Erro ao salvar";
+      setErro(message);
     } finally {
       setLoading(false);
     }
@@ -50,16 +62,35 @@ export default function DominioCard() {
     setMensagem(null);
 
     try {
-      const res = await axios.post<{ mensagem?: string }>("/api/dominio/verificar");
-
-      setMensagem(res.data.mensagem ?? "Verificação realizada");
-      await carregar();
-    } catch (error: unknown) {
-      setErro(
-        axios.isAxiosError(error)
-          ? ((error.response?.data as { error?: string })?.error ?? "Erro ao verificar domínio")
-          : "Erro ao verificar domínio"
+      const res = await axios.post<{ mensagem?: string; ok?: boolean }>(
+        "/api/dominio/verificar",
+        {},
+        { withCredentials: true }
       );
+
+      // Se a API retornar que não está ok, mas sem dar erro de status (ex: DNS ainda não propagou)
+      if (res.data.ok === false) {
+        setErro("DNS ainda não propagado. Tente novamente em alguns minutos.");
+      } else {
+        setMensagem(res.data.mensagem ?? "Verificação realizada");
+        await carregar();
+      }
+    } catch (err: unknown) {
+      // Tipagem correta para satisfazer o ESLint
+      if (axios.isAxiosError(err)) {
+        const status = err.response?.status;
+        const data = err.response?.data as { error?: string };
+
+        if (status === 401) {
+          setErro("Sessão inválida. Por favor, faça login novamente.");
+        } else if (status === 403) {
+          setErro(data.error || "Seu plano não permite domínios personalizados.");
+        } else {
+          setErro(data.error || "Erro ao verificar domínio.");
+        }
+      } else {
+        setErro("Ocorreu um erro inesperado.");
+      }
     } finally {
       setLoading(false);
     }
@@ -67,11 +98,11 @@ export default function DominioCard() {
 
   return (
     <div className="bg-white rounded-2xl p-6 shadow space-y-4">
-      <h2 className="text-lg font-semibold">Domínio Personalizado</h2>
+      <h2 className="text-lg font-semibold text-[#1A2A4F]">Domínio Personalizado</h2>
 
       {data?.dominioPersonalizado && (
         <div className="flex items-center gap-3">
-          <span className="font-medium">{data.dominioPersonalizado}</span>
+          <span className="font-medium text-[#1A2A4F]">{data.dominioPersonalizado}</span>
           <DominioStatus status={data.dominioStatus} />
         </div>
       )}
@@ -83,8 +114,8 @@ export default function DominioCard() {
         onVerificar={verificarDominio}
       />
 
-      {mensagem && <p className="text-green-600 text-sm">{mensagem}</p>}
-      {erro && <p className="text-red-600 text-sm">{erro}</p>}
+      {mensagem && <p className="text-green-600 text-sm font-medium">{mensagem}</p>}
+      {erro && <p className="text-red-600 text-sm font-medium">{erro}</p>}
     </div>
   );
 }

@@ -1,6 +1,7 @@
-import { resolveCname } from "dns/promises";
+import { resolveCname, resolve4 } from "dns/promises";
 
 const DOMINIO_CANONICO = "imobhub.automatech.app.br";
+const VERCEL_IP = "76.76.21.21";
 
 export type DnsCheckResult = {
   ok: boolean;
@@ -15,8 +16,18 @@ function isNodeDnsError(error: unknown): error is NodeJS.ErrnoException {
 
 export async function verificarCnameDominio(dominio: string): Promise<DnsCheckResult> {
   try {
-    const cnames = await resolveCname(dominio);
+    try {
+      const ips = await resolve4(dominio);
+      if (ips.includes(VERCEL_IP)) {
+        return {
+          ok: true,
+          found: VERCEL_IP,
+          expected: VERCEL_IP,
+        };
+      }
+    } catch (e) {}
 
+    const cnames = await resolveCname(dominio);
     const encontrado = cnames.find((cname) => cname.replace(/\.$/, "") === DOMINIO_CANONICO);
 
     if (!encontrado) {
@@ -24,7 +35,7 @@ export async function verificarCnameDominio(dominio: string): Promise<DnsCheckRe
         ok: false,
         found: cnames.join(", "),
         expected: DOMINIO_CANONICO,
-        error: "CNAME não aponta para o domínio esperado",
+        error: "O domínio não aponta para o IP ou CNAME esperado",
       };
     }
 
@@ -37,8 +48,8 @@ export async function verificarCnameDominio(dominio: string): Promise<DnsCheckRe
     if (isNodeDnsError(error)) {
       return {
         ok: false,
-        expected: DOMINIO_CANONICO,
-        error: error.code ?? error.message,
+        expected: `${VERCEL_IP} ou ${DOMINIO_CANONICO}`,
+        error: error.code === "ENODATA" ? "Nenhum registro DNS encontrado" : error.code,
       };
     }
 

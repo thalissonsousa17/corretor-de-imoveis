@@ -3,7 +3,7 @@ import axios, { AxiosError } from "axios";
 import CorretorLayout from "@/components/CorretorLayout";
 import { FiFacebook, FiInstagram, FiLinkedin, FiPhone } from "react-icons/fi";
 
-import { DominioCard } from "@/components/dominio";
+import DominioCard from "@/components/dominio/DominioCard";
 
 interface Perfil {
   name?: string;
@@ -435,7 +435,7 @@ export default function PerfilPage() {
           </section>
 
           {/* DOMÍNIO PERSONALIZADO */}
-          {perfil.plano === "EXPERT" && (
+          {(perfil.plano === "EXPERT" || perfil.plano === "GRATUITO") && (
             <section className="rounded-2xl bg-white p-8 shadow-md border text-[#1A2A4F]">
               <h3 className="text-lg font-semibold mb-4">🌍 Domínio Personalizado</h3>
               <DominioCard />

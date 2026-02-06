@@ -24,7 +24,7 @@ export default function DominioForm({ dominioAtual, loading, onSalvar, onVerific
         <button
           disabled={loading}
           onClick={() => onSalvar(dominio)}
-          className="px-4 py-2 rounded-lg bg-black text-white disabled:opacity-50"
+          className="px-4 py-2 rounded-lg bg-black text-white disabled:opacity-50 cursor-pointer"
         >
           Salvar
         </button>
