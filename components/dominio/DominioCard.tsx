@@ -16,6 +16,7 @@ export default function DominioCard() {
 
   async function carregar() {
     try {
+      setErro(null);
       const res = await axios.get<DominioData>("/api/profile/dominio", {
         withCredentials: true,
       });
@@ -24,13 +25,11 @@ export default function DominioCard() {
       if (axios.isAxiosError(err) && err.response?.status === 401) {
         setErro("Sessão expirada. Por favor, faça login novamente.");
       } else {
-        console.error("Erro ao carregar:", err);
+        setErro("Erro ao carregar informações do domínio.");
+        console.error(err);
       }
     }
   }
-  useEffect(() => {
-    carregar();
-  }, []);
 
   async function salvarDominio(dominio: string) {
     setLoading(true);
