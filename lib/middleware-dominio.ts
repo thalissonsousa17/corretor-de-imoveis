@@ -7,7 +7,9 @@ export async function middlewareDominio(req: NextRequest) {
   if (
     pathname.startsWith("/dashboard") ||
     pathname.startsWith("/api") ||
-    pathname.startsWith("/_next")
+    pathname.startsWith("/_next") ||
+    pathname.includes(".") ||
+    pathname === "/favicon.ico"
   ) {
     return null;
   }
@@ -18,7 +20,7 @@ export async function middlewareDominio(req: NextRequest) {
   const dominio = host.replace(/^www\./, "");
   const DOMINIO_PADRAO = "imobhub.automatech.app.br";
 
-  if (dominio.includes(DOMINIO_PADRAO)) {
+  if (dominio === DOMINIO_PADRAO || dominio.endsWith(".localhost:3000")) {
     return null;
   }
 
@@ -37,7 +39,8 @@ export async function middlewareDominio(req: NextRequest) {
   }
 
   const url = req.nextUrl.clone();
-  url.pathname = `/corretor/${corretor.slug}`;
+
+  url.pathname = `/corretor/${corretor.slug}${pathname === "/" ? "" : pathname}`;
 
   return NextResponse.rewrite(url);
 }
