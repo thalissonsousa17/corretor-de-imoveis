@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { normalizarDominio } from "@/lib/dominio";
 
 export async function middlewareDominio(req: NextRequest) {
   const pathname = req.nextUrl.pathname;
@@ -17,30 +18,33 @@ export async function middlewareDominio(req: NextRequest) {
   const host = req.headers.get("host");
   if (!host) return null;
 
-  const dominio = host.replace(/^www\./, "");
-  const DOMINIO_PADRAO = "imobhub.automatech.app.br";
+  const dominio = normalizarDominio(host);
 
-  if (dominio === DOMINIO_PADRAO || dominio.endsWith(".localhost:3000")) {
+  const DOMINIO_PADRAO = process.env.DOMINIO_PADRAO!;
+  if (dominio === DOMINIO_PADRAO || dominio.endsWith(".localhost")) {
     return null;
   }
 
-  const corretor = await prisma.corretorProfile.findFirst({
+  const dominioAtivo = await prisma.dominio.findFirst({
     where: {
-      dominioPersonalizado: dominio,
-      dominioStatus: "ATIVO",
+      dominio,
+      status: "ATIVO",
     },
     select: {
-      slug: true,
+      pagina: {
+        select: {
+          slug: true,
+        },
+      },
     },
   });
 
-  if (!corretor) {
+  if (!dominioAtivo?.pagina) {
     return NextResponse.rewrite(new URL("/dominio-nao-encontrado", req.url));
   }
 
   const url = req.nextUrl.clone();
-
-  url.pathname = `/corretor/${corretor.slug}${pathname === "/" ? "" : pathname}`;
+  url.pathname = `/corretor/${dominioAtivo.pagina.slug}${pathname === "/" ? "" : pathname}`;
 
   return NextResponse.rewrite(url);
 }

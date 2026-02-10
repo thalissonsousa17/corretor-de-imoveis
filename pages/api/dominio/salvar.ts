@@ -30,7 +30,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const dominioNormalizado = normalizarDominio(dominio);
 
   const dominioRegex = /^(?!-)(?:[a-zA-Z0-9-]{1,63}\.)+[a-zA-Z]{2,}$/;
-
   if (!dominioRegex.test(dominioNormalizado)) {
     return res.status(400).json({ error: "Domínio inválido" });
   }
@@ -41,9 +40,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ error: "Este domínio não pode ser utilizado" });
   }
 
-  const dominioEmUso = await prisma.corretorProfile.findFirst({
+  // 🔹 Verifica se domínio já está em uso
+  const dominioEmUso = await prisma.dominio.findFirst({
     where: {
-      dominioPersonalizado: dominioNormalizado,
+      dominio: dominioNormalizado,
       NOT: { userId: user.id },
     },
   });
@@ -52,15 +52,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(409).json({ error: "Domínio já está em uso por outro corretor" });
   }
 
-  await prisma.corretorProfile.update({
+  // 🔹 Verifica se o usuário já tem domínio
+  const dominioExistente = await prisma.dominio.findFirst({
     where: { userId: user.id },
-    data: {
-      dominioPersonalizado: dominioNormalizado,
-      dominioStatus: "PENDENTE",
-      dominioVerificadoEm: null,
-      dominioUltimaVerificacao: null,
-    },
   });
+
+  if (dominioExistente) {
+    await prisma.dominio.update({
+      where: { id: dominioExistente.id },
+      data: {
+        dominio: dominioNormalizado,
+        status: "PENDENTE",
+        verificadoEm: null,
+        ultimaVerificacao: null,
+      },
+    });
+  } else {
+    await prisma.dominio.create({
+      data: {
+        dominio: dominioNormalizado,
+        status: "PENDENTE",
+        userId: user.id,
+      },
+    });
+  }
 
   return res.status(200).json({
     ok: true,

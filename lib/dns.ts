@@ -21,11 +21,11 @@ export async function verificarCnameDominio(dominio: string): Promise<DnsCheckRe
       if (ips.includes(VERCEL_IP)) {
         return {
           ok: true,
-          found: VERCEL_IP,
-          expected: VERCEL_IP,
+          found: ips.join(", "),
+          expected: `${VERCEL_IP} ou ${DOMINIO_CANONICO}`,
         };
       }
-    } catch (e) {}
+    } catch {}
 
     const cnames = await resolveCname(dominio);
     const encontrado = cnames.find((cname) => cname.replace(/\.$/, "") === DOMINIO_CANONICO);
@@ -34,7 +34,7 @@ export async function verificarCnameDominio(dominio: string): Promise<DnsCheckRe
       return {
         ok: false,
         found: cnames.join(", "),
-        expected: DOMINIO_CANONICO,
+        expected: `${VERCEL_IP} ou ${DOMINIO_CANONICO}`,
         error: "O domínio não aponta para o IP ou CNAME esperado",
       };
     }
@@ -42,7 +42,7 @@ export async function verificarCnameDominio(dominio: string): Promise<DnsCheckRe
     return {
       ok: true,
       found: encontrado,
-      expected: DOMINIO_CANONICO,
+      expected: `${VERCEL_IP} ou ${DOMINIO_CANONICO}`,
     };
   } catch (error: unknown) {
     if (isNodeDnsError(error)) {
@@ -55,7 +55,7 @@ export async function verificarCnameDominio(dominio: string): Promise<DnsCheckRe
 
     return {
       ok: false,
-      expected: DOMINIO_CANONICO,
+      expected: `${VERCEL_IP} ou ${DOMINIO_CANONICO}`,
       error: "Erro desconhecido ao verificar DNS",
     };
   }

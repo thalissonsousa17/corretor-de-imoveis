@@ -19,6 +19,9 @@ model User {
   profile          CorretorProfile?
   imoveis          Imovel[]
   sessions         Session[]
+
+// Relacionamento com Domínio
+  dominios  Dominio[]  
 }
 
 model CorretorProfile {
@@ -47,16 +50,39 @@ model CorretorProfile {
   ultimos4               String?  
   assinaturaCriadaEm     DateTime?
   ultimoPagamentoEm      DateTime?
-
-// Campos para domínio personalizado
-
-  dominioPersonalizado      String?   @unique
-  dominioStatus             DominioStatus @default(PENDENTE)
-  dominioVerificadoEm       DateTime?
-  dominioUltimaVerificacao  DateTime?
-
   user                   User        @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
+
+model Dominio {
+  id        String        @id @default(cuid())
+  dominio   String        @unique
+  status    DominioStatus @default(PENDENTE)
+
+  userId    String
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  paginaId  String?       @unique
+  pagina    Pagina?       @relation(fields: [paginaId], references: [id])
+
+  verificadoEm      DateTime?
+  ultimaVerificacao DateTime?
+
+  createdAt DateTime @default(now())
+
+  
+}
+
+
+model Pagina {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+
+  dominio   Dominio?
+
+  createdAt DateTime @default(now())
+}
+
+
 
 model Imovel {
   id          String       @id @default(uuid())

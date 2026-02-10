@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface Props {
   dominioAtual: string | null;
@@ -9,6 +9,17 @@ interface Props {
 
 export default function DominioForm({ dominioAtual, loading, onSalvar, onVerificar }: Props) {
   const [dominio, setDominio] = useState("");
+
+  // 🔹 sincroniza input com backend
+  useEffect(() => {
+    if (dominioAtual) {
+      setDominio(dominioAtual);
+    }
+  }, [dominioAtual]);
+
+  const dominioLimpo = dominio.trim();
+
+  const podeSalvar = dominioLimpo.length > 0 && dominioLimpo !== dominioAtual;
 
   return (
     <div className="space-y-3">
@@ -22,9 +33,9 @@ export default function DominioForm({ dominioAtual, loading, onSalvar, onVerific
         />
 
         <button
-          disabled={loading}
-          onClick={() => onSalvar(dominio)}
-          className="px-4 py-2 rounded-lg bg-black text-white disabled:opacity-50 cursor-pointer"
+          disabled={loading || !podeSalvar}
+          onClick={() => onSalvar(dominioLimpo)}
+          className="px-4 py-2 rounded-lg bg-black text-white disabled:opacity-50"
         >
           Salvar
         </button>
