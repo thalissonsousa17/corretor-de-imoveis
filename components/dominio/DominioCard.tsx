@@ -29,7 +29,7 @@ export default function DominioCard() {
   const handleSalvar = async () => {
     setLoading(true);
     try {
-      await axios.post("/api/corretor/dominio", { dominio });
+      await axios.post("/api/profile/dominio", { dominio });
       alert("Domínio salvo com sucesso!");
       setStatus("PENDENTE");
     } catch (error) {
