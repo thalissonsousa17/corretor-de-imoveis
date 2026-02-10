@@ -7,16 +7,12 @@ export async function getSession(req: NextApiRequest) {
     req.cookies["__Secure-next-auth.session-token"] ||
     req.cookies["session"];
 
-  if (!sessionToken) {
-    return null;
-  }
+  if (!sessionToken) return null;
 
   try {
     const session = await prisma.session.findUnique({
       where: { id: sessionToken },
-      include: {
-        user: true,
-      },
+      include: { user: true },
     });
 
     if (!session || session.expiresAt < new Date()) {
@@ -25,7 +21,7 @@ export async function getSession(req: NextApiRequest) {
 
     return session;
   } catch (error) {
-    console.error("Erro ao validar sessão:", error);
+    console.error("Erro na validação da sessão:", error);
     return null;
   }
 }
