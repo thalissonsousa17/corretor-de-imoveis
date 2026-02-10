@@ -7,7 +7,7 @@ export async function getUserFromApiRequest(req: NextApiRequest) {
   if (!cookies) return null;
 
   const parsed = parse(cookies);
-  const sessionToken = parsed["session"];
+  const sessionToken = parsed["sessionId"]; // ← MUDANÇA AQUI!
 
   if (!sessionToken) return null;
 
