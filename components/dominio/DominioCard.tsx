@@ -11,10 +11,14 @@ export default function DominioCard() {
   const [loading, setLoading] = useState<boolean>(false);
   const [status, setStatus] = useState<string | null>(null);
 
+  const api = axios.create({
+    withCredentials: true,
+  });
+
   useEffect(() => {
     const fetchDominio = async () => {
       try {
-        const res = await axios.get<DominioData>("/api/corretor/dominio");
+        const res = await api.get<DominioData>("/api/profile/dominio");
         if (res.data) {
           setDominio(res.data.dominio);
           setStatus(res.data.status);
@@ -27,14 +31,21 @@ export default function DominioCard() {
   }, []);
 
   const handleSalvar = async () => {
+    if (!dominio) return alert("Por favor, digite um domínio.");
+
     setLoading(true);
     try {
-      await axios.post("/api/profile/dominio", { dominio });
-      alert("Domínio salvo com sucesso!");
+      const res = await api.post("/api/profile/dominio", { dominio });
+      alert(res.data.mensagem || "Domínio salvo com sucesso!");
       setStatus("PENDENTE");
     } catch (error) {
       const err = error as AxiosError<{ error?: string }>;
-      alert(err.response?.data?.error || "Erro ao salvar domínio");
+
+      if (err.response?.status === 401) {
+        alert("Sessão expirada ou não autenticada. Tente fazer login novamente.");
+      } else {
+        alert(err.response?.data?.error || "Erro ao salvar domínio");
+      }
     } finally {
       setLoading(false);
     }
@@ -49,13 +60,11 @@ export default function DominioCard() {
           value={dominio}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDominio(e.target.value)}
           placeholder="exemplo.com.br"
-          className="border rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none transition"
+          className="border rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none transition text-black"
         />
         {status && (
           <span
-            className={`text-xs font-bold ${
-              status === "VERIFICADO" ? "text-green-600" : "text-yellow-600"
-            }`}
+            className={`text-xs font-bold ${status === "VERIFICADO" ? "text-green-600" : "text-yellow-600"}`}
           >
             Status: {status}
           </span>

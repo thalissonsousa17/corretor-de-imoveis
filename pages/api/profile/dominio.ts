@@ -16,11 +16,16 @@ function normalizarDominio(dominio: string): string {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // --- CONFIGURAÇÃO DE CORS ---
+  // --- CONFIGURAÇÃO DE CORS DINÂMICA ---
   const origin = req.headers.origin;
-  const allowedOrigins = ["https://imobhub.automatech.app.br", "https://seu-projeto.vercel.app"];
 
-  if (origin && allowedOrigins.includes(origin)) {
+  // Adicione aqui TODAS as URLs que podem acessar essa API
+  const allowedOrigins = [
+    "https://imobhub.automatech.app.br",
+    "https://corretor-de-imoveis.vercel.app", // Troque pelo seu domínio real da Vercel
+  ];
+
+  if (origin && (allowedOrigins.includes(origin) || origin.endsWith(".vercel.app"))) {
     res.setHeader("Access-Control-Allow-Origin", origin);
   }
 
@@ -28,19 +33,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
+  // Responde imediatamente a requisições de teste (Pre-flight)
   if (req.method === "OPTIONS") {
     return res.status(200).end();
   }
-  // ----------------------------
+  // ------------------------------------
 
-  const user = await getUserFromApiRequest(req);
-  if (!user) {
-    return res.status(401).json({ error: "Não autenticado" });
-  }
+  try {
+    const user = await getUserFromApiRequest(req);
 
-  // 🔹 GET — carregar domínio do usuário
-  if (req.method === "GET") {
-    try {
+    // Se o erro 401 continuar, verifique se o NEXTAUTH_SECRET é o mesmo no servidor e na Vercel
+    if (!user) {
+      return res
+        .status(401)
+        .json({ error: "Sessão não encontrada. Por favor, faça login novamente." });
+    }
+
+    // 🔹 GET — carregar domínio do usuário
+    if (req.method === "GET") {
       const dominio = await prisma.dominio.findFirst({
         where: { userId: user.id },
         select: {
@@ -49,23 +59,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
       });
       return res.status(200).json(dominio);
-    } catch (error) {
-      console.error("Erro GET Dominio:", error);
-      return res.status(500).json({ error: "Erro ao buscar dados" });
-    }
-  }
-
-  // 🔹 POST — salvar / atualizar domínio
-  if (req.method === "POST") {
-    const { dominio } = req.body as DominioRequestBody;
-
-    if (!dominio || typeof dominio !== "string") {
-      return res.status(400).json({ error: "Domínio inválido" });
     }
 
-    const dominioNormalizado = normalizarDominio(dominio);
+    // 🔹 POST — salvar / atualizar domínio
+    if (req.method === "POST") {
+      const { dominio } = req.body as DominioRequestBody;
 
-    try {
+      if (!dominio || typeof dominio !== "string") {
+        return res.status(400).json({ error: "O campo domínio é obrigatório." });
+      }
+
+      const dominioNormalizado = normalizarDominio(dominio);
+
       // 🔒 Verificar se o domínio já está em uso por outro usuário
       const dominioEmUso = await prisma.dominio.findFirst({
         where: {
@@ -75,10 +80,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
 
       if (dominioEmUso) {
-        return res.status(409).json({ error: "Domínio já está em uso" });
+        return res
+          .status(409)
+          .json({ error: "Este domínio já está sendo utilizado por outro corretor." });
       }
 
-      // 🔍 Verificar se o usuário já possui registro de domínio
+      // 🔍 Upsert manual para garantir integridade
       const dominioExistente = await prisma.dominio.findFirst({
         where: { userId: user.id },
       });
@@ -105,11 +112,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(200).json({
         mensagem: "Domínio salvo com sucesso. Aguardando verificação DNS.",
       });
-    } catch (error) {
-      console.error("Erro POST Dominio:", error);
-      return res.status(500).json({ error: "Erro interno ao salvar domínio" });
     }
-  }
 
-  return res.status(405).json({ error: "Método não permitido" });
+    return res.status(405).json({ error: "Método não permitido" });
+  } catch (error) {
+    console.error("Erro na API de Domínio:", error);
+    return res.status(500).json({ error: "Erro interno no servidor." });
+  }
 }
