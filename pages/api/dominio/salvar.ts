@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { prisma } from "@/lib/prisma";
 import { getUserFromApiRequest } from "@/lib/auth-api";
+import { verificarCnameDominio } from "@/lib/dns"; // ← ADICIONAR
 
 function normalizarDominio(dominio: string) {
   return dominio
@@ -52,7 +53,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(409).json({ error: "Domínio já está em uso por outro corretor" });
   }
 
-  // 🔹 Verifica se o usuário já tem domínio
+  const dnsCheck = await verificarCnameDominio(dominioNormalizado);
+  const agora = new Date();
+  const novoStatus = dnsCheck.ok ? "ATIVO" : "PENDENTE";
+
   const dominioExistente = await prisma.dominio.findFirst({
     where: { userId: user.id },
   });
@@ -62,25 +66,41 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       where: { id: dominioExistente.id },
       data: {
         dominio: dominioNormalizado,
-        status: "PENDENTE",
-        verificadoEm: null,
-        ultimaVerificacao: null,
+        status: novoStatus,
+        verificadoEm: dnsCheck.ok ? agora : null,
+        ultimaVerificacao: agora,
       },
     });
   } else {
     await prisma.dominio.create({
       data: {
         dominio: dominioNormalizado,
-        status: "PENDENTE",
+        status: novoStatus,
         userId: user.id,
+        verificadoEm: dnsCheck.ok ? agora : null,
+        ultimaVerificacao: agora,
       },
     });
   }
 
-  return res.status(200).json({
-    ok: true,
-    dominio: dominioNormalizado,
-    status: "PENDENTE",
-    mensagem: "Domínio salvo com sucesso. Aguardando configuração de DNS.",
-  });
+  if (dnsCheck.ok) {
+    return res.status(200).json({
+      ok: true,
+      dominio: dominioNormalizado,
+      status: "ATIVO",
+      mensagem: "Domínio salvo e verificado com sucesso! Já está ativo.",
+    });
+  } else {
+    return res.status(200).json({
+      ok: true,
+      dominio: dominioNormalizado,
+      status: "PENDENTE",
+      mensagem: "Domínio salvo. Configure o DNS para ativar.",
+      dnsDetalhes: {
+        error: dnsCheck.error,
+        expected: dnsCheck.expected,
+        found: dnsCheck.found,
+      },
+    });
+  }
 }
