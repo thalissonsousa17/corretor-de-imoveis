@@ -3,7 +3,7 @@ import axios, { AxiosError } from "axios";
 
 interface DominioData {
   dominio: string;
-  status: "PENDENTE" | "VERIFICADO" | "ERRO";
+  status: "PENDENTE" | "ATIVO" | "ERRO";
 }
 
 export default function DominioCard() {
@@ -37,7 +37,7 @@ export default function DominioCard() {
     try {
       const res = await api.post("/api/profile/dominio", { dominio });
       alert(res.data.mensagem || "Domínio salvo com sucesso!");
-      setStatus("PENDENTE");
+      setStatus(res.data.status || "PENDENTE");
     } catch (error) {
       const err = error as AxiosError<{ error?: string }>;
 
@@ -64,7 +64,13 @@ export default function DominioCard() {
         />
         {status && (
           <span
-            className={`text-xs font-bold ${status === "VERIFICADO" ? "text-green-600" : "text-yellow-600"}`}
+            className={`text-xs font-bold ${
+              status === "ATIVO"
+                ? "text-green-600"
+                : status === "PENDENTE"
+                  ? "text-yellow-600"
+                  : "text-red-600"
+            }`}
           >
             Status: {status}
           </span>
