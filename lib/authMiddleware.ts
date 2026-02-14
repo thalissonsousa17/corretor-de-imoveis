@@ -5,7 +5,7 @@ import * as cookie from "cookie";
 export interface AuthPayload {
   id: string;
   email: string;
-  role: "CORRETOR" | "CLIENTE";
+  role: "CORRETOR" | "CLIENTE" | "ADMIN";
 }
 
 export interface AuthApiRequest extends NextApiRequest {
@@ -46,25 +46,29 @@ export const authorize =
       req.user = {
         id: session.user.id,
         email: session.user.email,
-        role: session.user.role as "CORRETOR" | "CLIENTE",
+        role: session.user.role as "CORRETOR" | "CLIENTE" | "ADMIN",
       };
 
-      if (requiredRole && req.user.role !== requiredRole) {
+      // ADMIN tem acesso total — pode acessar rotas de CORRETOR também
+      if (requiredRole && req.user.role !== requiredRole && req.user.role !== "ADMIN") {
         return res.status(403).json({ error: "Acesso negado." });
       }
 
-      //  GARANTE QUE O CORRETOR TEM UM corretorProfile
-
+      // GARANTE QUE CORRETOR tenha um corretorProfile (ADMIN não precisa de perfil público)
       if (req.user.role === "CORRETOR") {
-        let perfil = await prisma.corretorProfile.findUnique({
+        const perfil = await prisma.corretorProfile.findUnique({
           where: { userId: req.user.id },
         });
 
         if (!perfil) {
-          perfil = await prisma.corretorProfile.create({
+          const baseSlug = req.user.email.split("@")[0].toLowerCase().replace(/[^a-z0-9]/g, "");
+          const slugExists = await prisma.corretorProfile.findUnique({ where: { slug: baseSlug } });
+          const slug = slugExists ? `${baseSlug}-${req.user.id.slice(0, 6)}` : baseSlug;
+
+          await prisma.corretorProfile.create({
             data: {
               userId: req.user.id,
-              slug: req.user.email.split("@")[0],
+              slug,
               plano: "GRATUITO",
               planoStatus: "INATIVO",
             },

@@ -6,7 +6,7 @@ interface User {
   id: string;
   name: string;
   email: string;
-  role: "CORRETOR" | "CLIENTE";
+  role: "CORRETOR" | "CLIENTE" | "ADMIN";
 }
 
 interface AuthContextType {
@@ -46,7 +46,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (response.data.user) {
           setUser(response.data.user as User);
         }
-      } catch {
+      } catch (error: any) {
+        // 401 é esperado quando o usuário não está logado — não precisa logar
+        if (error?.response?.status !== 401) {
+          console.error("Erro ao verificar sessão:", error);
+        }
         setUser(null);
       } finally {
         setIsLoading(false);

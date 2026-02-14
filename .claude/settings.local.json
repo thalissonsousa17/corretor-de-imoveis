@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx prisma generate:*)",
+      "Bash(ls -la \"c:\\\\Users\\\\ECRITORIO\\\\Desktop\\\\Curso.dev\\\\corretor-imoveis\\\\corretor-de-imoveis\\\\pages\\\\admin\"\" 2>/dev/null || echo \"Directory not found \")",
+      "Bash(npm install:*)",
+      "Bash(npx prisma migrate:*)",
+      "Bash(npx tsc:*)",
+      "Bash(ls -la \"c:\\\\Users\\\\ECRITORIO\\\\Desktop\\\\Curso.dev\\\\corretor-imoveis\\\\corretor-de-imoveis\\\\public\\\\demo\"\" 2>/dev/null || echo \"Demo folder not found \")"
+    ]
+  }
+}

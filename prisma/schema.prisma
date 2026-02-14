@@ -1,164 +1,250 @@
 generator client {
-  provider   = "prisma-client-js"
-  engineType = "client"
+  provider   = "prisma-client-js"
+  engineType = "client"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "postgresql"
 }
 
 model User {
-  id               String           @id @default(uuid())
-  email            String           @unique
-  password         String
-  name             String
-  role             String           @default("CORRETOR")
-  createdAt        DateTime         @default(now())
-  updatedAt        DateTime         @updatedAt
-  stripeCustomerId String?
-  profile          CorretorProfile?
-  imoveis          Imovel[]
-  sessions         Session[]
+  id               String            @id @default(uuid())
+  email            String            @unique
+  password         String
+  name             String
+  role             String            @default("CORRETOR")
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  stripeCustomerId String?
+  profile          CorretorProfile?
+  imoveis          Imovel[]
+  sessions         Session[]
+  tickets          TicketSuporte[]
+  mensagens        MensagemSuporte[]
+  contratos        Contrato[]
 
-// Relacionamento com Domínio
-  dominios  Dominio[]  
+  // Relacionamento com Domínio
+  dominios Dominio[]
 }
 
 model CorretorProfile {
-  id                     String      @id @default(cuid())
-  userId                 String      @unique
-  creci                  String?
-  slug                   String      @unique
-  whatsapp               String?
-  instagram              String?
-  facebook               String?
-  linkedin               String?
-  createdAt              DateTime    @default(now())
-  updatedAt              DateTime    @updatedAt
-  avatarUrl              String?
-  bannerUrl              String?
-  metaDescription        String?
-  metaTitle              String?
-  biografia              String?
-  logoUrl                String?
-  plano                  PlanoTipo   @default(GRATUITO)
-  planoCanceladoEm       DateTime?
-  planoStatus            PlanoStatus @default(INATIVO)
-  stripeCurrentPeriodEnd DateTime?
-  stripeCustomerId       String?
-  stripeSubscriptionId   String?
-  ultimos4               String?  
-  assinaturaCriadaEm     DateTime?
-  ultimoPagamentoEm      DateTime?
-  user                   User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                     String      @id @default(cuid())
+  userId                 String      @unique
+  creci                  String?
+  slug                   String      @unique
+  whatsapp               String?
+  instagram              String?
+  facebook               String?
+  linkedin               String?
+  createdAt              DateTime    @default(now())
+  updatedAt              DateTime    @updatedAt
+  avatarUrl              String?
+  bannerUrl              String?
+  metaDescription        String?
+  metaTitle              String?
+  biografia              String?
+  logoUrl                String?
+  plano                  PlanoTipo   @default(GRATUITO)
+  planoCanceladoEm       DateTime?
+  planoStatus            PlanoStatus @default(INATIVO)
+  stripeCurrentPeriodEnd DateTime?
+  stripeCustomerId       String?
+  stripeSubscriptionId   String?
+  ultimos4               String?
+  assinaturaCriadaEm     DateTime?
+  ultimoPagamentoEm      DateTime?
+  user                   User        @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Dominio {
-  id        String        @id @default(cuid())
-  dominio   String        @unique
-  status    DominioStatus @default(PENDENTE)
+  id       String        @id @default(cuid())
+  dominio  String        @unique
+  status   DominioStatus @default(PENDENTE)
 
-  userId    String
-  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  paginaId  String?       @unique
-  pagina    Pagina?       @relation(fields: [paginaId], references: [id])
+  paginaId String? @unique
+  pagina   Pagina? @relation(fields: [paginaId], references: [id])
 
   verificadoEm      DateTime?
-  ultimaVerificacao DateTime?
+  ultimaVerificacao  DateTime?
 
   createdAt DateTime @default(now())
-
-  
 }
-
 
 model Pagina {
-  id        String   @id @default(cuid())
-  slug      String   @unique
+  id   String @id @default(cuid())
+  slug String @unique
 
-  dominio   Dominio?
+  dominio Dominio?
 
   createdAt DateTime @default(now())
 }
 
-
-
 model Imovel {
-  id          String       @id @default(uuid())
-  titulo      String
-  descricao   String
-  preco       Float
-  tipo        String
-  localizacao String
-  corretorId  String
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  cidade      String
-  estado      String
-  bairro      String?
-  cep         String?
-  numero      String?
-  rua         String?
-  finalidade  Finalidade   @default(VENDA)
-  status      ImovelStatus @default(DISPONIVEL)
-  fotos       Foto[]
-  corretor    User         @relation(fields: [corretorId], references: [id], onDelete: Cascade)
+  id          String       @id @default(uuid())
+  titulo      String
+  descricao   String
+  preco       Float
+  tipo        String
+  localizacao String
+  corretorId  String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  cidade      String
+  estado      String
+  bairro      String?
+  cep         String?
+  numero      String?
+  rua         String?
+  finalidade  Finalidade   @default(VENDA)
+  status      ImovelStatus @default(DISPONIVEL)
+  fotos       Foto[]
+  corretor    User         @relation(fields: [corretorId], references: [id], onDelete: Cascade)
 }
 
 model Session {
-  id        String   @id @default(uuid())
-  userId    String
-  expiresAt DateTime
-  createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String   @id @default(uuid())
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([userId])
+  @@index([userId])
 }
 
 model Foto {
-  id        String   @id @default(uuid())
-  url       String
-  ordem     Int      @default(0)
-  imovelId  String
-  createdAt DateTime @default(now())
-  principal Boolean  @default(false)
-  imovel    Imovel   @relation(fields: [imovelId], references: [id], onDelete: Cascade)
+  id        String   @id @default(uuid())
+  url       String
+  ordem     Int      @default(0)
+  imovelId  String
+  createdAt DateTime @default(now())
+  principal Boolean  @default(false)
+  imovel    Imovel   @relation(fields: [imovelId], references: [id], onDelete: Cascade)
 
-  @@index([imovelId])
+  @@index([imovelId])
 }
 
+// ===== SISTEMA DE SUPORTE =====
+
+model TicketSuporte {
+  id         String           @id @default(cuid())
+  assunto    String
+  descricao  String
+  status     TicketStatus     @default(ABERTO)
+  prioridade TicketPrioridade @default(MEDIA)
+  userId     String
+  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mensagens  MensagemSuporte[]
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  @@index([userId])
+}
+
+model MensagemSuporte {
+  id        String        @id @default(cuid())
+  conteudo  String
+  autorId   String
+  autor     User          @relation(fields: [autorId], references: [id], onDelete: Cascade)
+  ticketId  String
+  ticket    TicketSuporte @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  lida      Boolean       @default(false)
+  createdAt DateTime      @default(now())
+
+  @@index([ticketId])
+}
+
+// ===== CONTRATOS =====
+
+model Contrato {
+  id         String       @id @default(uuid())
+  titulo     String
+  conteudo   String       @db.Text
+  tipo       TipoContrato @default(PERSONALIZADO)
+  corretorId String
+  corretor   User         @relation(fields: [corretorId], references: [id], onDelete: Cascade)
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  @@index([corretorId])
+}
+
+// ===== ENUMS =====
+
 enum PlanoTipo {
-  GRATUITO
-  PRO
-  START
-  EXPERT
+  GRATUITO
+  PRO
+  START
+  EXPERT
 }
 
 enum PlanoStatus {
-  ATIVO
-  CANCELADO
-  EXPIRADO
-  INATIVO
+  ATIVO
+  CANCELADO
+  EXPIRADO
+  INATIVO
 }
 
 enum Finalidade {
-  VENDA
-  ALUGUEL
+  VENDA
+  ALUGUEL
 }
 
 enum ImovelStatus {
-  DISPONIVEL
-  VENDIDO
-  ALUGADO
-  INATIVO
+  DISPONIVEL
+  VENDIDO
+  ALUGADO
+  INATIVO
 }
-
-// Status do domínio personalizado para corretores
 
 enum DominioStatus {
   PENDENTE
   ATIVO
   ERRO
   BLOQUEADO
+}
+
+enum TicketStatus {
+  ABERTO
+  EM_ANDAMENTO
+  RESOLVIDO
+  FECHADO
+}
+
+enum TicketPrioridade {
+  BAIXA
+  MEDIA
+  ALTA
+  URGENTE
+}
+
+enum TipoContrato {
+  ALUGUEL_RESIDENCIAL
+  ALUGUEL_COMERCIAL
+  COMPRA_VENDA
+  INTERMEDIACAO
+  LOCACAO_TEMPORADA
+  PERSONALIZADO
+}
+
+// ===== LEADS (SITE) =====
+
+model Lead {
+  id        String     @id @default(cuid())
+  nome      String
+  email     String
+  whatsapp  String?
+  mensagem  String?
+  status    LeadStatus @default(NOVO)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+enum LeadStatus {
+  NOVO
+  EM_ATENDIMENTO
+  CONVERTIDO
+  PERDIDO
 }

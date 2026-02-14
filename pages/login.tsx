@@ -22,7 +22,13 @@ const LoginPage = () => {
 
       if (response.status === 200) {
         login(response.data.user);
-        router.push("/corretor/dashboard");
+        
+        // Redireciona com base no role do usuário
+        if (response.data.user.role === "ADMIN") {
+          router.push("/admin/dashboard");
+        } else {
+          router.push("/corretor/dashboard");
+        }
       }
     } catch (err) {
       if (axios.isAxiosError(err) && err.response) {
