@@ -67,7 +67,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       {/* Sidebar */}
       <aside className="w-64 bg-[#1A2A4F] text-white flex flex-col fixed h-full z-10">
         <div className="p-6 border-b border-white/10">
-          <h1 className="text-xl font-bold text-[#D4AC3A]">🏡 Admin Panel</h1>
+          <h1 className="text-xl font-bold text-[#D4AC3A]">🏡 Admin Painel</h1>
           <p className="text-xs text-gray-400 mt-1">Gerenciamento do Sistema</p>
         </div>
 

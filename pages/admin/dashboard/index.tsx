@@ -118,8 +118,8 @@ export default function AdminDashboard() {
                     labelLine={false}
                     outerRadius={80}
                     dataKey="value"
-                    label={({ name, percent }: any) =>
-                      `${name} ${(percent * 100).toFixed(0)}%`
+                    label={({ name, percent }) =>
+                      `${name} ${(Number(percent ?? 0) * 100).toFixed(0)}%`
                     }
                   >
                     {chartData.map((_, index) => (
