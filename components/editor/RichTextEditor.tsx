@@ -213,7 +213,7 @@ const Toolbar: React.FC<{ editor: Editor }> = ({ editor }) => {
           ≡
         </Btn>
         <Btn title="Citação" active={editor.isActive("blockquote")} onClick={() => editor.chain().focus().toggleBlockquote().run()}>
-          "
+          &ldquo;
         </Btn>
         <Divider />
 

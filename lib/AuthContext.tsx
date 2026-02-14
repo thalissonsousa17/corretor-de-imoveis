@@ -46,9 +46,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (response.data.user) {
           setUser(response.data.user as User);
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         // 401 é esperado quando o usuário não está logado — não precisa logar
-        if (error?.response?.status !== 401) {
+        const isUnauthorized = axios.isAxiosError(error) && error.response?.status === 401;
+        if (!isUnauthorized) {
           console.error("Erro ao verificar sessão:", error);
         }
         setUser(null);

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import CorretorLayout from "@/components/CorretorLayout";
 import api from "@/lib/api";
-import { Plus, MessageSquare, Clock, AlertTriangle, CheckCircle, X, ExternalLink, RefreshCw } from "lucide-react";
+import { Plus, MessageSquare, Clock, AlertTriangle, CheckCircle, X, ExternalLink, RefreshCw, type LucideIcon } from "lucide-react";
 
 interface Ticket {
   id: string;
@@ -17,7 +17,7 @@ interface Ticket {
   mensagens: { conteudo: string; createdAt: string }[];
 }
 
-const statusConfig: Record<string, { label: string; color: string; icon: any }> = {
+const statusConfig: Record<string, { label: string; color: string; icon: LucideIcon }> = {
   ABERTO: { label: "Aberto", color: "bg-blue-100 text-blue-700", icon: Clock },
   EM_ANDAMENTO: { label: "Em Andamento", color: "bg-yellow-100 text-yellow-700", icon: AlertTriangle },
   RESOLVIDO: { label: "Resolvido", color: "bg-green-100 text-green-700", icon: CheckCircle },
@@ -214,7 +214,7 @@ export default function SuporteCorretor() {
               {filter === "TODOS" ? "Nenhum ticket de suporte" : `Nenhum ticket ${filterLabels[filter].toLowerCase()}`}
             </p>
             {filter === "TODOS" && (
-              <p className="text-sm text-gray-400 mt-1">Clique em "Novo Ticket" para solicitar ajuda</p>
+              <p className="text-sm text-gray-400 mt-1">Clique em &ldquo;Novo Ticket&rdquo; para solicitar ajuda</p>
             )}
           </div>
         )}

@@ -9,7 +9,7 @@ async function handler(req: AuthApiRequest, res: NextApiResponse) {
   // GET — listar tickets
   if (req.method === "GET") {
     try {
-      const where: any = userRole === "ADMIN" ? {} : { userId };
+      const where: { userId?: string } = userRole === "ADMIN" ? {} : { userId };
 
       const tickets = await prisma.ticketSuporte.findMany({
         where,
@@ -29,7 +29,7 @@ async function handler(req: AuthApiRequest, res: NextApiResponse) {
 
       // Contar mensagens não lidas para cada ticket
       const ticketsComNaoLidas = await Promise.all(
-        tickets.map(async (ticket: any) => {
+        tickets.map(async (ticket) => {
           const naoLidas = await prisma.mensagemSuporte.count({
             where: {
               ticketId: ticket.id,

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import AdminLayout from "@/components/AdminLayout";
 import api from "@/lib/api";
-import { MessageSquare, Clock, AlertTriangle, CheckCircle, X, User, ExternalLink, RefreshCw } from "lucide-react";
+import { MessageSquare, Clock, AlertTriangle, CheckCircle, X, User, ExternalLink, RefreshCw, type LucideIcon } from "lucide-react";
 
 interface Ticket {
   id: string;
@@ -27,7 +27,7 @@ interface Lead {
   createdAt: string;
 }
 
-const statusConfig: Record<string, { label: string; color: string; icon: any }> = {
+const statusConfig: Record<string, { label: string; color: string; icon: LucideIcon }> = {
   ABERTO: { label: "Aberto", color: "bg-blue-100 text-blue-700", icon: Clock },
   EM_ANDAMENTO: { label: "Em Andamento", color: "bg-yellow-100 text-yellow-700", icon: AlertTriangle },
   RESOLVIDO: { label: "Resolvido", color: "bg-green-100 text-green-700", icon: CheckCircle },
@@ -291,7 +291,7 @@ export default function AdminSuporte() {
                         </div>
                         {lead.mensagem && (
                           <div className="mt-3 p-3 bg-gray-50 rounded-xl text-sm text-gray-700 border border-gray-100">
-                            "{lead.mensagem}"
+                            &ldquo;{lead.mensagem}&rdquo;
                           </div>
                         )}
                       </div>

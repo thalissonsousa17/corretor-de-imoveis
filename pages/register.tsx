@@ -44,7 +44,7 @@ const RegisterPage = () => {
     setMessage(null);
 
     try {
-      const payload: any = { name, email, password };
+      const payload: { name: string; email: string; password: string; adminCode?: string } = { name, email, password };
       if (showAdminField && adminCode) {
         payload.adminCode = adminCode;
       }

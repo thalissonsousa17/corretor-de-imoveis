@@ -39,7 +39,7 @@ async function handler(req: AuthApiRequest, res: NextApiResponse) {
           mensagens: {
             create: {
               conteudo: mensagem,
-              autorId: req.user.id,
+              autorId: req.user!.id,
               lida: false,
             },
           },
@@ -72,7 +72,7 @@ async function handler(req: AuthApiRequest, res: NextApiResponse) {
               mensagens: {
                 create: {
                   conteudo: mensagem,
-                  autorId: req.user.id,
+                  autorId: req.user!.id,
                   lida: false,
                 },
               },

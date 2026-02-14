@@ -12,14 +12,15 @@ async function handler(req: AuthApiRequest, res: NextApiResponse) {
 
   try {
     // Admin vê todas as mensagens não lidas; corretor só dos seus tickets
-    const whereClause: any = {
+    const whereClause: {
+      autorId: { not: string };
+      lida: boolean;
+      ticket?: { userId: string };
+    } = {
       autorId: { not: userId },
       lida: false,
+      ...(!isAdmin ? { ticket: { userId } } : {}),
     };
-
-    if (!isAdmin) {
-      whereClause.ticket = { userId };
-    }
 
     const count = await prisma.mensagemSuporte.count({
       where: whereClause,
