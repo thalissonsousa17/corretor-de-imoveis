@@ -4,6 +4,8 @@ import CorretorLayout from "@/components/CorretorLayout";
 import api from "@/lib/api";
 import { CONTRATOS_TEMPLATES, ContratoTemplate, TipoContrato } from "@/lib/contratos-templates";
 import toast from "react-hot-toast";
+import SignaturePad from "@/components/SignaturePad";
+import { PenTool, Trash2, X } from "lucide-react";
 
 // Importação dinâmica (sem SSR) do editor TipTap
 const RichTextEditor = dynamic(() => import("@/components/editor/RichTextEditor"), {
@@ -31,8 +33,18 @@ interface Contrato {
 interface MensagemIA {
   role: "user" | "assistant";
   conteudo: string;
-  contratoPreenchido?: string; // HTML do contrato preenchido pela IA
+  contratoPreenchido?: string;
   loading?: boolean;
+}
+
+interface Assinatura {
+  id: string;
+  nome: string;
+  email: string;
+  documento: string | null;
+  assinatura: string;
+  ip: string | null;
+  assinadoEm: string;
 }
 
 // ─── Cores dos templates ───────────────────────────────────────────────────────
@@ -211,6 +223,14 @@ export default function ContratosPage() {
   // Exportação
   const [exportando, setExportando] = useState<"pdf" | "doc" | null>(null);
 
+  // Assinaturas
+  const [assinaturas, setAssinaturas] = useState<Assinatura[]>([]);
+  const [showAssinatura, setShowAssinatura] = useState(false);
+  const [sigNome, setSigNome] = useState("");
+  const [sigEmail, setSigEmail] = useState("");
+  const [sigDocumento, setSigDocumento] = useState("");
+  const [showSigPad, setShowSigPad] = useState(false);
+
   // ── Carregar dados ────────────────────────────────────────────────────────────
   useEffect(() => {
     api
@@ -223,6 +243,49 @@ export default function ContratosPage() {
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [mensagensIA]);
+
+  // ── Assinaturas — funções ─────────────────────────────────────────────────────
+  const fetchAssinaturas = useCallback(async (cId: string) => {
+    try {
+      const res = await api.get(`/corretor/contratos/${cId}/assinaturas`);
+      setAssinaturas(res.data);
+    } catch {
+      setAssinaturas([]);
+    }
+  }, []);
+
+  const salvarAssinatura = async (dataUrl: string) => {
+    if (!contratoEditandoId) return toast.error("Salve o contrato antes de assinar.");
+    if (!sigNome.trim() || !sigEmail.trim()) return toast.error("Nome e email são obrigatórios.");
+
+    try {
+      const res = await api.post(`/corretor/contratos/${contratoEditandoId}/assinaturas`, {
+        nome: sigNome,
+        email: sigEmail,
+        documento: sigDocumento || null,
+        assinatura: dataUrl,
+      });
+      setAssinaturas((prev) => [res.data, ...prev]);
+      setShowSigPad(false);
+      setSigNome("");
+      setSigEmail("");
+      setSigDocumento("");
+      toast.success("Assinatura registrada!");
+    } catch {
+      toast.error("Erro ao salvar assinatura.");
+    }
+  };
+
+  const excluirAssinatura = async (id: string) => {
+    if (!confirm("Remover esta assinatura?")) return;
+    try {
+      await api.delete(`/corretor/contratos/${contratoEditandoId}/assinaturas`, { data: { id } });
+      setAssinaturas((prev) => prev.filter((a) => a.id !== id));
+      toast.success("Assinatura removida.");
+    } catch {
+      toast.error("Erro ao remover assinatura.");
+    }
+  };
 
   // ── Carregar template no editor ───────────────────────────────────────────────
   const carregarTemplate = useCallback((tmpl: ContratoTemplate) => {
@@ -240,8 +303,10 @@ export default function ContratosPage() {
     setEditorTipo(c.tipo);
     setContratoEditandoId(c.id);
     setEditorKey((k) => k + 1);
+    setShowAssinatura(false);
+    fetchAssinaturas(c.id);
     window.scrollTo({ top: 600, behavior: "smooth" });
-  }, []);
+  }, [fetchAssinaturas]);
 
   const novoPersonalizado = () => {
     setEditorTitulo("Novo Contrato");
@@ -249,6 +314,8 @@ export default function ContratosPage() {
     setEditorTipo("PERSONALIZADO");
     setContratoEditandoId(null);
     setEditorKey((k) => k + 1);
+    setAssinaturas([]);
+    setShowAssinatura(false);
     window.scrollTo({ top: 600, behavior: "smooth" });
   };
 
@@ -599,6 +666,27 @@ export default function ContratosPage() {
                     </button>
                   </div>
 
+                  {/* Assinatura */}
+                  {contratoEditandoId && (
+                    <button
+                      onClick={() => setShowAssinatura((v) => !v)}
+                      className={`
+                        flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all shadow-sm
+                        ${showAssinatura
+                          ? "bg-emerald-700 text-white"
+                          : "bg-emerald-600 text-white hover:bg-emerald-700"
+                        }
+                      `}
+                    >
+                      <PenTool size={14} /> {showAssinatura ? "Fechar Assinaturas" : "Assinaturas"}
+                      {assinaturas.length > 0 && (
+                        <span className="bg-white/20 text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                          {assinaturas.length}
+                        </span>
+                      )}
+                    </button>
+                  )}
+
                   {/* Assistente IA */}
                   <button
                     onClick={() => setPainelIA((v) => !v)}
@@ -612,6 +700,88 @@ export default function ContratosPage() {
                   >
                     🤖 {painelIA ? "Fechar IA" : "Assistente IA"}
                   </button>
+                </div>
+              )}
+
+              {/* ── Painel de Assinaturas ─────────────────────────────────────── */}
+              {showAssinatura && contratoEditandoId && (
+                <div className="text-black border-t border-gray-100 p-6 bg-gray-50">
+                  <h3 className="text-sm font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <PenTool size={16} className="text-emerald-600" /> Assinaturas Digitais
+                  </h3>
+
+                  {/* Assinaturas existentes */}
+                  {assinaturas.length > 0 && (
+                    <div className="text-black space-y-3 mb-5">
+                      {assinaturas.map((a) => (
+                        <div key={a.id} className="flex items-start gap-3 bg-white rounded-xl border border-gray-100 p-3">
+                          <img src={a.assinatura} alt={`Assinatura de ${a.nome}`} className="w-32 h-16 object-contain border border-gray-200 rounded-lg bg-white" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-gray-800">{a.nome}</p>
+                            <p className="text-xs text-gray-500">{a.email}</p>
+                            {a.documento && <p className="text-xs text-gray-400">Doc: {a.documento}</p>}
+                            <p className="text-[10px] text-gray-400 mt-1">
+                              {new Date(a.assinadoEm).toLocaleString("pt-BR")}
+                              {a.ip && ` · IP: ${a.ip}`}
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => excluirAssinatura(a.id)}
+                            className="p-1.5 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition flex-shrink-0"
+                            title="Remover assinatura"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Formulário para nova assinatura */}
+                  {!showSigPad ? (
+                    <button
+                      onClick={() => setShowSigPad(true)}
+                      className="flex items-center gap-2 text-sm font-medium text-emerald-600 hover:text-emerald-700 transition"
+                    >
+                      <PenTool size={14} /> + Adicionar assinatura
+                    </button>
+                  ) : (
+                    <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-sm font-semibold text-gray-700">Nova Assinatura</h4>
+                        <button onClick={() => { setShowSigPad(false); setSigNome(""); setSigEmail(""); setSigDocumento(""); }} className="p-1 rounded hover:bg-gray-100">
+                          <X size={16} className="text-gray-400" />
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <input
+                          type="text"
+                          value={sigNome}
+                          onChange={(e) => setSigNome(e.target.value)}
+                          placeholder="Nome completo *"
+                          className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
+                        />
+                        <input
+                          type="email"
+                          value={sigEmail}
+                          onChange={(e) => setSigEmail(e.target.value)}
+                          placeholder="Email *"
+                          className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
+                        />
+                        <input
+                          type="text"
+                          value={sigDocumento}
+                          onChange={(e) => setSigDocumento(e.target.value)}
+                          placeholder="CPF/CNPJ (opcional)"
+                          className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
+                        />
+                      </div>
+                      <SignaturePad
+                        onSave={salvarAssinatura}
+                        onCancel={() => setShowSigPad(false)}
+                      />
+                    </div>
+                  )}
                 </div>
               )}
             </div>

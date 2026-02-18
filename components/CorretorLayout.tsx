@@ -11,6 +11,10 @@ const pageTitles: Record<string, string> = {
   "/corretor/imoveis/cadastrar": "Cadastrar Imóvel",
   "/corretor/imoveis": "Gerenciar Imóveis",
   "/corretor/contratos": "Contratos",
+  "/corretor/leads": "Meus Leads",
+  "/corretor/visitas": "Visitas",
+  "/corretor/financeiro": "Financeiro",
+  "/corretor/seguranca": "Segurança",
   "/corretor/assinaturas": "Meu Plano",
   "/corretor/suporte": "Suporte",
 };
@@ -43,7 +47,7 @@ const CorretorLayout: React.FC<{ children: React.ReactNode }> = ({ children }) =
     <div className="flex min-h-screen bg-gray-100">
       <SidebarCorretor />
 
-      <div className="flex-grow ml-16 md:ml-56 xl:ml-64 flex flex-col transition-all duration-300">
+      <div className="flex-grow ml-0 md:ml-[220px] flex flex-col transition-all duration-300">
         <header className="bg-white border-b border-gray-100 px-6 py-4 flex justify-between items-center sticky top-0 z-[5]">
           <h2 className="text-xl font-bold text-gray-800">{getTitle(router.pathname)}</h2>
           <div className="flex items-center gap-3">

@@ -91,6 +91,13 @@ export default function ImovelDetalhe({ imovel, corretor, imoveis, urlCompartilh
 
   const next = useCallback(() => setIdx((p) => (p + 1) % fotos.length), [fotos.length]);
 
+  // Registrar view do imóvel
+  useEffect(() => {
+    if (imovel?.id) {
+      fetch(`/api/public/imovel/${imovel.id}/view`, { method: "POST" }).catch(() => {});
+    }
+  }, [imovel?.id]);
+
   useEffect(() => {
     if (!open) return;
 
