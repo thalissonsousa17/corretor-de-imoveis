@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { NextApiRequest, NextApiResponse } from "next";
+import { resolveFotoUrl } from "@/lib/imageUtils";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { slug } = req.query;
@@ -35,15 +36,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         name: profile.user.name,
         creci: profile.creci,
         slug: profile.slug,
-        avatarUrl: profile.avatarUrl,
-        bannerUrl: profile.bannerUrl,
+        avatarUrl: resolveFotoUrl(profile.avatarUrl),
+        bannerUrl: resolveFotoUrl(profile.bannerUrl),
         whatsapp: profile.whatsapp,
         instagram: profile.instagram,
         facebook: profile.facebook,
         linkedin: profile.linkedin,
-        logoUrl: profile.logoUrl,
+        logoUrl: resolveFotoUrl(profile.logoUrl),
       },
-      imoveis,
+      imoveis: (imoveis || []).map(im => ({
+        ...im,
+        fotos: (im.fotos || []).map((f: any) => ({
+          ...f,
+          url: resolveFotoUrl(f.url)
+        }))
+      })),
     });
   } catch (e) {
     console.error(e);

@@ -1,21 +1,15 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Imovel } from "@/types/Imovel";
+import { Imovel, Status as RawStatus } from "@/types/Imovel";
+import { resolveFotoUrl } from "@/lib/imageUtils";
 import StatusDropdown from "./StatusDropdown";
 import EdtiImovel from "./EditImovel";
 import DeleteImovelModal from "./DeleteImovelModal";
-import { Camera, Pencil } from "lucide-react";
+import { Camera, Pencil, Trash2, MapPin, DollarSign, Home } from "lucide-react";
 import FiltroImoveis from "./FiltroImoveis";
 import Paginacao from "./Paginacao";
 import VisualizarFotosModal from "@/components/VisualizarFotosModal";
-
-const normalizeImageUrl = (url: string | null | undefined) => {
-  if (!url) return "/placeholder.png";
-  if (url.startsWith("http")) return url;
-
-  const fileName = url.split(/[\\/]/).pop();
-  return `/api/uploads/${fileName}`;
-};
+import { motion, AnimatePresence } from "framer-motion";
 
 type Finalidade = "VENDA" | "ALUGUEL";
 type Status = "DISPONIVEL" | "VENDIDO" | "ALUGADO" | "INATIVO";
@@ -31,7 +25,7 @@ const ImovelListagemCorretor: React.FC<ImovelListagemCorretorProps> = ({ onImove
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const itemsPerPage = 8;
 
   const [fotosModalOpen, setFotosModalOpen] = useState(false);
   const [fotosSelecionadas, setFotosSelecionadas] = useState<{ id: string; url: string }[]>([]);
@@ -57,7 +51,7 @@ const ImovelListagemCorretor: React.FC<ImovelListagemCorretorProps> = ({ onImove
     if (imovel.fotos?.length) {
       const fotosNormalizadas = imovel.fotos.map((f) => ({
         id: f.id,
-        url: normalizeImageUrl(f.url),
+        url: resolveFotoUrl(f.url),
       }));
       setFotosSelecionadas(fotosNormalizadas);
       setFotosModalOpen(true);
@@ -75,85 +69,131 @@ const ImovelListagemCorretor: React.FC<ImovelListagemCorretorProps> = ({ onImove
   const [imovelSelecionadoDelete, setImovelSelecionadoDelete] = useState<Imovel | null>(null);
   const [imovelSelecionado, setImovelSelecionado] = useState<Imovel | null>(null);
 
-  if (loading) return <p className="p-4 text-center text-gray-600">Carregando...</p>;
-  if (error) return <p className="p-4 text-red-500">{error}</p>;
+  if (loading) return (
+    <div className="flex flex-col items-center justify-center p-20 gap-4">
+      <div className="w-12 h-12 border-4 border-blue-600/20 border-t-blue-600 rounded-full animate-spin" />
+      <p className="text-slate-500 font-bold text-xs uppercase tracking-widest">Carregando portfólio...</p>
+    </div>
+  );
+  
+  if (error) return (
+    <div className="p-12 text-center">
+      <div className="text-red-500 text-lg font-bold mb-2">Ops!</div>
+      <p className="text-slate-500">{error}</p>
+    </div>
+  );
 
   return (
-    <div className="bg-gray-100 rounded-lg shadow-xl p-4 w-full">
-      <FiltroImoveis search={search} onSearchChange={setSearch} />
+    <div className="w-full">
+      {/* Search and Filters Header */}
+      <div className="p-8 border-b border-slate-50 bg-slate-50/30">
+        <FiltroImoveis search={search} onSearchChange={setSearch} />
+      </div>
 
-      {imoveis.length === 0 ? (
-        <p className="text-center text-gray-600 mt-4">Nenhum imóvel encontrado.</p>
+      {imoveisFiltrados.length === 0 ? (
+        <div className="p-20 text-center flex flex-col items-center">
+             <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center text-slate-300 mb-6">
+                <Home size={40} />
+             </div>
+             <h3 className="text-xl font-bold text-slate-900 mb-2">Nenhum imóvel encontrado</h3>
+             <p className="text-slate-400 text-sm max-w-xs mx-auto">
+               Parece que você ainda não tem imóveis com esse critério. Comece cadastrando um novo imóvel!
+             </p>
+        </div>
       ) : (
-        <div className="w-full overflow-x-auto">
-          <table className="min-w-full mt-4">
-            <thead className="bg-gray-300 hidden md:table-header-group">
-              <tr>
-                <th className="px-4 py-2 text-left text-xs font-semibold text-gray-900 uppercase">
-                  Título / Endereço
-                </th>
-                <th className="px-4 py-2 text-center text-xs font-semibold uppercase">Valor</th>
-                <th className="px-4 py-2 text-center text-xs font-semibold uppercase">Status</th>
-                <th className="px-4 py-2 text-center text-xs font-semibold uppercase">Ações</th>
-                <th className="px-4 py-2 text-center text-xs font-semibold uppercase">Fotos</th>
-              </tr>
-            </thead>
+        <div className="divide-y divide-slate-50">
+          <AnimatePresence mode="popLayout">
+            {currentImoveis.map((imovel, idx) => (
+              <motion.div
+                key={imovel.id}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ delay: idx * 0.05 }}
+                className="group p-6 hover:bg-blue-50/30 transition-all flex flex-col lg:flex-row items-start lg:items-center gap-6"
+              >
+                {/* ID / Thumbnail */}
+                <div className="relative w-full lg:w-40 h-40 lg:h-28 rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0">
+                   <img 
+                      src={resolveFotoUrl(imovel.fotos?.[0]?.url)} 
+                      alt={imovel.titulo}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                   />
+                   <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <button 
+                        onClick={() => handleVerFotos(imovel)}
+                        className="bg-white/90 backdrop-blur-sm p-2 rounded-full text-slate-900 shadow-xl active:scale-90 transition-transform"
+                      >
+                         <Camera size={18} />
+                      </button>
+                   </div>
+                   {imovel.fotos && imovel.fotos.length > 0 && (
+                      <span className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-md text-white text-[9px] font-black px-1.5 py-0.5 rounded-md">
+                        {imovel.fotos.length} FOTOS
+                      </span>
+                   )}
+                </div>
 
-            <tbody className="bg-white divide-y divide-gray-200">
-              {currentImoveis.map((imovel) => (
-                <tr
-                  key={imovel.id}
-                  className="grid md:table-row border md:border-none p-3 mb-4 bg-white shadow-md md:shadow-none"
-                >
-                  <td className="px-4 py-2 text-sm text-gray-700">
-                    <div className="font-semibold">{imovel.titulo}</div>
-                    <div className="text-xs text-gray-500">
-                      {imovel.cidade} - {imovel.estado}
-                    </div>
-                  </td>
+                {/* Info */}
+                <div className="flex-1 min-w-0">
+                   <div className="flex items-center gap-2 mb-1">
+                      <span className="text-[10px] text-blue-600 font-black uppercase tracking-widest">
+                         {imovel.tipo} — {imovel.finalidade}
+                      </span>
+                   </div>
+                   <h3 className="text-lg font-black text-slate-950 truncate leading-tight mb-2">
+                     {imovel.titulo}
+                   </h3>
+                   <div className="flex flex-wrap items-center gap-y-2 gap-x-4">
+                      <div className="flex items-center gap-1.5 text-slate-400 text-xs font-bold uppercase tracking-wider">
+                         <MapPin size={12} className="text-slate-300" />
+                         {imovel.cidade}, {imovel.estado}
+                      </div>
+                      <div className="flex items-center gap-1.5 text-slate-900 text-sm font-black">
+                         <DollarSign size={14} className="text-emerald-500" />
+                         R$ {Number(imovel.preco).toLocaleString("pt-BR")}
+                      </div>
+                   </div>
+                </div>
 
-                  <td className="px-4 py-2 text-center font-bold text-gray-700">
-                    R$ {imovel.preco?.toLocaleString("pt-BR")}
-                  </td>
-
-                  <td className="px-4 py-2 text-center">
-                    <StatusDropdown
+                {/* Status Column */}
+                <div className="lg:w-48 flex justify-center lg:justify-end">
+                   <StatusDropdown
                       imovelId={imovel.id}
-                      currentStatus={imovel.status as Status}
-                      finalidade={imovel.finalidade as Finalidade}
+                      currentStatus={(imovel.status?.toUpperCase() || "DISPONIVEL") as Status}
+                      finalidade={(imovel.finalidade?.toUpperCase() || "VENDA") as Finalidade}
                       onUpdate={fetchImoveis}
                     />
-                  </td>
+                </div>
 
-                  <td className="px-4 py-2 flex justify-center gap-3">
-                    <button onClick={() => setImovelSelecionado(imovel)}>
-                      <Pencil className="w-5 h-5 text-orange-500" />
-                    </button>
-                    <button onClick={() => setImovelSelecionadoDelete(imovel)}>
-                      <span className="text-red-600 text-xl">🗑️</span>
-                    </button>
-                  </td>
+                {/* Actions Column */}
+                <div className="flex items-center gap-2 lg:bg-slate-50 px-3 py-2 rounded-2xl opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
+                   <button 
+                     onClick={() => setImovelSelecionado(imovel)}
+                     className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-100 rounded-xl transition-all active:scale-90"
+                     title="Editar Imóvel"
+                   >
+                     <Pencil size={18} />
+                   </button>
+                   <button 
+                     onClick={() => setImovelSelecionadoDelete(imovel)}
+                     className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-100 rounded-xl transition-all active:scale-90"
+                     title="Excluir Imóvel"
+                   >
+                     <Trash2 size={18} />
+                   </button>
+                </div>
 
-                  <td className="px-4 py-2 text-center">
-                    <button
-                      onClick={() => handleVerFotos(imovel)}
-                      className="relative p-2 hover:bg-gray-200 rounded-full transition-colors"
-                    >
-                      <Camera className="w-5 h-5 text-gray-700" />
-                      {/*  indicando quantidade de fotos */}
-                      {imovel.fotos && imovel.fotos.length > 0 && (
-                        <span className="absolute top-0 right-0 bg-blue-600 text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center">
-                          {imovel.fotos.length}
-                        </span>
-                      )}
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </div>
       )}
+
+      {/* Pagination Container */}
+      <div className="p-8 bg-slate-50/30 border-t border-slate-50">
+        <Paginacao currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+      </div>
 
       {/* MODAIS  */}
       {imovelSelecionado && (
@@ -182,8 +222,6 @@ const ImovelListagemCorretor: React.FC<ImovelListagemCorretorProps> = ({ onImove
       {fotosModalOpen && (
         <VisualizarFotosModal fotos={fotosSelecionadas} onClose={() => setFotosModalOpen(false)} />
       )}
-
-      <Paginacao currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
     </div>
   );
 };

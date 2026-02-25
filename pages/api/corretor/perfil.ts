@@ -29,7 +29,9 @@ export interface AuthApiRequest extends NextApiRequest {
   };
 }
 
-const uploadDir = path.join(process.cwd(), "public/uploads");
+const getUploadDir = () => process.env.UPLOAD_DIR || path.join(process.cwd(), "public", "uploads");
+const uploadDir = getUploadDir();
+
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
@@ -106,6 +108,11 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
         avatarUrl: perfil.avatarUrl,
         bannerUrl: perfil.bannerUrl,
         logoUrl: perfil.logoUrl,
+
+        slogan: perfil.slogan,
+        accentColor: perfil.accentColor,
+        videoUrl: perfil.videoUrl,
+        bioTitle: perfil.bioTitle,
 
         name: perfil.user.name,
         email: perfil.user.email,
@@ -194,6 +201,10 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
         whatsapp,
         metaTitle,
         metaDescription,
+        slogan: req.body.slogan,
+        accentColor: req.body.accentColor,
+        videoUrl: req.body.videoUrl,
+        bioTitle: req.body.bioTitle,
       };
 
       if (avatarUrl !== undefined) dataToSave.avatarUrl = avatarUrl;

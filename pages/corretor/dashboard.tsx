@@ -391,7 +391,7 @@ export default function DashboardCorretor() {
                       <p className="text-xs text-gray-500 capitalize">{imovel.tipo}</p>
                     </div>
                     <div className="text-right flex items-center gap-3">
-                      <p className="text-sm font-medium text-gray-700">
+                      <p className="text-sm font-medium text-gray-900">
                         {imovel.preco.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
                       </p>
                       <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${

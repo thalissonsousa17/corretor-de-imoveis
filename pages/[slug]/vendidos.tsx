@@ -1,29 +1,19 @@
 import type { GetServerSideProps } from "next";
-import Link from "next/link";
+import Head from "next/head";
 import LayoutCorretor from "@/components/LayoutCorretor";
 import type { CorretorProps } from "@/components/LayoutCorretor";
 import { useRouter } from "next/router";
 import CarrosselDestaques from "@/components/CarrosselDestaques";
-import NoticiasCarrossel from "@/components/Noticias/NoticiasCarrossel";
-
-type Foto = { id: string; url: string };
-type Imovel = {
-  id: string;
-  titulo: string;
-  descricao: string;
-  status: string;
-  finalidade: string;
-  preco: number;
-  cidade: string;
-  estado: string;
-  fotos: Foto[];
-};
+import ImovelCard from "@/components/ImovelCard";
+import type { ImovelCardData } from "@/components/ImovelCard";
+import { FiArrowLeft, FiSearch } from "react-icons/fi";
+import { useState } from "react";
 
 type Props = {
   slug: string;
-  imoveis: Imovel[];
+  imoveis: ImovelCardData[];
   corretor: CorretorProps | null;
-  todos: Imovel[];
+  todos: ImovelCardData[];
 };
 
 export const getServerSideProps: GetServerSideProps<Props> = async (ctx) => {
@@ -54,98 +44,77 @@ export const getServerSideProps: GetServerSideProps<Props> = async (ctx) => {
 
 export default function Vendidos({ slug, imoveis, corretor, todos }: Props) {
   const router = useRouter();
+  const [busca, setBusca] = useState("");
+
+  const filtrados = imoveis.filter((i) => {
+    if (!busca) return true;
+    const termo = busca.toLowerCase();
+    return (
+      i.titulo.toLowerCase().includes(termo) ||
+      i.cidade.toLowerCase().includes(termo) ||
+      i.estado.toLowerCase().includes(termo)
+    );
+  });
 
   return (
     <LayoutCorretor corretor={corretor}>
-      <main className="flex-1 w-full max-w-8xl mx-auto px-4 py-12">
-        {/* BOTÃO VOLTAR */}
-        <div className="flex items-center justify-end mb-6 mt-4 gap-4">
-          <button
-            onClick={() => router.back()}
-            className="px-4 py-2 bg-[#1A2A4F] text-white hover:text-[#D4AC3A] hover:bg-[#1A2A4F] rounded-lg transition font-medium cursor-pointer"
-          >
-            ← Voltar
-          </button>
+      <Head>
+        <title>{`${corretor?.name ?? "Corretor"} • Imóveis Vendidos`}</title>
+      </Head>
+
+      <div className="bg-gray-50 dark:bg-slate-950 min-h-screen transition-colors duration-500">
+        {/* Header */}
+        <div className="bg-white dark:bg-slate-900 border-b border-gray-100 dark:border-white/5">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+            <button
+              onClick={() => router.back()}
+              className="flex items-center gap-2 text-gray-600 dark:text-slate-400 hover:text-accent transition text-sm font-medium cursor-pointer"
+            >
+              <FiArrowLeft size={18} />
+              Voltar
+            </button>
+          </div>
         </div>
 
-        {/* SE NÃO EXISTE IMÓVEIS */}
-        {imoveis.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-[60vh] text-gray-500">
-            <p>Nenhum imóvel encontrado.</p>
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
+          {/* Titulo + busca */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-accent">Imóveis Vendidos</h1>
+              <p className="text-gray-500 dark:text-slate-400 text-sm mt-1">{imoveis.length} {imoveis.length === 1 ? "imóvel" : "imóveis"}</p>
+            </div>
+            <div className="flex items-center bg-white dark:bg-slate-900 border border-gray-200 dark:border-white/5 rounded-xl px-3 py-2 gap-2 w-full sm:w-72">
+              <FiSearch size={16} className="text-gray-400 dark:text-slate-500" />
+              <input
+                type="text"
+                value={busca}
+                onChange={(e) => setBusca(e.target.value)}
+                placeholder="Buscar imóvel..."
+                className="flex-1 bg-transparent text-sm text-gray-700 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none"
+              />
+            </div>
           </div>
-        ) : (
-          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-            {imoveis.map((i) => {
-              const capa = i.fotos?.[0]?.url;
 
-              return (
-                <article
-                  key={i.id}
-                  className="group bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100"
-                >
-                  {/* FOTO */}
-                  <div className="relative w-full h-48 sm:h-56 md:h-64 overflow-hidden bg-gray-100">
-                    <img
-                      src={capa}
-                      alt={i.titulo}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                    />
+          {/* Grid */}
+          {filtrados.length === 0 ? (
+            <div className="text-center py-20 text-gray-400">
+              <FiSearch size={48} className="mx-auto mb-4 opacity-50" />
+              <p className="text-lg font-medium">Nenhum imóvel encontrado</p>
+              <p className="text-sm mt-1">Tente buscar com outros termos</p>
+            </div>
+          ) : (
+            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+              {filtrados.map((i) => (
+                <ImovelCard key={i.id} imovel={i} slug={slug} />
+              ))}
+            </div>
+          )}
+        </main>
 
-                    {/* BADGE VENDIDO */}
-                    <span className="absolute top-3 left-3 bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow">
-                      VENDIDO
-                    </span>
-                  </div>
-
-                  {/* CONTEÚDO */}
-                  <div className="p-5 space-y-3 text-gray-700">
-                    <h3 className="font-bold text-lg text-gray-900 leading-tight line-clamp-2">
-                      {i.titulo}
-                    </h3>
-
-                    {/* GRID DE INFORMAÇÕES */}
-                    <div className="grid grid-cols-2 gap-3 text-sm bg-gray-50 rounded-xl p-3 border border-gray-100">
-                      <div>
-                        <p className="font-semibold text-gray-700">Status</p>
-                        <p className="text-gray-600">Vendido</p>
-                      </div>
-
-                      <div>
-                        <p className="font-semibold text-gray-700">Finalidade</p>
-                        <p className="text-gray-600">
-                          {i.finalidade === "VENDA" ? "Venda" : "Aluguel"}
-                        </p>
-                      </div>
-
-                      <div>
-                        <p className="font-semibold text-gray-700">Cidade</p>
-                        <p className="text-gray-600">{i.cidade}</p>
-                      </div>
-
-                      <div>
-                        <p className="font-semibold text-gray-700">Preço</p>
-                        <p className="text-gray-600">Vendido</p>
-                      </div>
-                    </div>
-
-                    {/* BOTÃO */}
-                    <Link
-                      href={`/${slug}/imovel/${i.id}`}
-                      className="mt-4 inline-block w-full text-center rounded-xl bg-[#1A2A4F] text-white hover:text-[#D4AC3A] py-2 font-medium transition"
-                    >
-                      Ver detalhes
-                    </Link>
-                  </div>
-                </article>
-              );
-            })}
-          </div>
-        )}
-      </main>
-
-      {/* CARROSSEL E NOTÍCIAS */}
-      <CarrosselDestaques imoveis={todos} />
-      <NoticiasCarrossel />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <CarrosselDestaques imoveis={todos} />
+        </div>
+      </div>
     </LayoutCorretor>
   );
 }

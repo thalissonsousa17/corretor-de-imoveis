@@ -83,53 +83,47 @@ const FotosUploader: React.FC<FotosUploaderProps> = ({
   }, [fotosExternas, imovelId]);
 
   return (
-    <div className="border border-gray-300 rounded-xl bg-white mt-6 p-4 md:p-6 text-center shadow-sm w-full">
-      <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-4">Fotos do Imóvel</h3>
+    <div className="bg-gray-50/50 rounded-xl p-4 md:p-6 text-center border border-dashed border-gray-300 hover:border-blue-500 transition-all group">
+      <Camera className="w-8 h-8 md:w-10 md:h-10 text-blue-500 mb-2 mx-auto group-hover:scale-110 transition-transform" />
 
-      <div
-        className="group relative flex flex-col items-center justify-center 
-        p-4 md:p-6 rounded-xl w-full
-        border border-dashed border-gray-300 
-        hover:border-blue-500 transition-all bg-gray-50/50"
+      <label
+        htmlFor="fotos"
+        className="text-blue-600 text-sm md:text-base font-semibold cursor-pointer hover:underline block"
       >
-        <Camera className="w-8 h-8 md:w-10 md:h-10 text-blue-500 mb-2 group-hover:scale-110 transition-transform" />
+        Selecionar fotos (máx. 20)
+      </label>
 
-        <label
-          htmlFor="fotos"
-          className="text-blue-600 text-sm md:text-base font-medium cursor-pointer hover:underline"
+      <input
+        id="fotos"
+        type="file"
+        accept="image/*"
+        multiple
+        onChange={handleFileChange}
+        className="hidden"
+        ref={inputRef}
+      />
+
+      <p className="text-xs md:text-sm text-gray-500 mt-2">
+        {fotos.length > 0
+          ? `${fotos.length} foto${fotos.length > 1 ? "s" : ""} selecionada${fotos.length > 1 ? "s" : ""}`
+          : "Arraste fotos aqui ou clique para selecionar"}
+      </p>
+      <p className="text-[10px] text-gray-400 mt-1 max-w-xs mx-auto">
+        Dica: Use fotos na horizontal (paisagem) em 3:2 ou 4:3 (ex: 1200x800px) para preencher o card perfeitamente.
+      </p>
+
+      {fotos.length > 0 && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            setModalOpen(true);
+          }}
+          className="cursor-pointer text-blue-700 font-semibold hover:text-blue-800 text-xs md:text-sm mt-4 px-5 py-2 bg-blue-100/50 hover:bg-blue-100 rounded-full border border-blue-200 transition-colors"
         >
-          Selecionar fotos (máx. 20)
-        </label>
-
-        <input
-          id="fotos"
-          type="file"
-          accept="image/*"
-          multiple
-          onChange={handleFileChange}
-          className="hidden"
-          ref={inputRef}
-        />
-
-        <p className="text-xs md:text-sm text-gray-600 mt-2">
-          {fotos.length > 0
-            ? `${fotos.length} foto${fotos.length > 1 ? "s" : ""} carregada${fotos.length > 1 ? "s" : ""}`
-            : "Nenhuma foto selecionada"}
-        </p>
-
-        {fotos.length > 0 && (
-          <button
-            type="button"
-            onClick={(e) => {
-              e.preventDefault(); // Evita qualquer comportamento de submit inesperado
-              setModalOpen(true);
-            }}
-            className="cursor-pointer text-blue-700 font-semibold hover:text-blue-900 text-xs md:text-sm mt-3 px-4 py-1.5 bg-blue-50 rounded-full border border-blue-100"
-          >
-            Ver e Gerenciar fotos
-          </button>
-        )}
-      </div>
+          🖼️ Ver e Gerenciar fotos
+        </button>
+      )}
 
       {modalOpen && (
         <ModalFotos
@@ -137,7 +131,7 @@ const FotosUploader: React.FC<FotosUploaderProps> = ({
           imovelId={imovelId}
           onClose={() => {
             setModalOpen(false);
-            recarregarFotos?.(); // Importante para atualizar a lista após salvar no banco
+            recarregarFotos?.();
           }}
           onDeleteFoto={handleDeleteFoto}
         />

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
+import { resolveFotoUrl } from "@/lib/imageUtils";
 
 import {
   DndContext,
@@ -35,15 +36,7 @@ type Feedback = {
   message: string;
 } | null;
 
-function resolveFotoUrl(url: string) {
-  if (!url) return "";
-  if (url.startsWith("blob:")) return url;
-  if (url.startsWith("http")) return url;
 
-  const fileName = url.split("/").pop();
-
-  return `/api/uploads/${fileName}`;
-}
 
 function SortableFoto({
   foto,

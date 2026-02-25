@@ -1,0 +1,1 @@
+SELECT * FROM "Foto" LIMIT 10;

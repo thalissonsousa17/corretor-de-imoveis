@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { NextApiRequest, NextApiResponse } from "next";
+import { resolveFotoUrl } from "@/lib/imageUtils";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { id } = req.query;
@@ -25,15 +26,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const profile = imovel.corretor.profile;
     res.json({
-      imovel,
+      imovel: {
+        ...imovel,
+        fotos: (imovel.fotos || []).map((f: any) => ({
+          ...f,
+          url: resolveFotoUrl(f.url)
+        }))
+      },
       corretor: profile
         ? {
             name: imovel.corretor.name,
             creci: profile.creci,
             slug: profile.slug,
-            avatarUel: profile.avatarUrl,
-            logoUrl: profile.logoUrl,
-            bannerUrl: profile.bannerUrl,
+            avatarUrl: resolveFotoUrl(profile.avatarUrl),
+            logoUrl: resolveFotoUrl(profile.logoUrl),
+            bannerUrl: resolveFotoUrl(profile.bannerUrl),
             whatsapp: profile.whatsapp,
             instagram: profile.instagram,
             facebook: profile.facebook,

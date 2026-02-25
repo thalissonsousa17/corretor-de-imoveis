@@ -1,5 +1,6 @@
 import axios from "axios";
 import { useState, useEffect, useRef } from "react";
+import { FiChevronDown } from "react-icons/fi";
 
 type Finalidade = "VENDA" | "ALUGUEL";
 type Status = "DISPONIVEL" | "VENDIDO" | "ALUGADO" | "INATIVO";
@@ -10,6 +11,13 @@ interface StatusDropdownProps {
   finalidade: Finalidade;
   onUpdate: () => void;
 }
+
+const statusLabels: Record<Status, string> = {
+  DISPONIVEL: "Disponível",
+  VENDIDO: "Vendido",
+  ALUGADO: "Alugado",
+  INATIVO: "Inativo",
+};
 
 export default function StatusDropdown({
   imovelId,
@@ -26,18 +34,18 @@ export default function StatusDropdown({
       ? ["DISPONIVEL", "ALUGADO", "INATIVO"]
       : ["DISPONIVEL", "VENDIDO", "INATIVO"];
 
-  const getStatusColor = (status: Status): string => {
+  const getStatusStyles = (status: Status): string => {
     switch (status) {
       case "DISPONIVEL":
-        return "bg-green-100 text-green-800 border-green-400";
+        return "bg-emerald-50 text-emerald-700 border-emerald-200";
       case "ALUGADO":
-        return "bg-orange-100 text-orange-800 border-orange-400";
+        return "bg-amber-50 text-amber-700 border-amber-200";
       case "VENDIDO":
-        return "bg-blue-100 text-blue-800 border-blue-400";
+        return "bg-blue-50 text-blue-700 border-blue-200";
       case "INATIVO":
-        return "bg-red-100 text-red-800 border-red-400";
+        return "bg-rose-50 text-rose-700 border-rose-200";
       default:
-        return "bg-gray-100 text-gray-700 border-gray-300";
+        return "bg-slate-50 text-slate-700 border-slate-200";
     }
   };
 
@@ -66,22 +74,23 @@ export default function StatusDropdown({
       onUpdate();
     } catch (err) {
       console.error("Erro ao atualizar status:", err);
-      alert("Falha ao atualizar o status.");
+      // Aqui poderíamos ter um toast de erro mais premium
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div ref={dropdownRef} className="relative inline-block text-left">
+    <div ref={dropdownRef} className="relative inline-block text-left w-full lg:w-36">
       <button
         onClick={() => setIsOpen((prev) => !prev)}
         disabled={loading}
-        className={`cursor-pointer inline-flex justify-center items-center rounded-md border px-3 py-1.5 text-xs sm:text-sm font-bold uppercase ${getStatusColor(
+        className={`cursor-pointer w-full flex justify-between items-center rounded-xl border px-3 py-2 text-[10px] font-black uppercase tracking-widest ${getStatusStyles(
           currentStatus
-        )} focus:outline-none transition`}
+        )} focus:outline-none transition-all active:scale-95 shadow-sm hover:shadow-md`}
       >
-        {loading ? "Atualizando..." : currentStatus}
+        <span>{loading ? "..." : statusLabels[currentStatus] || currentStatus}</span>
+        <FiChevronDown className={`transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`} />
       </button>
 
       {/* Menu */}
@@ -90,28 +99,32 @@ export default function StatusDropdown({
           className="
             absolute right-0 
             top-full 
-            mb-2 
-            text-gray-700 
-            w-36 sm:w-40 
-            rounded-md 
-            shadow-lg 
+            mt-2 
+            w-full
+            rounded-2xl 
+            shadow-[0_20px_40px_rgba(0,0,0,0.1)] 
             bg-white 
-            ring-1 ring-black ring-opacity-5 
-            z-20
+            border border-slate-100
+            z-[30]
             overflow-hidden
+            animate-in fade-in slide-in-from-top-2 duration-300
           "
         >
-          {statusOptions.map((status) => (
-            <button
-              key={status}
-              onClick={() => handleUpdate(status)}
-              className={`block w-full text-left px-3 sm:px-4 py-2 text-xs sm:text-sm uppercase transition 
-                hover:bg-gray-200 
-                ${status === currentStatus ? "font-semibold bg-gray-900 text-gray-100" : ""}`}
-            >
-              {status}
-            </button>
-          ))}
+          <div className="p-1">
+            {statusOptions.map((status) => (
+              <button
+                key={status}
+                onClick={() => handleUpdate(status)}
+                className={`flex items-center justify-between w-full text-left px-3 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all
+                  ${status === currentStatus 
+                    ? "bg-slate-900 text-white" 
+                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"}`}
+              >
+                {statusLabels[status] || status}
+                {status === currentStatus && <div className="w-1.5 h-1.5 bg-blue-500 rounded-full" />}
+              </button>
+            ))}
+          </div>
         </div>
       )}
     </div>

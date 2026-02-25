@@ -2,15 +2,9 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 import path from "path";
+import { resolveFotoUrl } from "@/lib/imageUtils";
 
-function resolveFotoUrl(url?: string | null) {
-  if (!url) return "";
-  if (url.startsWith("http")) return url;
-  if (url.startsWith("/api/uploads/")) return url;
 
-  const fileName = path.basename(url);
-  return `/api/uploads/${fileName}`;
-}
 
 export default async function handle(req: NextApiRequest, res: NextApiResponse) {
   const { slug, filtro } = req.query;
@@ -96,6 +90,10 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
         linkedin: profile.linkedin,
         whatsapp: profile.whatsapp,
         slug: profile.slug,
+        slogan: profile.slogan,
+        accentColor: profile.accentColor,
+        videoUrl: profile.videoUrl,
+        bioTitle: profile.bioTitle,
       },
       imoveis,
     });

@@ -11,42 +11,49 @@ const CadastrarImovelPage: React.FC = () => {
 
   return (
     <CorretorLayout>
-      <div className="space-y-6">
-        <h1 className="text-3xl font-semibold text-gray-800">🏢 Cadastrar Novo Imóvel</h1>
-        <p className="text-gray-600">
-          Preencha o formulário para incluir um novo imóvel em sua carteira.
-        </p>
-
-        <div className="bg-white p-6 rounded-lg shadow">
-          <ImovelFormulario onSuccess={handleSuccess} />
+      <div className="max-w-4xl mx-auto py-2">
+        {/* Cabeçalho */}
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+            🏢 Cadastrar Novo Imóvel
+          </h1>
+          <p className="text-sm text-gray-500 mt-1">
+            Preencha os dados abaixo para incluir um novo imóvel em sua carteira.
+          </p>
         </div>
 
+        {/* Formulário */}
+        <ImovelFormulario onSuccess={handleSuccess} />
+
+        {/* Modal de sucesso */}
         {openModal && (
-          <div className="fixed inset-0 flex items-center justify-center bg-opacity-10 z-50">
-            <div className="bg-gray-900 opacity-90 rounded-lg shadow-lg p-8 max-w-md w-full text-center animate-fade-in">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-16 w-16 text-gray-100 mx-auto md-4"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10.5 14.793l-3.646-3.647a.5.5 0 00-.708.708l4 4a.5.5 0 00.708 0l8-8a.5.5 0 00-.708-.708L10.5 14.793z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              <h2 className="text-xl font-semibold text-gray-100">
-                Imóvel cadastrado com sucesso!
+          <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50">
+            <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full text-center mx-4 animate-[fadeIn_0.3s_ease-out]">
+              <div className="w-16 h-16 mx-auto mb-4 bg-emerald-100 rounded-full flex items-center justify-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-8 w-8 text-emerald-600"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              </div>
+              <h2 className="text-xl font-bold text-gray-800">
+                Imóvel cadastrado!
               </h2>
-              <p className="text-gray-100 mt-2">
-                O imóvel doi adicionado à sua carteira com sucesso.
+              <p className="text-gray-500 mt-2 text-sm">
+                O imóvel foi adicionado à sua carteira com sucesso.
               </p>
               <button
                 onClick={() => setOpenModal(false)}
-                className="mt-6 px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
+                className="mt-6 w-full py-2.5 px-6 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-medium hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg hover:shadow-blue-500/25 cursor-pointer"
               >
-                Fechar
+                Continuar
               </button>
             </div>
           </div>

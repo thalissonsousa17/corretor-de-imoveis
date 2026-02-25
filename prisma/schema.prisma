@@ -47,6 +47,13 @@ model CorretorProfile {
   metaTitle              String?
   biografia              String?
   logoUrl                String?
+  
+  // Novos campos Premium
+  slogan                String?
+  accentColor           String?     @default("#1A2A4F")
+  videoUrl              String?
+  bioTitle              String?     @default("Sobre mim")
+
   plano                  PlanoTipo   @default(GRATUITO)
   planoCanceladoEm       DateTime?
   planoStatus            PlanoStatus @default(INATIVO)
@@ -101,9 +108,18 @@ model Imovel {
   cep         String?
   numero      String?
   rua         String?
-  finalidade  Finalidade   @default(VENDA)
-  status      ImovelStatus @default(DISPONIVEL)
-  fotos       Foto[]
+  finalidade    Finalidade   @default(VENDA)
+  status        ImovelStatus @default(DISPONIVEL)
+  quartos       Int?
+  banheiros     Int?
+  suites        Int?
+  vagas         Int?
+  areaTotal     Float?
+  areaUtil      Float?
+  condominio    Float?
+  iptu          Float?
+  anoConstrucao Int?
+  fotos         Foto[]
   visitas     Visita[]
   views       ImovelView[]
   comissoes   Comissao[]

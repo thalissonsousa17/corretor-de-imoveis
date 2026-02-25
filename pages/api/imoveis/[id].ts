@@ -6,6 +6,7 @@ import path from "path";
 import type { Imovel, Foto, ImovelStatus } from "@prisma/client";
 import formidable from "formidable";
 import crypto from "crypto";
+import { resolveFotoUrl } from "../../../lib/imageUtils";
 
 export const config = {
   api: {
@@ -13,22 +14,13 @@ export const config = {
   },
 };
 
-const UPLOAD_DIR_ABSOLUTE = "/projects/corretor-de-imoveis/public/uploads";
+const getUploadDir = () => process.env.UPLOAD_DIR || path.join(process.cwd(), "public", "uploads");
+const UPLOAD_DIR_ABSOLUTE = getUploadDir();
 
 type UploadedFile = formidable.File & {
   filepath?: string;
   path?: string;
 };
-
-function normalizeUrl(url: string | null | undefined): string {
-  if (!url) return "";
-
-  if (url.startsWith("http")) return url;
-
-  const fileName = path.basename(url);
-
-  return `/api/uploads/${fileName}`;
-}
 
 async function filtrarFotosValidas(fotos: Foto[]): Promise<Foto[]> {
   return fotos;
@@ -118,6 +110,18 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse) => {
       const preco = parseFloat(String(fields.preco));
       if (!isNaN(preco)) data.preco = preco;
     }
+    // Características do imóvel
+    const extraData: Record<string, number | null> = {};
+    if (fields.quartos !== undefined) extraData.quartos = fields.quartos ? parseInt(String(fields.quartos)) || null : null;
+    if (fields.banheiros !== undefined) extraData.banheiros = fields.banheiros ? parseInt(String(fields.banheiros)) || null : null;
+    if (fields.suites !== undefined) extraData.suites = fields.suites ? parseInt(String(fields.suites)) || null : null;
+    if (fields.vagas !== undefined) extraData.vagas = fields.vagas ? parseInt(String(fields.vagas)) || null : null;
+    if (fields.areaTotal !== undefined) extraData.areaTotal = fields.areaTotal ? parseFloat(String(fields.areaTotal)) || null : null;
+    if (fields.areaUtil !== undefined) extraData.areaUtil = fields.areaUtil ? parseFloat(String(fields.areaUtil)) || null : null;
+    if (fields.condominio !== undefined) extraData.condominio = fields.condominio ? parseFloat(String(fields.condominio)) || null : null;
+    if (fields.iptu !== undefined) extraData.iptu = fields.iptu ? parseFloat(String(fields.iptu)) || null : null;
+    if (fields.anoConstrucao !== undefined) extraData.anoConstrucao = fields.anoConstrucao ? parseInt(String(fields.anoConstrucao)) || null : null;
+    Object.assign(data, extraData);
 
     /* ===== REMOVER FOTOS ===== */
     let fotosRemoverIds: string[] = [];
@@ -200,7 +204,7 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse) => {
 
     const fotosFormatadas = imovelAtualizado.fotos.map((f) => ({
       ...f,
-      url: normalizeUrl(f.url),
+      url: resolveFotoUrl(f.url),
     }));
 
     res.status(200).json({
@@ -227,7 +231,7 @@ const handleGetById = async (req: AuthApiRequest, res: NextApiResponse) => {
 
   const fotosFormatadas = imovel.fotos.map((f) => ({
     ...f,
-    url: normalizeUrl(f.url),
+    url: resolveFotoUrl(f.url),
   }));
 
   return res.status(200).json({
@@ -251,7 +255,7 @@ const handlePatch = async (req: AuthApiRequest, res: NextApiResponse) => {
 
   const fotosFormatadas = updated.fotos.map((f) => ({
     ...f,
-    url: normalizeUrl(f.url),
+    url: resolveFotoUrl(f.url),
   }));
 
   return res.status(200).json({

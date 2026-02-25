@@ -3,6 +3,8 @@
 import React, { useId, useMemo } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Navigation } from "swiper/modules";
+import { resolveFotoUrl } from "@/lib/imageUtils";
+import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import "swiper/css";
 import "swiper/css/navigation";
 
@@ -24,14 +26,7 @@ type Imovel = {
   fotoPrincipal?: string | null;
 };
 
-const resolveFotoUrl = (url?: string | null) => {
-  if (!url) return "/placeholder.png";
-  if (url.startsWith("http")) return url;
-  if (url.startsWith("/api/uploads/")) return url;
 
-  const fileName = url.split(/[\\/]/).pop();
-  return fileName ? `/api/uploads/${fileName}` : "/placeholder.png";
-};
 
 export default function CarrosselDestaques({ imoveis }: { imoveis: Imovel[] }) {
   const uid = useId();
@@ -48,40 +43,55 @@ export default function CarrosselDestaques({ imoveis }: { imoveis: Imovel[] }) {
   const canLoop = destaques.length > 1;
 
   return (
-    <section className="bg-white py-10 sm:py-14 md:py-16">
-      <h2 className="text-center text-2xl sm:text-3xl font-bold text-[#1A2A4F] mb-6 sm:mb-8 md:mb-10">
-        Destaques para você
-      </h2>
+    <section className="bg-white dark:bg-slate-950 py-24 transition-colors duration-500 overflow-hidden">
+      <div className="text-center mb-16">
+        <span className="inline-block px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.3em] mb-4 border border-slate-100 dark:border-white/5 bg-slate-50 dark:bg-white/5 text-accent dark:text-blue-200">
+          Seleção Premium
+        </span>
+        <h2 className="text-4xl md:text-5xl font-black text-slate-950 dark:text-white tracking-tighter leading-tight">
+          Destaques <span className="text-slate-400 dark:text-slate-500">para você.</span>
+        </h2>
+      </div>
 
       <div className="max-w-7xl mx-auto px-3 sm:px-4 relative">
         {/* BOTÃO ESQUERDO */}
         <button
           id={prevId}
           className="
-            absolute left-1 top-1/2 -translate-y-1/2 z-20
-            p-2 sm:p-3 rounded-full
-            bg-black/40 hover:bg-black/60
-            text-white shadow-lg cursor-pointer
-            hidden md:block
+            absolute -left-4 top-1/2 -translate-y-1/2 z-30
+            w-14 h-14 rounded-full
+            bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl
+            text-slate-900 dark:text-white 
+            shadow-[0_20px_40px_rgba(0,0,0,0.1)] 
+            hover:shadow-[0_30px_60px_rgba(0,0,0,0.15)]
+            flex items-center justify-center
+            transition-all duration-300 hover:scale-110 active:scale-95
+            disabled:opacity-20 disabled:cursor-not-allowed
+            hidden lg:flex border border-white dark:border-white/10
           "
           aria-label="Anterior"
         >
-          ‹
+          <FiChevronLeft size={24} />
         </button>
 
         {/* BOTÃO DIREITO */}
         <button
           id={nextId}
           className="
-            absolute right-1 top-1/2 -translate-y-1/2 z-20
-            p-2 sm:p-3 rounded-full
-            bg-black/40 hover:bg-black/60
-            text-white shadow-lg cursor-pointer
-            hidden md:block
+            absolute -right-4 top-1/2 -translate-y-1/2 z-30
+            w-14 h-14 rounded-full
+            bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl
+            text-slate-900 dark:text-white 
+            shadow-[0_20px_40px_rgba(0,0,0,0.1)] 
+            hover:shadow-[0_30px_60px_rgba(0,0,0,0.15)]
+            flex items-center justify-center
+            transition-all duration-300 hover:scale-110 active:scale-95
+            disabled:opacity-20 disabled:cursor-not-allowed
+            hidden lg:flex border border-white dark:border-white/10
           "
           aria-label="Próximo"
         >
-          ›
+          <FiChevronRight size={24} />
         </button>
 
         <Swiper
@@ -109,10 +119,12 @@ export default function CarrosselDestaques({ imoveis }: { imoveis: Imovel[] }) {
               <SwiperSlide key={imovel.id} className="group">
                 <div
                   className="
-                    relative rounded-2xl overflow-hidden shadow-xl
-                    transition-all duration-300
-                    group-hover:scale-[1.03]
-                    bg-gray-200
+                    relative rounded-[2.5rem] overflow-hidden 
+                    shadow-[0_30px_60px_-15px_rgba(0,0,0,0.15)]
+                    hover:shadow-[0_40px_80px_rgba(var(--accent-color-rgb),0.1)]
+                    transition-all duration-700
+                    hover:-translate-y-4
+                    bg-gradient-to-br from-slate-900 to-slate-950 border border-white/5 dark:hover:border-accent/30
                   "
                 >
                   <img
@@ -124,18 +136,18 @@ export default function CarrosselDestaques({ imoveis }: { imoveis: Imovel[] }) {
                     }}
                   />
 
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/20 to-transparent opacity-80 group-hover:opacity-100 transition-opacity duration-700" />
 
-                  <div className="absolute bottom-3 left-3 text-white">
-                    <h3 className="font-bold text-base sm:text-lg drop-shadow-sm line-clamp-1">
+                  <div className="absolute bottom-6 left-6 right-6 text-white transition-transform duration-500 group-hover:-translate-y-2">
+                    <h3 className="font-black text-lg sm:text-xl drop-shadow-2xl line-clamp-1 tracking-tight">
                       {imovel.titulo}
                     </h3>
-
-                    <p className="text-xs sm:text-sm opacity-90 line-clamp-1">
+ 
+                    <p className="text-xs sm:text-sm font-bold opacity-60 line-clamp-1 uppercase tracking-widest mt-1">
                       {imovel.cidade} - {imovel.estado}
                     </p>
-
-                    <p className="text-yellow-400 font-bold mt-1 text-sm sm:text-[15px]">
+ 
+                    <p className="text-white font-black mt-3 text-lg sm:text-xl tracking-tighter drop-shadow-2xl">
                       {Number(imovel.preco).toLocaleString("pt-BR", {
                         style: "currency",
                         currency: "BRL",
@@ -145,9 +157,10 @@ export default function CarrosselDestaques({ imoveis }: { imoveis: Imovel[] }) {
 
                   <span
                     className={`
-                      absolute top-2 left-2 px-2 sm:px-3 py-1
-                      text-[10px] sm:text-xs font-bold rounded-full
-                      ${imovel.finalidade === "VENDA" ? "bg-green-600 text-white" : "bg-blue-600 text-white"}
+                      absolute top-4 left-4 px-4 py-1.5
+                      text-[10px] font-black rounded-full uppercase tracking-widest
+                      backdrop-blur-md shadow-lg border border-white/10
+                      ${imovel.finalidade === "VENDA" ? "bg-accent/80 text-white" : "bg-blue-600/80 text-white"}
                     `}
                   >
                     {imovel.finalidade === "VENDA" ? "À VENDA" : "ALUGUEL"}

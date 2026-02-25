@@ -1,4 +1,6 @@
-import { FaCheckCircle, FaFacebook, FaInstagram, FaShieldAlt, FaWhatsapp } from "react-icons/fa";
+import { FaShieldAlt, FaFacebookF, FaInstagram, FaWhatsapp } from "react-icons/fa";
+import { resolveFotoUrl as resolveAssetUrl } from "@/lib/imageUtils";
+import { FiMail, FiPhone, FiArrowUp } from "react-icons/fi";
 import QRCode from "react-qr-code";
 import { toWaLink } from "@/lib/phone";
 
@@ -9,16 +11,11 @@ type FooterProps = {
   instagram?: string | null;
   facebook?: string | null;
   logoUrl?: string | null;
+  email?: string | null;
+  endereco?: string | null;
 };
 
-const resolveAssetUrl = (url?: string | null) => {
-  if (!url) return "";
-  if (url.startsWith("http")) return url;
-  if (url.startsWith("/api/uploads/")) return url;
 
-  const fileName = url.split(/[\\/]/).pop();
-  return fileName ? `/api/uploads/${fileName}` : "";
-};
 
 export default function Footer({
   nome,
@@ -27,123 +24,153 @@ export default function Footer({
   instagram,
   facebook,
   logoUrl,
+  email,
+  endereco,
 }: FooterProps) {
   const ano = new Date().getFullYear();
   const wa = whatsapp ? toWaLink(whatsapp) : "";
-
   const logoResolved = resolveAssetUrl(logoUrl);
 
   return (
-    <footer className="bg-[#0D1B3A] text-white pt-16 mt-20 relative">
-      {/* Linha dourada */}
-      <div className="border-t-4 border-[#D4AC3A]"></div>
+    <footer className="relative bg-slate-950 text-white pt-24 overflow-hidden mt-20 transition-colors duration-500">
+      {/* Decorative Gradient Background */}
+      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-accent/50 to-transparent" />
+      <div className="absolute -top-24 -left-24 w-96 h-96 bg-accent/10 rounded-full blur-[120px]" />
+      <div className="absolute top-1/2 -right-24 w-80 h-80 bg-emerald-500/5 rounded-full blur-[100px]" />
 
-      <div className="max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 md:grid-cols-3 gap-12">
-        {/* QR CODE */}
-        <div className="text-center">
-          <h3 className="text-base font-semibold mb-3">WhatsApp direto</h3>
+      <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8 pb-16">
+          
+          {/* Col 1: Brand & About */}
+          <div className="space-y-6">
+            <div className="flex flex-col gap-4">
+              {logoResolved ? (
+                <img
+                  src={logoResolved}
+                  alt={nome}
+                  className="h-12 w-auto object-contain dark:brightness-0 dark:invert transition-opacity hover:opacity-100"
+                  onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+                />
+              ) : (
+                <span className="text-2xl font-black tracking-tighter italic">
+                  {nome.split(' ')[0]}<span className="text-accent">.</span>
+                </span>
+              )}
+              <div className="w-12 h-1 bg-accent rounded-full" />
+            </div>
+            <p className="text-slate-300 text-sm leading-relaxed font-medium">
+              Especialista em negócios imobiliários de alto padrão, oferecendo uma curadoria exclusiva para quem busca excelência e transparência.
+            </p>
+            <div className="flex gap-3">
+              {[
+                { icon: <FaInstagram />, href: instagram ? `https://instagram.com/${instagram}` : null },
+                { icon: <FaFacebookF />, href: facebook ? `https://facebook.com/${facebook}` : null },
+                { icon: <FaWhatsapp />, href: wa || null },
+              ].map((social, i) => social.href && (
+                <a
+                  key={i}
+                  href={social.href}
+                  target="_blank"
+                  className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 border border-white/10 text-slate-300 hover:bg-accent hover:text-white hover:border-accent transition-all duration-300"
+                >
+                  {social.icon}
+                </a>
+              ))}
+            </div>
+          </div>
 
-          {wa ? (
-            <>
-              <div className="bg-white p-3 rounded-xl w-fit mx-auto shadow">
-                <QRCode value={wa} size={80} />
+          {/* Col 2: Quick Links */}
+          <div className="lg:pl-8">
+            <h4 className="text-white font-bold text-sm uppercase tracking-[0.2em] mb-8">Navegação</h4>
+            <ul className="space-y-4">
+              {["Início", "Comprar", "Alugar", "Vendidos", "Perfil"].map((item) => (
+                <li key={item}>
+                  <a href="#" className="text-slate-300 hover:text-accent text-sm font-medium transition-colors flex items-center gap-2 group">
+                    <div className="w-1 h-1 bg-slate-700 rounded-full group-hover:bg-accent transition-colors" />
+                    {item}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Col 3: Contact Info */}
+          <div className="space-y-8">
+            <h4 className="text-white font-bold text-sm uppercase tracking-[0.2em]">Contato</h4>
+            <div className="space-y-5">
+              {whatsapp && (
+                <div className="flex items-center gap-4 group">
+                  <div className="w-10 h-10 flex items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 group-hover:bg-emerald-500 group-hover:text-white transition-all">
+                    <FiPhone size={18} />
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">WhatsApp</p>
+                    <p className="text-white text-sm font-bold">{whatsapp}</p>
+                  </div>
+                </div>
+              )}
+              {email && (
+                <div className="flex items-center gap-4 group">
+                  <div className="w-10 h-10 flex items-center justify-center rounded-xl bg-accent/10 text-accent border border-accent/20 group-hover:bg-accent group-hover:text-white transition-all">
+                    <FiMail size={18} />
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">E-mail</p>
+                    <p className="text-white text-sm font-bold break-all">{email}</p>
+                  </div>
+                </div>
+              )}
+               {creci && (
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-800 text-slate-400 border border-white/5">
+                    <FaShieldAlt size={18} />
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Credencial</p>
+                    <p className="text-white text-sm font-bold">CRECI {creci}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Col 4: Trust & QR */}
+          <div className="bg-white/5 border border-white/10 rounded-3xl p-8 flex flex-col items-center text-center space-y-6">
+            <h4 className="text-white font-bold text-sm">Escaneie & Chame</h4>
+            {wa ? (
+              <div className="p-4 bg-white rounded-2xl shadow-xl flex items-center justify-center border border-slate-100">
+                <QRCode value={wa} size={100} fgColor="#0A0F1D" />
               </div>
-              <p className="mt-2 text-sm text-gray-300">Aponte a câmera</p>
-            </>
-          ) : (
-            <p className="mt-2 text-sm text-gray-300">WhatsApp não informado</p>
-          )}
-        </div>
-
-        {/* LOGO + INFO */}
-        <div className="text-center flex flex-col items-center">
-          {logoResolved ? (
-            <img
-              src={logoResolved}
-              alt={nome}
-              className="h-16 w-auto object-contain mb-2"
-              onError={(e) => {
-                (e.currentTarget as HTMLImageElement).style.display = "none";
-              }}
-            />
-          ) : null}
-
-          <p className="text-xl font-semibold text-[#D4AC3A]">{nome}</p>
-          {creci && <p className="text-sm text-gray-300 mb-2">CRECI {creci}</p>}
-
-          <p className="text-sm text-gray-400 max-w-xs leading-relaxed mt-1">
-            Atendimento profissional e transparente. Encontre seu imóvel com segurança e agilidade.
-          </p>
-
-          <div className="flex gap-5 pt-4 text-2xl">
-            {instagram && (
-              <a
-                href={`https://instagram.com/${instagram}`}
-                target="_blank"
-                rel="noreferrer"
-                className="hover:text-[#D4AC3A] transition"
-              >
-                <FaInstagram />
-              </a>
+            ) : (
+              <div className="w-[132px] h-[132px] bg-slate-800 rounded-2xl flex items-center justify-center text-slate-600 italic text-xs p-4">
+                WhatsApp Indisponível
+              </div>
             )}
-            {facebook && (
-              <a
-                href={`https://facebook.com/${facebook}`}
-                target="_blank"
-                rel="noreferrer"
-                className="hover:text-[#D4AC3A] transition"
-              >
-                <FaFacebook />
-              </a>
-            )}
-            {wa && (
-              <a
-                href={wa}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-[#D4AC3A] transition"
-              >
-                <FaWhatsapp />
-              </a>
-            )}
+            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-relaxed">
+              Atendimento ágil direto no smartphone
+            </p>
           </div>
         </div>
 
-        {/* GARANTIAS */}
-        <div>
-          <h3 className="text-base font-semibold mb-3 flex items-center gap-2">
-            <FaShieldAlt /> Garantia & Confiança
-          </h3>
+        {/* Bottom Bar */}
+        <div className="pt-12 pb-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
+          <div className="flex flex-col md:flex-row items-center gap-4 text-slate-400 text-[11px] font-bold uppercase tracking-[0.2em]">
+            <span>© {ano} {nome}</span>
+            <div className="hidden md:block w-1.5 h-1.5 bg-slate-800 rounded-full" />
+            <span>Todos os direitos reservados</span>
+          </div>
 
-          <ul className="space-y-2 text-sm text-gray-300">
-            <li className="flex items-center gap-2">
-              <FaCheckCircle className="text-[#D4AC3A]" /> Corretor credenciado
-            </li>
-            <li className="flex items-center gap-2">
-              <FaCheckCircle className="text-[#D4AC3A]" />
-              Atendimento personalizado
-            </li>
-            <li className="flex items-center gap-2">
-              <FaCheckCircle className="text-[#D4AC3A]" />
-              Transparência e segurança nas negociações
-            </li>
-          </ul>
+          {/* Scroll to Top */}
+          <button
+            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+            className="group flex items-center gap-3 text-slate-400 hover:text-white transition-colors cursor-pointer"
+          >
+            <span className="text-[10px] font-black uppercase tracking-widest group-hover:tracking-[0.3em] transition-all">Voltar ao topo</span>
+            <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center group-hover:bg-accent group-hover:border-accent group-hover:text-white transition-all">
+              <FiArrowUp size={18} />
+            </div>
+          </button>
         </div>
-      </div>
-
-      {/* BOTÃO VOLTAR AO TOPO */}
-      <button
-        onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-        className="fixed bottom-6 right-6 bg-[#D4AC3A] text-[#0D1B3A] p-3 rounded-full shadow-lg 
-        hover:bg-[#f1d382] transition border border-white/20 text-xl"
-        aria-label="Voltar ao topo"
-      >
-        ↑
-      </button>
-
-      {/* RODAPÉ FINAL */}
-      <div className="text-center text-gray-400 text-sm py-6 border-t border-white/10">
-        © {ano} {nome}. Todos os direitos reservados.
       </div>
     </footer>
   );

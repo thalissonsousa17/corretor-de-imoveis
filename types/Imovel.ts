@@ -38,4 +38,13 @@ export interface Imovel {
   corretor?: CorretorInfo;
   status?: Status;
   finalidade?: Finalidade;
+  quartos?: number;
+  banheiros?: number;
+  suites?: number;
+  vagas?: number;
+  areaTotal?: number;
+  areaUtil?: number;
+  condominio?: number;
+  iptu?: number;
+  anoConstrucao?: number;
 }

@@ -1,4 +1,5 @@
 import React from "react";
+import { resolveFotoUrl } from "@/lib/imageUtils";
 
 interface VisualizarFotosModalProps {
   fotos: { id: string; url: string }[];
@@ -8,15 +9,7 @@ interface VisualizarFotosModalProps {
 const VisualizarFotosModal: React.FC<VisualizarFotosModalProps> = ({ fotos, onClose }) => {
   if (!fotos || fotos.length === 0) return null;
 
-  function resolveFotoUrl(url: string) {
-    if (!url) return "";
-    if (url.startsWith("blob:")) return url;
-    if (url.startsWith("http")) return url;
 
-    const fileName = url.split("/").pop();
-
-    return `/api/uploads/${fileName}`;
-  }
 
   return (
     <div className="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center">

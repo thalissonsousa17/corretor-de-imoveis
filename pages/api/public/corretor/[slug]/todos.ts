@@ -2,27 +2,13 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 import path from "path";
+import { resolveFotoUrl } from "@/lib/imageUtils";
 
 type ImovelComFotos = Prisma.ImovelGetPayload<{
   include: { fotos: true };
 }>;
 
-function normalizeUrl(url: string | null | undefined): string {
-  if (!url) return "";
-  if (url.startsWith("http")) return url;
-  const fileName = path.basename(url);
-  return `/api/uploads/${fileName}`;
-}
 
-function absoluteUrl(req: NextApiRequest, p: string) {
-  if (!p) return "";
-  if (p.startsWith("http")) return p;
-
-  const proto = (req.headers["x-forwarded-proto"] as string) || "http";
-  const host = (req.headers["x-forwarded-host"] as string) || req.headers.host;
-
-  return `${proto}://${host}${p}`;
-}
 
 export default async function handle(req: NextApiRequest, res: NextApiResponse) {
   const { slug, filtro } = req.query;
@@ -30,6 +16,7 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
   try {
     const profile = await prisma.corretorProfile.findUnique({
       where: { slug: String(slug) },
+      include: { user: true },
     });
 
     if (!profile) return res.status(404).json({ message: "Corretor não encontrado." });
@@ -54,15 +41,15 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
 
       return {
         ...imovel,
-        fotoPrincipal: absoluteUrl(req, normalizeUrl(primeiraFotoUrl)),
+        fotoPrincipal: resolveFotoUrl(primeiraFotoUrl),
         fotos: undefined,
       };
     });
 
     return res.status(200).json({
       corretor: {
-        name: profile.slug,
-        avatarUrl: absoluteUrl(req, normalizeUrl(profile.avatarUrl)),
+        name: profile.user?.name || profile.slug,
+        avatarUrl: resolveFotoUrl(profile.avatarUrl),
       },
       imoveis,
     });

@@ -13,6 +13,9 @@ export const config = {
   },
 };
 
+const getUploadDir = () => process.env.UPLOAD_DIR || path.join(process.cwd(), "public", "uploads");
+const UPLOAD_DIR_ABSOLUTE = getUploadDir();
+
 const handleGet = async (req: AuthApiRequest, res: NextApiResponse) => {
   try {
     const corretorId = req.user?.id;
@@ -37,7 +40,7 @@ const handlePost = async (req: AuthApiRequest, res: NextApiResponse) => {
   const corretorId = req.user!.id;
 
   const form = formidable({
-    uploadDir: path.join(process.cwd(), "public", "uploads"),
+    uploadDir: UPLOAD_DIR_ABSOLUTE,
     keepExtensions: true,
     maxFiles: 20,
     maxFileSize: 15 * 1024 * 1024, // 15MB por arquivo
@@ -103,6 +106,16 @@ const handlePost = async (req: AuthApiRequest, res: NextApiResponse) => {
         finalidade: finalidadeFinal,
         status: "DISPONIVEL",
         corretorId: corretorId,
+        // Características do imóvel
+        ...(getFieldValue(fields.quartos) ? { quartos: parseInt(getFieldValue(fields.quartos)) } : {}),
+        ...(getFieldValue(fields.banheiros) ? { banheiros: parseInt(getFieldValue(fields.banheiros)) } : {}),
+        ...(getFieldValue(fields.suites) ? { suites: parseInt(getFieldValue(fields.suites)) } : {}),
+        ...(getFieldValue(fields.vagas) ? { vagas: parseInt(getFieldValue(fields.vagas)) } : {}),
+        ...(getFieldValue(fields.areaTotal) ? { areaTotal: parseFloat(getFieldValue(fields.areaTotal)) } : {}),
+        ...(getFieldValue(fields.areaUtil) ? { areaUtil: parseFloat(getFieldValue(fields.areaUtil)) } : {}),
+        ...(getFieldValue(fields.condominio) ? { condominio: parseFloat(getFieldValue(fields.condominio)) } : {}),
+        ...(getFieldValue(fields.iptu) ? { iptu: parseFloat(getFieldValue(fields.iptu)) } : {}),
+        ...(getFieldValue(fields.anoConstrucao) ? { anoConstrucao: parseInt(getFieldValue(fields.anoConstrucao)) } : {}),
       },
     });
 

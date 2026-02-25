@@ -80,31 +80,31 @@ export default function NoticiasPage({ corretor, noticias, imoveis }: Props) {
         />
       </Head>
 
-      <main className="max-w-7xl mx-auto px-6 py-14">
-        <h1 className="text-3xl font-bold text-[#1A2A4F] text-center mb-10">
+      <main className="max-w-7xl mx-auto px-6 py-14 min-h-screen transition-colors duration-500">
+        <h1 className="text-3xl font-bold text-[#1A2A4F] dark:text-white text-center mb-10">
           Todas as notícias sobre financiamento
         </h1>
 
         {noticias.length === 0 ? (
-          <p className="text-center text-gray-500">Nenhuma notícia encontrada.</p>
+          <p className="text-center text-gray-500 dark:text-slate-400">Nenhuma notícia encontrada.</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
             {noticias.map((n, i) => (
               <div
                 key={i}
-                className="bg-white shadow rounded-xl overflow-hidden hover:shadow-lg transition"
+                className="bg-white dark:bg-slate-900 shadow dark:shadow-none dark:border dark:border-white/5 rounded-xl overflow-hidden hover:shadow-lg dark:hover:border-accent/30 transition"
               >
                 <div className="p-5 flex flex-col justify-between h-56">
                   <div>
-                    <h2 className="font-bold text-lg text-gray-900 line-clamp-2">{n.titulo}</h2>
-                    <p className="text-gray-600 text-sm mt-2 line-clamp-4">{n.resumo}</p>
+                    <h2 className="font-bold text-lg text-gray-900 dark:text-white line-clamp-2">{n.titulo}</h2>
+                    <p className="text-gray-600 dark:text-slate-400 text-sm mt-2 line-clamp-4">{n.resumo}</p>
                   </div>
 
                   <a
                     href={n.link}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-[#1A2A4F] font-semibold mt-4 hover:text-[#D4AC3A]"
+                    className="text-[#1A2A4F] dark:text-accent font-semibold mt-4 hover:text-[#D4AC3A] transition-colors"
                   >
                     Ler matéria completa →
                   </a>

@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
+import { resolveFotoUrl as resolveAssetUrl } from "@/lib/imageUtils";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { Phone, Menu, X } from "lucide-react";
+import { Phone, Menu, X, ChevronDown, Sun, Moon } from "lucide-react";
+import { FiInstagram, FiFacebook, FiYoutube } from "react-icons/fi";
 
 interface Corretor {
   name?: string;
@@ -9,225 +11,225 @@ interface Corretor {
   email?: string | null;
   logoUrl?: string | null;
   slug?: string | null;
+  instagram?: string | null;
+  facebook?: string | null;
 }
 
 interface HeaderCorretorProps {
   corretor: Corretor;
+  theme?: "light" | "dark";
+  toggleTheme?: () => void;
 }
 
-const resolveAssetUrl = (url?: string | null) => {
-  if (!url) return "";
-  const trimmed = url.trim();
-  if (!trimmed) return "";
-  if (trimmed.startsWith("http")) return trimmed;
-  if (trimmed.startsWith("/api/uploads/")) return trimmed;
 
-  const fileName = trimmed.split(/[\\/]/).pop();
-  return fileName ? `/api/uploads/${fileName}` : "";
-};
 
-export default function HeaderCorretor({ corretor }: HeaderCorretorProps) {
+export default function HeaderCorretor({ corretor, theme, toggleTheme }: HeaderCorretorProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [logoFailed, setLogoFailed] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 30);
+    const handleScroll = () => setIsScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const slug = corretor?.slug;
-
-  const logoSrc = useMemo(() => {
-    const resolved = resolveAssetUrl(corretor.logoUrl);
-    return resolved;
-  }, [corretor.logoUrl]);
-
+  const logoSrc = useMemo(() => resolveAssetUrl(corretor.logoUrl), [corretor.logoUrl]);
   const waHref = corretor.whatsapp ? `https://wa.me/${corretor.whatsapp.replace(/\D/g, "")}` : "";
+
+  const navItems = slug
+    ? [
+        { href: `/${slug}`, label: "Início" },
+        { href: `/${slug}/vendas`, label: "Comprar" },
+        { href: `/${slug}/aluguel`, label: "Alugar" },
+        { href: `/${slug}/vendidos`, label: "Vendidos" },
+        { href: `/${slug}/perfil`, label: "Perfil" },
+      ]
+    : [];
+
+  const isActive = (href: string) => {
+    if (href === `/${slug}`) return router.asPath === href;
+    return router.asPath.startsWith(href);
+  };
 
   return (
     <>
-      {/* HEADER */}
       <header
         className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${
-          isScrolled ? "shadow-md bg-white/95 backdrop-blur-sm" : "bg-white"
+          isScrolled 
+            ? "py-2 bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.05)] border-b border-white/20 dark:border-slate-800/50" 
+            : "py-4 bg-transparent"
         }`}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex justify-between items-center">
-          {/* LOGO */}
-          <div className="flex items-center gap-3">
-            {!logoFailed && logoSrc ? (
-              <div className="relative h-10 sm:h-10 w-auto">
-                <img
-                  src={logoSrc}
-                  alt={corretor.name || "Logo"}
-                  className="object-contain h-full w-auto"
-                  onError={() => setLogoFailed(true)}
-                />
+        <div className="max-w-7xl mx-auto px-4 sm:px-8">
+          <div className="flex justify-between items-center bg-white/40 dark:bg-slate-900/40 backdrop-blur-md rounded-2xl border border-white/40 dark:border-white/10 px-6 py-3 shadow-sm">
+            {/* Logo Section */}
+            <Link href={slug ? `/${slug}` : "/"} className="flex items-center gap-3 group">
+              <div className="relative">
+                {!logoFailed && logoSrc ? (
+                  <img
+                    src={logoSrc}
+                    alt={corretor.name || "Logo"}
+                    className="h-10 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+                    onError={() => setLogoFailed(true)}
+                  />
+                ) : (
+                  <div className="flex flex-col">
+                    <span className="text-xl font-black text-slate-900 dark:text-white tracking-tighter leading-none">
+                      {corretor.name?.split(' ')[0]}
+                      <span className="text-accent">.</span>
+                    </span>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-0.5">ESTATE</span>
+                  </div>
+                )}
               </div>
-            ) : (
-              <h1 className="text-lg sm:text-xl font-semibold text-[#1A2A4F]">{corretor.name}</h1>
-            )}
-          </div>
+            </Link>
 
-          {/* WHATSAPP (mobile escondido) */}
-          <div className="hidden sm:flex items-center text-[#1A2A4F] font-bold">
-            {corretor.whatsapp && (
-              <a
-                href={waHref}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 hover:text-[#D4AC3A]"
+            {/* Navigation Desktop */}
+            <nav className="hidden lg:flex items-center gap-1">
+              {navItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`px-5 py-2 text-[13px] font-bold uppercase tracking-wider transition-all duration-300 rounded-full ${
+                    isActive(item.href)
+                      ? "text-accent bg-accent/10"
+                      : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/50 dark:hover:bg-slate-800/50"
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              ))}
+
+              <div className="w-px h-6 bg-slate-200 dark:bg-slate-700 mx-2" />
+              
+              <button
+                onClick={() => {
+                  console.log("Desktop theme toggle clicked");
+                  toggleTheme?.();
+                }}
+                className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-accent dark:hover:text-accent transition-all duration-300"
+                aria-label="Alternar Tema"
               >
-                <Phone size={18} /> {corretor.whatsapp}
-              </a>
-            )}
-          </div>
-
-          {/* BOTÃO HAMBÚRGUER */}
-          <button className="sm:hidden text-[#1A2A4F]" onClick={() => setMenuOpen(true)}>
-            <Menu size={30} />
-          </button>
-        </div>
-
-        {/* MENU DESKTOP */}
-        {slug && (
-          <div className="bg-[#1A2A4F] hidden sm:flex justify-center py-3">
-            <nav className="flex gap-8 text-base font-medium">
-              <MenuLink href={`/${slug}`} label="Início" active={router.asPath === `/${slug}`} />
-              <MenuLink
-                href={`/${slug}/vendas`}
-                label="Comprar"
-                active={router.asPath.includes("/vendas")}
-              />
-              <MenuLink
-                href={`/${slug}/aluguel`}
-                label="Alugar"
-                active={router.asPath.includes("/aluguel")}
-              />
-              <MenuLink
-                href={`/${slug}/vendidos`}
-                label="Vendidos"
-                active={router.asPath.includes("/vendidos")}
-              />
-              <MenuLink
-                href={`/${slug}/perfil`}
-                label="Perfil"
-                active={router.asPath.includes("/perfil")}
-              />
-              <MenuLink
-                href={`/${slug}/noticias`}
-                label="Notícias"
-                active={router.asPath.includes("/noticias")}
-              />
+                {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+              </button>
             </nav>
+
+            {/* Contact & CTA */}
+            <div className="flex items-center gap-4">
+              {corretor.whatsapp && (
+                <a
+                  href={waHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hidden md:flex items-center gap-2.5 px-5 py-2.5 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-accent transition-all duration-300 shadow-lg shadow-slate-900/10 hover:shadow-accent/20 active:scale-95"
+                >
+                  <Phone size={14} className="animate-pulse" />
+                  AGENDAR VISITA
+                </a>
+              )}
+
+              {/* Mobile Toggle */}
+              <button 
+                className="lg:hidden p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                onClick={() => setMenuOpen(true)}
+              >
+                <Menu size={20} />
+              </button>
+            </div>
           </div>
-        )}
+        </div>
       </header>
 
-      {/* MENU MOBILE (DRAWER) */}
-      {menuOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm sm:hidden">
-          <div className="absolute left-0 top-0 h-full w-64 bg-white shadow-xl p-6 flex flex-col gap-4 animate-slideIn">
-            {/* FECHAR */}
-            <button className="self-end mb-4 text-gray-700" onClick={() => setMenuOpen(false)}>
-              <X size={28} />
-            </button>
+      {/* Menu Mobile Premium */}
+      <div 
+        className={`fixed inset-0 z-[100] transition-opacity duration-500 lg:hidden ${
+          menuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        }`}
+      >
+        <div 
+          className="absolute inset-0 bg-slate-950/40 backdrop-blur-md" 
+          onClick={() => setMenuOpen(false)} 
+        />
+        
+        <div 
+          className={`absolute right-0 top-0 bottom-0 w-80 bg-white dark:bg-slate-950 shadow-2xl transition-transform duration-500 ease-out ${
+            menuOpen ? "translate-x-0" : "translate-x-full"
+          }`}
+        >
+          <div className="p-8 flex flex-col h-full">
+            <div className="flex justify-between items-center mb-12">
+               <span className="text-xl font-black text-slate-900 dark:text-white tracking-tighter italic">
+                {corretor.name?.split(' ')[0]}<span className="text-accent">.</span>
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    console.log("Mobile theme toggle clicked");
+                    toggleTheme?.();
+                  }}
+                  className="p-2 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-400 hover:text-accent transition-colors"
+                >
+                  {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
+                </button>
+                <button 
+                  className="p-2 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  <X size={20} />
+                </button>
+              </div>
+            </div>
 
-            {/* LINKS */}
-            {slug && (
-              <>
-                <MobileLink href={`/${slug}`} label="Início" onClick={() => setMenuOpen(false)} />
-                <MobileLink
-                  href={`/${slug}/vendas`}
-                  label="Comprar"
+            <nav className="flex flex-col gap-2">
+              {navItems.map((item, idx) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
                   onClick={() => setMenuOpen(false)}
-                />
-                <MobileLink
-                  href={`/${slug}/aluguel`}
-                  label="Alugar"
-                  onClick={() => setMenuOpen(false)}
-                />
-                <MobileLink
-                  href={`/${slug}/vendidos`}
-                  label="Vendidos"
-                  onClick={() => setMenuOpen(false)}
-                />
-                <MobileLink
-                  href={`/${slug}/perfil`}
-                  label="Perfil"
-                  onClick={() => setMenuOpen(false)}
-                />
-                <MobileLink
-                  href={`/${slug}/noticias`}
-                  label="Notícias"
-                  onClick={() => setMenuOpen(false)}
-                />
-              </>
-            )}
+                  className={`px-6 py-4 rounded-2xl text-sm font-bold uppercase tracking-widest transition-all ${
+                    isActive(item.href)
+                      ? "bg-accent text-white shadow-xl shadow-accent/20"
+                      : "text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-900 hover:text-slate-900 dark:hover:text-white"
+                  }`}
+                  style={{ transitionDelay: `${idx * 50}ms` }}
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </nav>
 
-            {/* WHATSAPP no mobile */}
-            {corretor.whatsapp && (
-              <a
-                href={waHref}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-2 flex items-center gap-2 text-[#1A2A4F] font-semibold hover:text-[#D4AC3A] transition"
-              >
-                <Phone size={18} /> WhatsApp
-              </a>
-            )}
+            <div className="mt-auto space-y-8">
+              {/* Redes Sociais */}
+              <div className="flex items-center gap-4 px-2">
+                {corretor.instagram && (
+                  <a href={`https://instagram.com/${corretor.instagram}`} target="_blank" className="p-3 bg-slate-50 dark:bg-slate-900 rounded-xl text-slate-400 hover:text-accent hover:bg-accent/10 transition-all">
+                    <FiInstagram size={20} />
+                  </a>
+                )}
+                {corretor.facebook && (
+                  <a href={`https://facebook.com/${corretor.facebook}`} target="_blank" className="p-3 bg-slate-50 dark:bg-slate-900 rounded-xl text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all">
+                    <FiFacebook size={20} />
+                  </a>
+                )}
+              </div>
+
+              {corretor.whatsapp && (
+                <a
+                  href={waHref}
+                  target="_blank"
+                  className="flex items-center justify-center gap-3 w-full py-4 bg-emerald-500 text-white rounded-2xl font-bold shadow-xl shadow-emerald-500/20 hover:bg-emerald-600 active:scale-95 transition-all"
+                >
+                  <Phone size={18} />
+                  FALE COMIGO
+                </a>
+              )}
+            </div>
           </div>
         </div>
-      )}
-
-      {/* ANIMAÇÃO */}
-      <style>{`
-        @keyframes slideIn {
-          from { transform: translateX(-100%); }
-          to   { transform: translateX(0); }
-        }
-        .animate-slideIn {
-          animation: slideIn .3s ease forwards;
-        }
-      `}</style>
+      </div>
     </>
-  );
-}
-
-/* COMPONENTES DE LINK */
-
-function MenuLink({ href, label, active }: { href: string; label: string; active: boolean }) {
-  return (
-    <Link
-      href={href}
-      className={`transition ${
-        active ? "text-[#D4AC3A] font-semibold" : "text-white hover:text-[#D4AC3A]"
-      }`}
-    >
-      {label}
-    </Link>
-  );
-}
-
-function MobileLink({
-  href,
-  label,
-  onClick,
-}: {
-  href: string;
-  label: string;
-  onClick: () => void;
-}) {
-  return (
-    <Link
-      href={href}
-      onClick={onClick}
-      className="text-lg font-medium text-[#1A2A4F] py-2 hover:text-[#D4AC3A] transition"
-    >
-      {label}
-    </Link>
   );
 }

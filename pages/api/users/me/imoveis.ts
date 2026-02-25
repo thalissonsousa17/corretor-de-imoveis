@@ -1,4 +1,5 @@
 import { NextApiResponse } from "next";
+import { resolveFotoUrl } from "../../../../lib/imageUtils";
 import { prisma } from "../../../../lib/prisma";
 import { AuthApiRequest, authorize } from "../../../../lib/authMiddleware";
 
@@ -12,7 +13,15 @@ const handleGetCorretorImoveis = async (req: AuthApiRequest, res: NextApiRespons
       orderBy: { createdAt: "desc" },
     });
 
-    return res.status(200).json(imoveis);
+    return res.status(200).json(
+      (imoveis || []).map(im => ({
+        ...im,
+        fotos: (im.fotos || []).map((f: any) => ({
+          ...f,
+          url: resolveFotoUrl(f.url)
+        }))
+      }))
+    );
   } catch (error) {
     console.error("Erro ao buscar imóveis do corretor:", error);
     return res.status(500).json({ message: "Erro interno ao buscar seus imóveis." });
