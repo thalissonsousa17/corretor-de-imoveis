@@ -320,7 +320,7 @@ export default function LandingPagePremium() {
         </div>
       </header>
 
-      <main>
+      <main className="overflow-x-hidden">
         {/* ── HERO SECTION ── */}
         <section className="relative pt-48 pb-32 overflow-hidden">
           {/* Ambient Glows */}
@@ -755,6 +755,10 @@ export default function LandingPagePremium() {
         }
         html {
           scroll-behavior: smooth;
+          overflow-x: hidden;
+        }
+        body {
+          overflow-x: hidden;
         }
       `}</style>
     </div>
