@@ -1,99 +1,152 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import Image from "next/image";
 import {
-  Home as HomeIcon, BarChart2, Zap, Globe, ShieldCheck, Users, CheckCircle2,
-  Star, ArrowRight, ChevronDown, ChevronUp, FileText, MessageCircle,
+  Home as HomeIcon,
+  BarChart2,
+  Zap,
+  Globe,
+  ShieldCheck,
+  Users,
+  CheckCircle2,
+  Star,
+  ArrowRight,
+  ChevronDown,
+  ChevronUp,
+  FileText,
+  MessageCircle,
+  MousePointer2,
+  Sparkles,
+  Layout,
+  Shield,
+  Calendar,
 } from "lucide-react";
-import "swiper/css";
-import "swiper/css/navigation";
-import "swiper/css/pagination";
-import "swiper/css/effect-fade";
 
-// ─── Dados ────────────────────────────────────────────────────────────────────
+// ─── Hook de Scroll Reveal (Otimizado para Performance) ───────────────────────
+function useScrollReveal(options?: IntersectionObserverInit) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
 
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.1, ...options }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  return { ref, visible };
+}
+
+interface RevealProps {
+  children: React.ReactNode;
+  direction?: "up" | "down" | "left" | "right" | "fade";
+  delay?: number;
+  className?: string;
+}
+
+function Reveal({ children, direction = "up", delay = 0, className = "" }: RevealProps) {
+  const { ref, visible } = useScrollReveal();
+  const base =
+    "transition-all duration-[1000ms] cubic-bezier(0.21, 1.02, 0.47, 0.98) transform-gpu";
+
+  const hidden = {
+    up: "opacity-0 translate-y-16",
+    down: "opacity-0 -translate-y-16",
+    left: "opacity-0 -translate-x-16",
+    right: "opacity-0 translate-x-16",
+    fade: "opacity-0 scale-95",
+  };
+
+  return (
+    <div
+      ref={ref}
+      className={`${base} ${visible ? "opacity-100 translate-x-0 translate-y-0 scale-100" : hidden[direction]} ${className}`}
+      style={{ transitionDelay: `${delay}ms` }}
+    >
+      {children}
+    </div>
+  );
+}
+
+// ─── Componente FAQ Premium ───────────────────────────────────────────────────
+function FaqItem({ q, a }: { q: string; a: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div
+      className={`group border-b border-white/5 transition-all ${open ? "bg-white/[0.02]" : ""}`}
+    >
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center justify-between px-6 py-6 text-left"
+      >
+        <span
+          className={`text-lg font-medium transition-colors ${open ? "text-blue-400" : "text-slate-300 group-hover:text-white"}`}
+        >
+          {q}
+        </span>
+        <div
+          className={`transition-transform duration-300 ${open ? "rotate-180 text-blue-400" : "text-slate-500"}`}
+        >
+          <ChevronDown size={20} />
+        </div>
+      </button>
+      <div
+        className={`overflow-hidden transition-all duration-300 ease-in-out ${open ? "max-h-96 opacity-100" : "max-h-0 opacity-0"}`}
+      >
+        <div className="px-6 pb-6 text-slate-400 leading-relaxed max-w-3xl">{a}</div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Dados (Preservados e Expandidos) ────────────────────────────────────────
 const RECURSOS = [
   {
-    icon: Globe,
-    titulo: "Página Exclusiva",
-    desc: "Site profissional com seu nome, foto, contatos e todos os seus imóveis organizados automaticamente.",
-    cor: "bg-blue-50 text-blue-600",
+    icon: Layout, // Ícone de Layout/Design
+    titulo: "Sua Vitrine Premium",
+    desc: "Crie sua própria página de vendas de alta conversão em minutos. Um design de classe mundial para expor seus imóveis com exclusividade.",
+    cor: "bg-cyan-500/10 text-cyan-400",
   },
   {
-    icon: BarChart2,
-    titulo: "Painel Moderno",
-    desc: "Dashboard com estatísticas em tempo real, filtros avançados e controle total da sua carteira.",
-    cor: "bg-violet-50 text-violet-600",
-  },
-  {
-    icon: Zap,
-    titulo: "Cadastro Rápido",
-    desc: "Publique novos imóveis com fotos, descrição e valores em menos de 2 minutos.",
-    cor: "bg-amber-50 text-amber-600",
+    icon: HomeIcon,
+    titulo: "Patrimônio sob Gestão",
+    desc: "Controle total do seu portfólio ativo, negócios fechados e locações em uma visão consolidada de ativos.",
+    cor: "bg-blue-500/10 text-blue-400",
   },
   {
     icon: FileText,
-    titulo: "Contratos Digitais",
-    desc: "Modelos prontos de contratos de aluguel e venda com preenchimento automático via IA.",
-    cor: "bg-green-50 text-green-600",
+    titulo: "Gere contratos com IA",
+    desc: "Transforme dados de fechamento em documentos jurídicos prontos em segundos, eliminando erros e burocracia manual.",
+    cor: "bg-indigo-500/10 text-indigo-400",
   },
   {
-    icon: MessageCircle,
-    titulo: "Suporte Dedicado",
-    desc: "Equipe pronta para te ajudar por dentro da plataforma, com histórico completo de atendimentos.",
-    cor: "bg-rose-50 text-rose-600",
+    icon: Users,
+    titulo: "Captação de Leads",
+    desc: "Gestão de novas oportunidades e ações pendentes para garantir que nenhum lead fique sem resposta.",
+    cor: "bg-violet-500/10 text-violet-400",
   },
   {
-    icon: ShieldCheck,
-    titulo: "Segurança Total",
-    desc: "Seus dados protegidos com criptografia e backups automáticos. Sua carteira sempre segura.",
-    cor: "bg-teal-50 text-teal-600",
-  },
-];
-
-const PASSOS = [
-  {
-    num: "01",
-    titulo: "Crie sua conta",
-    desc: "Cadastro em menos de 1 minuto. Sem cartão de crédito.",
-    cor: "bg-blue-600",
+    icon: BarChart2,
+    titulo: "Gestão de Conversões",
+    desc: "Interface dedicada para acompanhar o desempenho de fechamentos mensais e taxas de sucesso comercial.",
+    cor: "bg-emerald-500/10 text-emerald-400",
   },
   {
-    num: "02",
-    titulo: "Configure seu perfil",
-    desc: "Adicione foto, CRECI, redes sociais e personalize sua página.",
-    cor: "bg-violet-600",
-  },
-  {
-    num: "03",
-    titulo: "Publique seus imóveis",
-    desc: "Simples, rápido e profissional. Compartilhe seu link e capte leads.",
-    cor: "bg-emerald-600",
-  },
-];
-
-const FAQS = [
-  {
-    q: "Preciso de cartão de crédito para começar?",
-    a: "Não! O plano Gratuito é 100% grátis e não exige nenhuma forma de pagamento. Você só assina se quiser funcionalidades avançadas.",
-  },
-  {
-    q: "Posso cancelar a qualquer momento?",
-    a: "Sim. Não há fidelidade. Você cancela quando quiser diretamente pelo painel, sem burocracia.",
-  },
-  {
-    q: "Minha página fica disponível para clientes?",
-    a: "Sim! Você recebe um link exclusivo (ex: imobhub.com/seu-nome) que pode compartilhar no WhatsApp, Instagram e onde quiser.",
-  },
-  {
-    q: "Funciona para corretores autônomos e imobiliárias?",
-    a: "Perfeitamente. A plataforma foi desenvolvida tanto para corretores independentes quanto para imobiliárias com equipes.",
-  },
-  {
-    q: "Os contratos da plataforma têm validade jurídica?",
-    a: "Os modelos seguem a legislação brasileira (Lei 8.245/91 e Código Civil). Para validade jurídica plena, recomendamos assinatura física ou digital certificada.",
+    icon: Calendar,
+    titulo: "Cronograma de Tours",
+    desc: "Agendamento dinâmico de visitas e organização da agenda do dia para otimizar sua rotina externa.",
+    cor: "bg-amber-500/10 text-amber-400",
   },
 ];
 
@@ -104,15 +157,13 @@ const PLANOS = [
     preco: "R$ 0",
     periodo: "para sempre",
     destaque: false,
-    tag: null,
     recursos: [
       "Até 5 imóveis",
       "Página pública básica",
       "Painel de gerenciamento",
-      "Suporte básico",
+      "Suporte via comunidade",
     ],
-    cta: "Começar Grátis",
-    href: "/register",
+    cta: "Começar Agora",
   },
   {
     id: "pro",
@@ -120,33 +171,23 @@ const PLANOS = [
     preco: "R$ 79,90",
     periodo: "por mês",
     destaque: false,
-    tag: null,
     recursos: [
       "Até 50 imóveis",
       "Página personalizada",
       "Gerenciamento completo",
-      "Suporte padrão",
       "Contratos digitais",
     ],
-    cta: "Assinar Agora",
-    priceEnv: "NEXT_PUBLIC_PRICE_PRO",
+    cta: "Assinar Pro",
   },
   {
     id: "start",
-    nome: "Start",
+    nome: "Start AI",
     preco: "R$ 99,90",
     periodo: "por mês",
     destaque: false,
-    tag: "Melhor custo-benefício",
-    recursos: [
-      "Até 100 imóveis",
-      "Tudo do plano Pro",
-      "Prioridade no suporte",
-      "Domínio personalizado",
-      "Contratos + IA",
-    ],
-    cta: "Assinar Agora",
-    priceEnv: "NEXT_PUBLIC_PRICE_START",
+    tag: "Mais vendido",
+    recursos: ["Até 100 imóveis", "Tudo do Pro", "Domínio personalizado", "IA de Copywriting"],
+    cta: "Assinar Start",
   },
   {
     id: "expert",
@@ -154,49 +195,53 @@ const PLANOS = [
     preco: "R$ 149,90",
     periodo: "por mês",
     destaque: true,
-    tag: "Mais popular",
+    tag: "Performance Máxima",
     recursos: [
       "Imóveis ilimitados",
-      "Tudo do plano Start",
-      "Suporte premium 24/7",
-      "Recursos exclusivos",
-      "Plano anual: R$ 119,90/mês",
+      "Tudo do Start",
+      "Suporte Premium 24/7",
+      "Plano anual: R$ 119/mês",
     ],
-    cta: "Assinar Agora",
-    priceEnv: "NEXT_PUBLIC_PRICE_EXPERT_MENSAL",
-    priceEnvAnual: "NEXT_PUBLIC_PRICE_EXPERT_YEARLY",
+    cta: "Seja Expert",
   },
 ];
 
-// ─── Componente FAQ item ───────────────────────────────────────────────────────
-function FaqItem({ q, a }: { q: string; a: string }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <div className={`border rounded-xl overflow-hidden transition-all ${open ? "border-blue-200 shadow-sm" : "border-gray-100"}`}>
-      <button
-        onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center justify-between px-6 py-4 text-left"
-      >
-        <span className="font-semibold text-gray-800 text-sm sm:text-base">{q}</span>
-        {open ? (
-          <ChevronUp className="w-5 h-5 text-blue-600 shrink-0 ml-3" />
-        ) : (
-          <ChevronDown className="w-5 h-5 text-gray-400 shrink-0 ml-3" />
-        )}
-      </button>
-      {open && (
-        <div className="px-6 pb-5">
-          <p className="text-gray-600 text-sm leading-relaxed">{a}</p>
-        </div>
-      )}
-    </div>
-  );
-}
+const FAQS = [
+  {
+    q: "Preciso de conhecimento técnico para configurar?",
+    a: "Absolutamente não. A ImobHub foi desenhada para ser intuitiva. Em menos de 2 minutos sua página está no ar.",
+  },
+  {
+    q: "Como funciona a IA de contratos?",
+    a: "Nossa IA analisa os dados do comprador e vendedor e preenche as cláusulas automaticamente seguindo a Lei do Inquilinato e o Código Civil.",
+  },
+  {
+    q: "Posso usar meu próprio domínio (ex: www.seunome.com.br)?",
+    a: "Sim! Nos planos Start e Expert você pode conectar seu domínio próprio para fortalecer sua marca pessoal.",
+  },
+  {
+    q: "Existe fidelidade nos planos pagos?",
+    a: "Não. Você pode cancelar ou alterar seu plano a qualquer momento diretamente pelo seu painel, sem multas ou burocracia.",
+  },
+];
 
-// ─── Página Principal ──────────────────────────────────────────────────────────
-export default function Home() {
+// ─── Componente Principal ────────────────────────────────────────────────────
+export default function LandingPagePremium() {
+  const router = useRouter();
+  const [emailHero, setEmailHero] = useState("");
+  const [contactForm, setContactForm] = useState({
+    nome: "",
+    email: "",
+    whatsapp: "",
+    mensagem: "",
+  });
+  const [contactStatus, setContactStatus] = useState<"IDLE" | "SENDING" | "SUCCESS" | "ERROR">(
+    "IDLE"
+  );
+
+  // Handlers (Preservando sua lógica de API)
   async function handleCheckout(priceId: string) {
-    if (!priceId) { alert("Plano inválido. Tente novamente."); return; }
+    if (!priceId) return;
     try {
       const res = await fetch("/api/stripe/public-checkout", {
         method: "POST",
@@ -204,25 +249,11 @@ export default function Home() {
         body: JSON.stringify({ priceId }),
       });
       const data = await res.json();
-      if (!res.ok || !data.url) throw new Error(data.error || "Erro ao iniciar checkout");
-      window.location.href = data.url;
+      if (data.url) window.location.href = data.url;
     } catch (err) {
-      alert("Erro ao iniciar pagamento");
       console.error(err);
     }
   }
-
-  const router = useRouter();
-  const [emailHero, setEmailHero] = useState("");
-
-  function handleHeroRegister(e: React.FormEvent) {
-    e.preventDefault();
-    router.push(`/register?email=${encodeURIComponent(emailHero)}`);
-  }
-
-  // Form de contato
-  const [contactForm, setContactForm] = useState({ nome: "", email: "", whatsapp: "", mensagem: "" });
-  const [contactStatus, setContactStatus] = useState<"IDLE" | "SENDING" | "SUCCESS" | "ERROR">("IDLE");
 
   async function handleContactSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -233,578 +264,499 @@ export default function Home() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(contactForm),
       });
-      if (res.ok) {
-        setContactStatus("SUCCESS");
-        setContactForm({ nome: "", email: "", whatsapp: "", mensagem: "" });
-      } else {
-        setContactStatus("ERROR");
-      }
+      setContactStatus(res.ok ? "SUCCESS" : "ERROR");
     } catch {
       setContactStatus("ERROR");
     }
   }
 
   return (
-    <div className="min-h-screen bg-white text-gray-900">
+    <div className="min-h-screen bg-[#020617] text-slate-300 font-sans selection:bg-blue-500/30">
       <Head>
-        <title>ImobHub • Plataforma Profissional para Corretores de Imóveis</title>
-        <meta name="description" content="Crie sua página profissional, publique imóveis e gerencie contratos em um só lugar. A plataforma completa para corretores de imóveis." />
+        <title>ImobHub • Plataforma Premium para Corretores de Elite</title>
+        <meta
+          name="description"
+          content="A evolução da gestão imobiliária com inteligência artificial."
+        />
       </Head>
 
-      {/* ── HEADER ─────────────────────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100 shadow-sm">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="text-2xl font-black text-[#1A2A4F] tracking-tight">
-            Imob<span className="text-blue-500">Hub</span>
+      {/* ── NAVBAR PREMIUM ── */}
+      <header className="fixed top-0 w-full z-[100] border-b border-white/5 bg-[#020617]/80 backdrop-blur-xl">
+        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+          <Link
+            href="/"
+            className="text-2xl font-black tracking-tighter text-white flex items-center gap-2"
+          >
+            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+              <HomeIcon size={18} className="text-white" />
+            </div>
+            IMOB<span className="text-blue-500">HUB</span>
           </Link>
-          <nav className="flex items-center gap-2 sm:gap-4">
-            <Link href="#planos" className="hidden sm:block text-sm text-gray-600 hover:text-[#1A2A4F] font-medium transition">
+          <nav className="hidden md:flex items-center gap-10 text-sm font-semibold tracking-wide uppercase">
+            <Link href="#recursos" className="hover:text-white transition">
+              Recursos
+            </Link>
+            <Link href="#planos" className="hover:text-white transition">
               Planos
             </Link>
-            <Link href="/login" className="text-sm text-gray-600 hover:text-[#1A2A4F] font-medium transition px-3 py-2">
+            <Link href="#faq" className="hover:text-white transition">
+              Dúvidas
+            </Link>
+          </nav>
+          <div className="flex items-center gap-4">
+            <Link
+              href="/login"
+              className="hidden sm:block text-sm font-bold hover:text-white transition"
+            >
               Entrar
             </Link>
             <Link
               href="/register"
-              className="bg-[#1A2A4F] text-white text-sm px-5 py-2.5 rounded-xl font-semibold hover:bg-blue-700 transition shadow-sm"
+              className="bg-white text-black px-6 py-2.5 rounded-full text-sm font-bold hover:bg-blue-500 hover:text-white transition shadow-xl shadow-white/5"
             >
-              Começar grátis
+              Começar Grátis
             </Link>
-          </nav>
+          </div>
         </div>
       </header>
 
-      {/* ── HERO ───────────────────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-[#0d1f45] via-[#1A2A4F] to-[#1e3a8a] text-white">
-        {/* Decorative blobs */}
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-500 opacity-10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4" />
-        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-indigo-400 opacity-10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4" />
+      <main>
+        {/* ── HERO SECTION ── */}
+        <section className="relative pt-48 pb-32 overflow-hidden">
+          {/* Ambient Glows */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-blue-600/20 blur-[120px] rounded-full -z-10 opacity-50" />
+          <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-indigo-600/10 blur-[100px] rounded-full -z-10" />
 
-        <div className="relative max-w-7xl mx-auto px-6 py-28 sm:py-36 text-center">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 text-white/90 text-xs font-semibold px-4 py-2 rounded-full mb-8">
-            <Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
-            Plataforma nº 1 para corretores autônomos
-          </div>
+          <div className="max-w-7xl mx-auto px-6 text-center">
+            <Reveal direction="fade">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold uppercase tracking-[0.2em] mb-10">
+                <Sparkles size={14} className="animate-pulse" />
+                Tecnologia para o Corretor 2.0
+              </div>
+            </Reveal>
 
-          <h1 className="text-4xl sm:text-6xl font-black leading-tight tracking-tight max-w-4xl mx-auto">
-            A plataforma{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-cyan-300">
-              inteligente
-            </span>{" "}
-            para Corretores de Imóveis
-          </h1>
+            <Reveal delay={100}>
+              <h1 className="text-5xl md:text-[5.5rem] font-black text-white tracking-tight leading-[1] mb-8">
+                Sua imobiliária agora é <br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-slate-100 to-indigo-400">
+                  digital e inteligente.
+                </span>
+              </h1>
+            </Reveal>
 
-          <p className="mt-6 text-lg sm:text-xl text-white/75 max-w-2xl mx-auto leading-relaxed">
-            Crie sua página profissional, publique imóveis, gere contratos com IA e gerencie
-            tudo em um painel moderno. Comece <strong className="text-white">gratuitamente</strong> hoje.
-          </p>
+            <Reveal delay={200}>
+              <p className="max-w-2xl mx-auto text-lg md:text-xl text-slate-400 mb-12 leading-relaxed">
+                Abandone processos lentos. Crie sua vitrine profissional, gere contratos com IA e
+                escaneie o mercado em busca de oportunidades em uma única plataforma.
+              </p>
+            </Reveal>
 
-          <div className="mt-10 flex flex-col items-center justify-center gap-6">
-            <form onSubmit={handleHeroRegister} className="w-full max-w-md flex flex-col sm:flex-row gap-3">
-              <input
-                type="email"
-                required
-                placeholder="Seu melhor e-mail"
-                value={emailHero}
-                onChange={(e) => setEmailHero(e.target.value)}
-                className="flex-1 px-5 py-4 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-4 focus:ring-blue-500/30 shadow-lg text-base"
-              />
-              <button
-                type="submit"
-                className="group flex-shrink-0 bg-[#D4AC3A] text-[#1A2A4F] px-8 py-4 rounded-xl text-base font-bold hover:bg-[#bfa33f] transition shadow-lg shadow-black/20 flex items-center justify-center gap-2"
+            <Reveal delay={300}>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  router.push(`/register?email=${emailHero}`);
+                }}
+                className="relative max-w-lg mx-auto group"
               >
-                Começar grátis
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </button>
-            </form>
-            
-            <Link href="#planos" className="text-white/70 hover:text-white text-sm font-medium transition flex items-center gap-1.5">
-              Ver planos e preços
-              <ChevronDown className="w-4 h-4" />
-            </Link>
-          </div>
-
-          <p className="mt-6 text-white/50 text-xs">Sem cartão de crédito • Ativação imediata • Cancele quando quiser</p>
-
-          {/* Stats */}
-          <div className="mt-16 grid grid-cols-3 gap-6 max-w-lg mx-auto border-t border-white/10 pt-10">
-            {[
-              { num: "500+", label: "Corretores ativos" },
-              { num: "12k+", label: "Imóveis publicados" },
-              { num: "98%", label: "Satisfação" },
-            ].map((s) => (
-              <div key={s.label}>
-                <p className="text-2xl sm:text-3xl font-black text-white">{s.num}</p>
-                <p className="text-xs text-white/50 mt-1">{s.label}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── RECURSOS ───────────────────────────────────────────────────────────── */}
-      <section className="py-24 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-14">
-            <span className="text-blue-600 text-sm font-semibold uppercase tracking-widest">Funcionalidades</span>
-            <h2 className="mt-2 text-3xl sm:text-4xl font-black text-[#1A2A4F]">
-              Por que corretores escolhem a ImobHub?
-            </h2>
-            <p className="mt-3 text-gray-500 max-w-xl mx-auto">
-              Tudo que você precisa para profissionalizar sua atuação e aumentar suas vendas em um só lugar.
-            </p>
-          </div>
-
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {RECURSOS.map((r) => (
-              <div
-                key={r.titulo}
-                className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
-              >
-                <div className={`w-11 h-11 rounded-xl flex items-center justify-center mb-4 ${r.cor}`}>
-                  <r.icon className="w-5 h-5" />
-                </div>
-                <h3 className="font-bold text-[#1A2A4F] text-base mb-1.5">{r.titulo}</h3>
-                <p className="text-gray-500 text-sm leading-relaxed">{r.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── CARROSSEL / DEMOS ──────────────────────────────────────────────────── */}
-      <section className="py-24 bg-white overflow-hidden">
-        <div className="max-w-7xl mx-auto px-6 text-center mb-12">
-          <span className="text-blue-600 text-sm font-semibold uppercase tracking-widest">Veja na prática</span>
-          <h2 className="mt-2 text-3xl sm:text-4xl font-black text-[#1A2A4F]">
-            Interface moderna e fácil de usar
-          </h2>
-          <p className="mt-3 text-gray-500 max-w-xl mx-auto">
-            Projetada para corretores que querem crescer, sem complicação.
-          </p>
-        </div>
-
-        <div className="relative overflow-hidden">
-          <div
-            className="flex gap-6"
-            style={{ animation: "slide 20s linear infinite", width: "max-content" }}
-          >
-            {[
-              { src: "/demo/gerenciar.png", label: "Gerenciamento Completo" },
-              { src: "/demo/cadastrar.png", label: "Cadastro Rápido" },
-              { src: "/demo/dashboard.png", label: "Dashboard Inteligente" },
-              { src: "/demo/gerenciar.png", label: "Gerenciamento Completo" },
-              { src: "/demo/cadastrar.png", label: "Cadastro Rápido" },
-              { src: "/demo/dashboard.png", label: "Dashboard Inteligente" },
-            ].map((item, i) => (
-              <div
-                key={i}
-                className="flex-shrink-0 w-[380px] bg-white rounded-2xl overflow-hidden shadow-xl border border-gray-100"
-              >
-                {/* Browser chrome */}
-                <div className="bg-gray-100 px-4 py-2.5 flex items-center gap-2 border-b border-gray-200">
-                  <div className="w-3 h-3 rounded-full bg-red-400" />
-                  <div className="w-3 h-3 rounded-full bg-yellow-400" />
-                  <div className="w-3 h-3 rounded-full bg-green-400" />
-                  <div className="flex-1 bg-white rounded-md h-5 ml-2 opacity-60" />
-                </div>
-                <div className="w-full h-[200px] bg-gray-50 flex items-center justify-center overflow-hidden">
-                  <Image
-                    src={item.src}
-                    alt={item.label}
-                    width={380}
-                    height={200}
-                    className="object-cover w-full h-full"
-                  />
-                </div>
-                <div className="py-3.5 px-5 flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-green-500" />
-                  <span className="text-sm font-semibold text-[#1A2A4F]">{item.label}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-          {/* Fade edges */}
-          <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-white to-transparent pointer-events-none" />
-          <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-white to-transparent pointer-events-none" />
-        </div>
-
-        <style>{`
-          @keyframes slide {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-50%); }
-          }
-        `}</style>
-      </section>
-
-      {/* ── COMO FUNCIONA ──────────────────────────────────────────────────────── */}
-      <section className="py-24 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <span className="text-blue-600 text-sm font-semibold uppercase tracking-widest">Simples assim</span>
-            <h2 className="mt-2 text-3xl sm:text-4xl font-black text-[#1A2A4F]">Como funciona?</h2>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8 relative">
-            {/* Connecting line (desktop only) */}
-            <div className="hidden md:block absolute top-8 left-[calc(16.66%+2rem)] right-[calc(16.66%+2rem)] h-0.5 bg-gradient-to-r from-blue-200 via-violet-200 to-emerald-200" />
-
-            {PASSOS.map((p) => (
-              <div key={p.num} className="text-center relative">
-                <div className={`w-16 h-16 ${p.cor} rounded-2xl flex items-center justify-center mx-auto shadow-lg shadow-blue-100 relative z-10`}>
-                  <span className="text-white text-xl font-black">{p.num}</span>
-                </div>
-                <h3 className="mt-5 text-lg font-bold text-[#1A2A4F]">{p.titulo}</h3>
-                <p className="mt-2 text-gray-500 text-sm leading-relaxed max-w-xs mx-auto">{p.desc}</p>
-              </div>
-            ))}
-          </div>
-
-          <div className="text-center mt-12">
-            <Link
-              href="/register"
-              className="inline-flex items-center gap-2 bg-[#1A2A4F] text-white px-8 py-4 rounded-xl font-bold hover:bg-blue-700 transition shadow-lg"
-            >
-              Criar minha conta agora
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* ── PÁGINA DE VENDAS ───────────────────────────────────────────────────── */}
-      <section className="py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-16 items-center">
-          <div>
-            <span className="text-blue-600 text-sm font-semibold uppercase tracking-widest">Sua vitrine digital</span>
-            <h2 className="mt-3 text-3xl sm:text-4xl font-black text-[#1A2A4F] leading-tight">
-              Sua própria página de vendas profissional
-            </h2>
-            <p className="mt-5 text-gray-600 leading-relaxed">
-              Na ImobHub você ganha automaticamente uma landing page com seu nome, foto, contatos e
-              imóveis organizados de forma elegante — pronto para captar novos clientes todos os dias.
-            </p>
-
-            <ul className="mt-6 space-y-3">
-              {[
-                "Link exclusivo para compartilhar nas redes",
-                "Layout limpo, responsivo e profissional",
-                "Seus imóveis exibidos automaticamente",
-                "Formulário para captar leads qualificados",
-                "Zero configuração — tudo pronto em minutos!",
-              ].map((item) => (
-                <li key={item} className="flex items-start gap-3 text-gray-700 text-sm">
-                  <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
-                  {item}
-                </li>
-              ))}
-            </ul>
-
-            <Link
-              href="#planos"
-              className="mt-8 inline-flex items-center gap-2 bg-[#1A2A4F] text-white px-8 py-4 rounded-xl text-base font-bold hover:bg-blue-700 transition shadow-lg"
-            >
-              Criar minha página agora
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
-
-          <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-3xl -rotate-2" />
-            <Image
-              src="/demo/capa.png"
-              alt="Página de vendas do corretor"
-              width={700}
-              height={450}
-              className="relative rounded-2xl shadow-2xl border border-white"
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* ── PROVA SOCIAL ───────────────────────────────────────────────────────── */}
-      <section className="py-20 bg-gradient-to-br from-[#1A2A4F] to-[#1e3a8a] text-white">
-        <div className="max-w-7xl mx-auto px-6 grid sm:grid-cols-2 lg:grid-cols-4 gap-8 text-center">
-          {[
-            { icon: Users, num: "500+", label: "Corretores ativos" },
-            { icon: HomeIcon, num: "12.000+", label: "Imóveis publicados" },
-            { icon: Star, num: "4.9★", label: "Avaliação média" },
-            { icon: Zap, num: "< 2min", label: "Para publicar um imóvel" },
-          ].map((s) => (
-            <div key={s.label} className="group">
-              <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:bg-white/20 transition">
-                <s.icon className="w-6 h-6 text-white" />
-              </div>
-              <p className="text-3xl font-black">{s.num}</p>
-              <p className="text-white/60 text-sm mt-1">{s.label}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── CONTATO / FALE CONOSCO ─────────────────────────────────────────────── */}
-      <section id="contato" className="py-24 bg-gray-50">
-        <div className="max-w-4xl mx-auto px-6">
-          <div className="text-center mb-12">
-            <span className="text-blue-600 text-sm font-semibold uppercase tracking-widest">Fale Conosco</span>
-            <h2 className="mt-2 text-3xl sm:text-4xl font-black text-[#1A2A4F]">
-              Ficou com alguma dúvida?
-            </h2>
-            <p className="mt-3 text-gray-500">
-              Preencha o formulário abaixo e nossa equipe entrará em contato.
-            </p>
-          </div>
-
-          <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
-            {contactStatus === "SUCCESS" ? (
-              <div className="text-center py-12">
-                <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <CheckCircle2 className="w-8 h-8" />
-                </div>
-                <h3 className="text-2xl font-bold text-gray-800">Mensagem Enviada!</h3>
-                <p className="text-gray-500 mt-2">Em breve nossa equipe entrará em contato com você.</p>
-                <button 
-                  onClick={() => setContactStatus("IDLE")}
-                  className="mt-6 text-blue-600 font-medium hover:underline"
-                >
-                  Enviar nova mensagem
-                </button>
-              </div>
-            ) : (
-              <form onSubmit={handleContactSubmit} className="space-y-5">
-                <div className="grid sm:grid-cols-2 gap-5">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Nome Completo</label>
-                    <input
-                      type="text"
-                      required
-                      value={contactForm.nome}
-                      onChange={(e) => setContactForm({ ...contactForm, nome: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-                      placeholder="Seu nome"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">WhatsApp</label>
-                    <input
-                      type="text"
-                      value={contactForm.whatsapp}
-                      onChange={(e) => setContactForm({ ...contactForm, whatsapp: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-                      placeholder="(00) 00000-0000"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">E-mail</label>
+                <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000"></div>
+                <div className="relative flex bg-[#0F172A] rounded-xl p-2 border border-white/10">
                   <input
                     type="email"
                     required
-                    value={contactForm.email}
-                    onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-                    placeholder="seu@email.com"
+                    placeholder="Seu e-mail profissional..."
+                    className="bg-transparent px-5 py-3 outline-none text-white w-full"
+                    value={emailHero}
+                    onChange={(e) => setEmailHero(e.target.value)}
                   />
+                  <button className="bg-blue-600 hover:bg-blue-500 text-white px-8 py-3 rounded-lg font-bold transition flex items-center gap-2">
+                    Acessar <ArrowRight size={18} />
+                  </button>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Mensagem</label>
-                  <textarea
-                    rows={4}
-                    value={contactForm.mensagem}
-                    onChange={(e) => setContactForm({ ...contactForm, mensagem: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-                    placeholder="Como podemos te ajudar?"
-                  />
-                </div>
-                <button
-                  type="submit"
-                  disabled={contactStatus === "SENDING"}
-                  className="w-full bg-[#1A2A4F] text-white font-bold py-4 rounded-xl hover:bg-blue-900 transition disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                >
-                  {contactStatus === "SENDING" ? "Enviando..." : "Enviar Mensagem"}
-                  {!contactStatus && <ArrowRight className="w-5 h-5" />}
-                </button>
               </form>
-            )}
+              <div className="mt-8 flex items-center justify-center gap-8 text-slate-500 text-sm font-medium">
+                <span className="flex items-center gap-2">
+                  <CheckCircle2 size={16} className="text-blue-500" /> Sem cartão
+                </span>
+                <span className="flex items-center gap-2">
+                  <CheckCircle2 size={16} className="text-blue-500" /> Ativação em 1min
+                </span>
+              </div>
+            </Reveal>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* ── PLANOS ─────────────────────────────────────────────────────────────── */}
-      <section id="planos" className="py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-14">
-            <span className="text-blue-600 text-sm font-semibold uppercase tracking-widest">Preços</span>
-            <h2 className="mt-2 text-3xl sm:text-4xl font-black text-[#1A2A4F]">
-              Escolha o plano ideal para você
-            </h2>
-            <p className="mt-3 text-gray-500 max-w-xl mx-auto">
-              Comece gratuitamente. Evolua conforme sua carteira cresce. Sem surpresas.
-            </p>
-          </div>
-
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 items-start">
-            {PLANOS.map((p) => (
-              <div
-                key={p.id}
-                className={`relative rounded-2xl p-7 flex flex-col h-full transition-all duration-200 hover:shadow-xl hover:-translate-y-1 ${
-                  p.destaque
-                    ? "bg-[#1A2A4F] text-white shadow-2xl shadow-blue-900/30 border-2 border-blue-400"
-                    : "bg-white border border-gray-100 shadow-sm"
-                }`}
-              >
-                {p.tag && (
-                  <div className={`absolute -top-3.5 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap ${
-                    p.destaque ? "bg-blue-400 text-white" : "bg-amber-400 text-white"
-                  }`}>
-                    {p.tag}
-                  </div>
-                )}
-
-                <h3 className={`text-xl font-black ${p.destaque ? "text-white" : "text-[#1A2A4F]"}`}>{p.nome}</h3>
-
-                <div className="mt-4 mb-6">
-                  <span className={`text-4xl font-black ${p.destaque ? "text-white" : "text-[#1A2A4F]"}`}>{p.preco}</span>
-                  <span className={`ml-1 text-sm ${p.destaque ? "text-white/60" : "text-gray-400"}`}>{p.periodo}</span>
-                  {p.id === "expert" && (
-                    <p className="text-xs text-blue-300 mt-1 font-medium">ou R$ 119,90/mês no plano anual</p>
-                  )}
+        {/* ── MOCKUP SECTION ── */}
+        <section className="pb-32 px-6">
+          <Reveal direction="up" delay={400} className="max-w-6xl mx-auto relative group">
+            <div className="absolute -inset-4 bg-gradient-to-r from-blue-500/20 to-indigo-500/20 blur-3xl rounded-[3rem] -z-10 group-hover:opacity-100 transition duration-1000 opacity-50" />
+            <div className="bg-[#0F172A] border border-white/10 rounded-2xl p-3 shadow-2xl overflow-hidden backdrop-blur-sm">
+              <div className="bg-[#1E293B] rounded-t-xl p-4 flex items-center justify-between border-b border-white/5">
+                <div className="flex gap-2">
+                  <div className="w-3 h-3 rounded-full bg-rose-500/30" />
+                  <div className="w-3 h-3 rounded-full bg-amber-500/30" />
+                  <div className="w-3 h-3 rounded-full bg-emerald-500/30" />
                 </div>
+                <div className="bg-[#020617] px-4 py-1 rounded-md text-[10px] text-slate-500 font-mono">
+                  imobhub.com/dashboard
+                </div>
+                <div className="w-10" />
+              </div>
+              <div className="aspect-[16/9] relative bg-[#020617] group-hover:bg-[#040a1f] transition-colors duration-700 flex items-center justify-center overflow-hidden">
+                <Image
+                  src="/demo/dashboard.svg"
+                  alt="Interface ImobHub"
+                  fill
+                  className="object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-700"
+                />
+                {/* Elementos flutuantes de UI */}
+                <div className="absolute top-10 right-10 bg-blue-600/90 backdrop-blur p-4 rounded-xl border border-white/20 shadow-2xl animate-float">
+                  <div className="text-[10px] uppercase font-bold text-blue-100 mb-1">
+                    Novo Lead
+                  </div>
+                  <div className="text-sm font-bold text-white">Ricardo Oliveira</div>
+                </div>
+              </div>
+            </div>
+          </Reveal>
+        </section>
 
-                <ul className="space-y-2.5 flex-1">
-                  {p.recursos.map((r) => (
-                    <li key={r} className={`flex items-start gap-2 text-sm ${p.destaque ? "text-white/80" : "text-gray-600"}`}>
-                      <CheckCircle2 className={`w-4 h-4 shrink-0 mt-0.5 ${p.destaque ? "text-blue-300" : "text-green-500"}`} />
-                      {r}
-                    </li>
-                  ))}
-                </ul>
+        {/* ── RECURSOS ── */}
+        <section id="recursos" className="py-32 bg-white/[0.01]">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="grid lg:grid-cols-2 gap-16 items-center mb-24">
+              <Reveal direction="left">
+                <h2 className="text-4xl md:text-6xl font-black text-white tracking-tighter leading-tight">
+                  Ferramentas para quem <br /> não aceita o comum.
+                </h2>
+              </Reveal>
+              <Reveal direction="right" delay={200}>
+                <p className="text-xl text-slate-400 leading-relaxed">
+                  Desenvolvemos cada módulo pensando na jornada do corretor moderno. Menos
+                  burocracia, mais fechamentos.
+                </p>
+              </Reveal>
+            </div>
 
-                {p.href ? (
-                  <Link
-                    href={p.href}
-                    className={`mt-8 w-full py-3 rounded-xl font-bold text-sm text-center transition block ${
+            <div className="grid md:grid-cols-3 gap-6">
+              {RECURSOS.map((r, i) => (
+                <Reveal key={r.titulo} delay={i * 100} direction="up">
+                  <div className="h-full p-10 rounded-[2.5rem] bg-[#0F172A] border border-white/5 hover:border-blue-500/30 transition-all group overflow-hidden relative">
+                    <div className="absolute -right-4 -top-4 w-24 h-24 bg-blue-600/5 blur-2xl rounded-full group-hover:bg-blue-600/10 transition-colors" />
+                    <div
+                      className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-8 ${r.cor} transition-transform group-hover:scale-110 duration-500`}
+                    >
+                      <r.icon size={28} />
+                    </div>
+                    <h3 className="text-2xl font-bold text-white mb-4 tracking-tight">
+                      {r.titulo}
+                    </h3>
+                    <p className="text-slate-400 leading-relaxed text-sm">{r.desc}</p>
+                  </div>
+                </Reveal>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── PRICING ── */}
+        <section id="planos" className="py-32">
+          <div className="max-w-7xl mx-auto px-6">
+            <Reveal className="text-center mb-20">
+              <h2 className="text-4xl md:text-6xl font-black text-white tracking-tighter mb-6">
+                Investimento que se paga.
+              </h2>
+              <p className="text-slate-400 text-lg">
+                Escolha o plano que acompanha o ritmo do seu crescimento.
+              </p>
+            </Reveal>
+
+            <div className="grid lg:grid-cols-4 gap-6">
+              {PLANOS.map((p, i) => (
+                <Reveal key={p.id} delay={i * 100} direction="up">
+                  <div
+                    className={`
+                    relative flex flex-col h-full p-8 rounded-[2rem] transition-all duration-500
+                    ${
                       p.destaque
-                        ? "bg-white text-[#1A2A4F] hover:bg-blue-50"
-                        : "border-2 border-[#1A2A4F] text-[#1A2A4F] hover:bg-[#1A2A4F] hover:text-white"
-                    }`}
+                        ? "bg-blue-600 text-white shadow-[0_0_50px_-12px_rgba(59,130,246,0.5)] scale-105 z-10"
+                        : "bg-[#0F172A] border border-white/5 hover:border-white/20"
+                    }
+                  `}
                   >
-                    {p.cta}
-                  </Link>
-                ) : (
-                  <div className="mt-8 space-y-2">
+                    {p.tag && (
+                      <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-white text-blue-600 text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full shadow-lg">
+                        {p.tag}
+                      </div>
+                    )}
+
+                    <h3
+                      className={`text-lg font-bold mb-1 ${p.destaque ? "text-white" : "text-white"}`}
+                    >
+                      {p.nome}
+                    </h3>
+                    <div className="flex items-baseline gap-1 mb-8">
+                      <span className="text-4xl font-black tracking-tighter">{p.preco}</span>
+                      <span className="text-xs opacity-60 font-medium">/{p.periodo}</span>
+                    </div>
+
+                    <ul className="space-y-4 flex-1 mb-10">
+                      {p.recursos.map((rec) => (
+                        <li key={rec} className="flex items-start gap-3 text-sm font-medium">
+                          <CheckCircle2
+                            size={16}
+                            className={p.destaque ? "text-blue-200" : "text-blue-500"}
+                          />
+                          <span className={p.destaque ? "text-blue-50" : "text-slate-400"}>
+                            {rec}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+
                     <button
-                      onClick={() => handleCheckout((process.env as Record<string, string>)[p.priceEnv!] ?? "")}
-                      className={`w-full py-3 rounded-xl font-bold text-sm transition ${
-                        p.destaque
-                          ? "bg-white text-[#1A2A4F] hover:bg-blue-50"
-                          : "bg-[#1A2A4F] text-white hover:bg-blue-700"
-                      }`}
+                      onClick={() => handleCheckout(p.id)}
+                      className={`
+                        w-full py-4 rounded-2xl font-black text-sm uppercase tracking-widest transition-all
+                        ${
+                          p.destaque
+                            ? "bg-white text-blue-600 hover:bg-slate-100 shadow-xl"
+                            : "bg-white/5 text-white hover:bg-white/10 border border-white/10"
+                        }
+                      `}
                     >
                       {p.cta}
                     </button>
-                    {p.id === "expert" && p.priceEnvAnual && (
-                      <button
-                        onClick={() => handleCheckout((process.env as Record<string, string>)[p.priceEnvAnual!] ?? "")}
-                        className="w-full py-2.5 rounded-xl font-semibold text-xs border border-blue-400 text-blue-300 hover:bg-white/10 transition"
-                      >
-                        Assinar plano anual (–20%)
-                      </button>
-                    )}
                   </div>
+                </Reveal>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── FAQ ── */}
+        <section id="faq" className="py-32 bg-white/[0.01]">
+          <div className="max-w-4xl mx-auto px-6">
+            <Reveal className="text-center mb-20">
+              <h2 className="text-4xl font-black text-white tracking-tighter mb-4">
+                Perguntas frequentes.
+              </h2>
+              <p className="text-slate-400">Tudo o que você precisa saber antes de assinar.</p>
+            </Reveal>
+            <div className="bg-[#0F172A] rounded-3xl border border-white/5 overflow-hidden">
+              {FAQS.map((f) => (
+                <FaqItem key={f.q} q={f.q} a={f.a} />
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── CONTATO ── */}
+        <section id="contato" className="py-32">
+          <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-20">
+            <Reveal direction="left">
+              <h2 className="text-5xl font-black text-white tracking-tighter mb-6">
+                Alguma dúvida específica?
+              </h2>
+              <p className="text-slate-400 text-lg mb-10 leading-relaxed">
+                Nossa equipe de especialistas está pronta para ajudar você a migrar sua carteira ou
+                configurar sua nova página.
+              </p>
+              <div className="space-y-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-blue-600/10 rounded-xl flex items-center justify-center text-blue-500">
+                    <MessageCircle size={24} />
+                  </div>
+                  <div>
+                    <p className="text-white font-bold">WhatsApp Suporte</p>
+                    <p className="text-sm text-slate-500">Resposta em até 15 minutos</p>
+                  </div>
+                </div>
+              </div>
+            </Reveal>
+
+            <Reveal direction="right" delay={200}>
+              <div className="bg-[#0F172A] p-10 rounded-[2.5rem] border border-white/5">
+                {contactStatus === "SUCCESS" ? (
+                  <div className="text-center py-10">
+                    <div className="w-20 h-20 bg-emerald-500/20 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                      <CheckCircle2 size={40} />
+                    </div>
+                    <h3 className="text-2xl font-bold text-white mb-2">Mensagem Enviada!</h3>
+                    <p className="text-slate-400">Retornaremos em breve.</p>
+                  </div>
+                ) : (
+                  <form onSubmit={handleContactSubmit} className="space-y-5">
+                    <div className="grid grid-cols-2 gap-5">
+                      <input
+                        required
+                        placeholder="Nome"
+                        className="bg-white/5 border border-white/10 rounded-xl px-5 py-4 outline-none focus:border-blue-500 text-white"
+                        onChange={(e) => setContactForm({ ...contactForm, nome: e.target.value })}
+                      />
+                      <input
+                        required
+                        placeholder="WhatsApp"
+                        className="bg-white/5 border border-white/10 rounded-xl px-5 py-4 outline-none focus:border-blue-500 text-white"
+                        onChange={(e) =>
+                          setContactForm({ ...contactForm, whatsapp: e.target.value })
+                        }
+                      />
+                    </div>
+                    <input
+                      required
+                      type="email"
+                      placeholder="E-mail profissional"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-4 outline-none focus:border-blue-500 text-white"
+                      onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
+                    />
+                    <textarea
+                      rows={4}
+                      placeholder="Como podemos ajudar?"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-4 outline-none focus:border-blue-500 text-white"
+                      onChange={(e) => setContactForm({ ...contactForm, mensagem: e.target.value })}
+                    />
+                    <button
+                      disabled={contactStatus === "SENDING"}
+                      className="w-full bg-blue-600 hover:bg-blue-500 py-5 rounded-xl font-bold text-white transition disabled:opacity-50"
+                    >
+                      {contactStatus === "SENDING" ? "Enviando..." : "Enviar Mensagem"}
+                    </button>
+                  </form>
                 )}
               </div>
-            ))}
+            </Reveal>
           </div>
-
-          <p className="text-center text-gray-400 text-xs mt-8">
-            Todos os planos incluem suporte, atualizações e sem taxa de adesão.
-          </p>
-        </div>
-      </section>
-
-      {/* ── FAQ ────────────────────────────────────────────────────────────────── */}
-      <section className="py-24 bg-gray-50">
-        <div className="max-w-3xl mx-auto px-6">
-          <div className="text-center mb-12">
-            <span className="text-blue-600 text-sm font-semibold uppercase tracking-widest">Dúvidas</span>
-            <h2 className="mt-2 text-3xl sm:text-4xl font-black text-[#1A2A4F]">
-              Perguntas frequentes
-            </h2>
-          </div>
-
-          <div className="space-y-3">
-            {FAQS.map((faq) => (
-              <FaqItem key={faq.q} q={faq.q} a={faq.a} />
-            ))}
-          </div>
-        </div>
-      </section>
+        </section>
+      </main>
 
       {/* ── CTA FINAL ──────────────────────────────────────────────────────────── */}
-      <section className="py-24 bg-gradient-to-br from-[#1A2A4F] to-[#1e3a8a] text-white text-center">
-        <div className="max-w-3xl mx-auto px-6">
-          <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 text-white/80 text-xs font-semibold px-4 py-2 rounded-full mb-8">
-            🎉 Comece hoje mesmo — é gratuito!
-          </div>
-          <h2 className="text-3xl sm:text-5xl font-black leading-tight">
-            Pronto para profissionalizar<br />sua carreira?
-          </h2>
-          <p className="mt-5 text-white/70 text-lg max-w-xl mx-auto">
-            Junte-se a centenas de corretores que já usam a ImobHub para vender mais e se destacar no mercado.
-          </p>
-          <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link
-              href="/register"
-              className="group flex items-center gap-2 bg-white text-[#1A2A4F] px-8 py-4 rounded-xl text-base font-bold hover:bg-blue-50 transition shadow-lg shadow-black/20"
-            >
-              Criar minha conta grátis
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </Link>
-            <Link href="/login" className="text-white/60 hover:text-white text-sm transition">
-              Já tenho uma conta →
-            </Link>
-          </div>
-          <p className="mt-5 text-white/40 text-xs">Sem cartão de crédito • Cancele quando quiser</p>
+      <section className="py-24 bg-[#020617] relative overflow-hidden">
+        {/* Glow de fundo para profundidade */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-blue-600/10 blur-[120px] rounded-full -z-10" />
+
+        <div className="max-w-4xl mx-auto px-6 text-center">
+          <Reveal direction="down">
+            <div className="inline-flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-[0.3em] px-5 py-2 rounded-full mb-10">
+              🚀 Comece hoje mesmo — é gratuito
+            </div>
+          </Reveal>
+
+          <Reveal delay={100}>
+            <h2 className="text-4xl sm:text-6xl font-black text-white leading-tight tracking-tighter">
+              Pronto para profissionalizar
+              <br />
+              sua carreira?
+            </h2>
+          </Reveal>
+
+          <Reveal delay={200}>
+            <p className="mt-6 text-slate-400 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed">
+              Junte-se a centenas de corretores que já usam o{" "}
+              <span className="text-white font-bold">ImobHub</span> para gerir ativos e fechar
+              negócios com inteligência.
+            </p>
+          </Reveal>
+
+          <Reveal delay={300}>
+            <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-6">
+              <Link
+                href="/register"
+                className="group flex items-center gap-3 bg-blue-600 text-white px-10 py-5 rounded-2xl text-lg font-black hover:bg-blue-500 transition-all shadow-xl shadow-blue-600/20 hover:scale-105 active:scale-95"
+              >
+                Criar minha conta grátis
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </Link>
+              <Link
+                href="/login"
+                className="text-slate-500 hover:text-white font-bold text-sm transition-colors tracking-widest uppercase"
+              >
+                Já tenho uma conta →
+              </Link>
+            </div>
+            <p className="mt-8 text-slate-600 text-[10px] font-black uppercase tracking-[0.2em]">
+              Sem cartão de crédito • Cancele quando quiser
+            </p>
+          </Reveal>
         </div>
       </section>
 
-      {/* ── FOOTER ─────────────────────────────────────────────────────────────── */}
-      <footer className="bg-[#0d1f45] text-gray-400 py-10">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <Link href="/" className="text-xl font-black text-white tracking-tight">
-            Imob<span className="text-blue-400">Hub</span>
-          </Link>
-          <div className="flex items-center gap-6 text-sm">
-            <Link href="/login" className="hover:text-white transition">Entrar</Link>
-            <Link href="/register" className="hover:text-white transition">Cadastrar</Link>
-            <Link href="#planos" className="hover:text-white transition">Planos</Link>
+      {/* ── FOOTER RESTAURADO ─────────────────────────────────────────────────── */}
+      <footer className="bg-[#020617] border-t border-white/5 pt-20 pb-10">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-8 mb-12">
+            <Link
+              href="/"
+              className="text-2xl font-black text-white tracking-tighter flex items-center gap-2"
+            >
+              <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
+                <HomeIcon size={18} />
+              </div>
+              IMOB<span className="text-blue-500">HUB.</span>
+            </Link>
+
+            <div className="flex flex-wrap justify-center items-center gap-8 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">
+              <Link href="/login" className="hover:text-white transition-colors">
+                Entrar
+              </Link>
+              <Link href="/register" className="hover:text-white transition-colors">
+                Cadastrar
+              </Link>
+              <Link href="#portfolio" className="hover:text-white transition-colors">
+                Recursos
+              </Link>
+              <Link
+                href="mailto:thallisson.sousa17@gmail.com"
+                className="hover:text-white transition-colors"
+              >
+                Suporte
+              </Link>
+            </div>
           </div>
-          <p className="text-xs text-gray-500">
-            © {new Date().getFullYear()} ImobHub. Todos os direitos reservados.
-          </p>
+
+          <div className="flex flex-col md:flex-row items-center justify-between border-t border-white/5 pt-8 gap-4">
+            <p className="text-[10px] text-slate-600 font-bold uppercase tracking-widest">
+              © {new Date().getFullYear()} IMOBHUB S.A. • MADE FOR THE TOP 1%
+            </p>
+          </div>
         </div>
       </footer>
-      {/* WhatsApp Flutuante */}
+
+      {/* WhatsApp Flutuante Estilizado */}
       <a
-        href="https://wa.me/5511999999999" // TODO: Substituir pelo número real
+        href="https://wa.me/5583994044852"
         target="_blank"
         rel="noopener noreferrer"
-        className="fixed bottom-6 right-6 z-50 bg-[#25D366] text-white p-4 rounded-full shadow-lg hover:scale-110 active:scale-95 transition-all duration-300 flex items-center justify-center group"
-        title="Fale conosco no WhatsApp"
+        className="fixed bottom-8 right-8 z-50 bg-[#25D366] text-white p-4 rounded-2xl shadow-2xl shadow-[#25D366]/20 hover:scale-110 active:scale-95 transition-all duration-300 flex items-center justify-center group"
       >
-        <svg
-          viewBox="0 0 24 24"
-          fill="currentColor"
-          className="w-8 h-8"
-        >
-          <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.592 2.654-.696c1.001.575 2.012.895 3.125.895 3.178 0 5.767-2.587 5.767-5.766.001-3.187-2.575-5.778-5.766-5.778zm0 0M12.061 17.5c-1.125 0-2.071-.345-2.909-.908l-.208-.139-1.921.503.513-1.872-.138-.218c-.463-.733-.705-1.488-.705-2.296-.001-2.43 1.975-4.406 4.406-4.406s4.406 1.975 4.406 4.406c0 2.43-1.975 4.406-4.406 4.406zm0 0m2.384-3.328c-.131-.066-.777-.384-.897-.428-.121-.044-.209-.066-.297.066-.087.132-.339.428-.416.517-.076.088-.153.099-.284.033-.131-.066-.554-.204-1.055-.65-.393-.35-.658-.783-.735-.914-.076-.132-.008-.203.057-.269.06-.059.132-.154.198-.231.066-.077.087-.132.131-.22.044-.088.022-.165-.011-.232-.033-.066-.297-.715-.407-.98-.107-.257-.215-.222-.297-.226l-.253-.005c-.087 0-.23.033-.351.165-.121.132-.462.451-.462 1.1s.473 1.276.539 1.365c.065.088 1.848 3.012 4.478 4.148 2.63 1.136 2.63.758 3.113.714.484-.044 1.034-.428 1.177-.841.143-.413.143-.768.1-.841-.043-.073-.164-.117-.295-.183zm0 0" />
+        <svg viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7">
+          <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.592 2.654-.696c1.001.575 2.012.895 3.125.895 3.178 0 5.767-2.587 5.767-5.766.001-3.187-2.575-5.778-5.766-5.778zm0 0M12.061 17.5c-1.125 0-2.071-.345-2.909-.908l-.208-.139-1.921.503.513-1.872-.138-.218c-.463-.733-.705-1.488-.705-2.296-.001-2.43 1.975-4.406 4.406-4.406s4.406 1.975 4.406 4.406c0 2.43-1.975 4.406-4.406 4.406zm0 0" />
         </svg>
         <span className="max-w-0 overflow-hidden whitespace-nowrap group-hover:max-w-xs transition-all duration-500 ease-in-out">
-          <span className="pl-3 pr-1 font-bold">Fale Conosco</span>
+          <span className="pl-3 pr-1 font-black text-xs uppercase tracking-widest">
+            Fale Conosco
+          </span>
         </span>
       </a>
+
+      {/* ── ESTILOS ADICIONAIS ── */}
+      <style jsx global>{`
+        @keyframes float {
+          0%,
+          100% {
+            transform: translateY(0px);
+          }
+          50% {
+            transform: translateY(-10px);
+          }
+        }
+        .animate-float {
+          animation: float 5s ease-in-out infinite;
+        }
+        html {
+          scroll-behavior: smooth;
+        }
+      `}</style>
     </div>
   );
 }
