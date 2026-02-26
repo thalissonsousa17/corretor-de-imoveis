@@ -28,10 +28,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.json({
       imovel: {
         ...imovel,
-        fotos: (imovel.fotos || []).map((f: any) => ({
+        fotos: (imovel.fotos || []).map((f: { url: string | null; [key: string]: unknown }) => ({
           ...f,
-          url: resolveFotoUrl(f.url)
-        }))
+          url: resolveFotoUrl(f.url),
+        })),
       },
       corretor: profile
         ? {

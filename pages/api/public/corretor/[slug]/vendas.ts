@@ -44,12 +44,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         linkedin: profile.linkedin,
         logoUrl: resolveFotoUrl(profile.logoUrl),
       },
-      imoveis: (imoveis || []).map(im => ({
+      imoveis: (imoveis || []).map((im) => ({
         ...im,
-        fotos: (im.fotos || []).map((f: any) => ({
+        fotos: (im.fotos || []).map((f: { url: string | null; [key: string]: unknown }) => ({
           ...f,
-          url: resolveFotoUrl(f.url)
-        }))
+          url: resolveFotoUrl(f.url),
+        })),
       })),
     });
   } catch (e) {

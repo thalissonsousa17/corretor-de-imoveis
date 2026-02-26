@@ -6,8 +6,15 @@ import BuscaEndereco from "./BuscaEndereco";
 import { Endereco } from "../types/endereco";
 import FotosUploader from "./FotosUploader";
 import {
-  FaBed, FaBath, FaCar, FaRulerCombined, FaMapMarkerAlt,
-  FaMoneyBillWave, FaCalendarAlt, FaBuilding, FaHome
+  FaBed,
+  FaBath,
+  FaCar,
+  FaRulerCombined,
+  FaMapMarkerAlt,
+  FaMoneyBillWave,
+  FaCalendarAlt,
+  FaBuilding,
+  FaHome,
 } from "react-icons/fa";
 
 interface FormState {
@@ -268,7 +275,9 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
         <div className="space-y-5">
           {/* Título */}
           <div>
-            <Label htmlFor="titulo" required>Título do Anúncio</Label>
+            <Label htmlFor="titulo" required>
+              Título do Anúncio
+            </Label>
             <input
               type="text"
               name="titulo"
@@ -283,7 +292,9 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
 
           {/* Descrição */}
           <div>
-            <Label htmlFor="descricao" required>Descrição Detalhada</Label>
+            <Label htmlFor="descricao" required>
+              Descrição Detalhada
+            </Label>
             <textarea
               name="descricao"
               id="descricao"
@@ -298,7 +309,9 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
               placeholder="Descreva todos os detalhes do imóvel, área de lazer, diferenciais e informações relevantes..."
             />
             <div className="flex justify-between items-center mt-1.5">
-              <span className={`text-xs ${descLen >= 3000 ? "text-red-500 font-semibold" : "text-gray-400"}`}>
+              <span
+                className={`text-xs ${descLen >= 3000 ? "text-red-500 font-semibold" : "text-gray-400"}`}
+              >
                 {descLen.toLocaleString()} / 3.000 caracteres
               </span>
               {descLen >= 3000 && (
@@ -310,7 +323,9 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
           {/* Preço, Tipo, Finalidade */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
-              <Label htmlFor="preco" required>Valor (R$)</Label>
+              <Label htmlFor="preco" required>
+                Valor (R$)
+              </Label>
               <input
                 type="number"
                 name="preco"
@@ -325,7 +340,9 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
               />
             </div>
             <div>
-              <Label htmlFor="tipo" required>Tipo de Imóvel</Label>
+              <Label htmlFor="tipo" required>
+                Tipo de Imóvel
+              </Label>
               <select
                 name="tipo"
                 id="tipo"
@@ -341,7 +358,9 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
               </select>
             </div>
             <div>
-              <Label htmlFor="finalidade" required>Finalidade</Label>
+              <Label htmlFor="finalidade" required>
+                Finalidade
+              </Label>
               <select
                 name="finalidade"
                 id="finalidade"
@@ -554,7 +573,9 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
             </div>
             {/* Número */}
             <div>
-              <Label htmlFor="numero" required>Número</Label>
+              <Label htmlFor="numero" required>
+                Número
+              </Label>
               <input
                 name="numero"
                 id="numero"
@@ -570,7 +591,9 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Rua */}
             <div>
-              <Label htmlFor="rua" required>Rua / Logradouro</Label>
+              <Label htmlFor="rua" required>
+                Rua / Logradouro
+              </Label>
               <input
                 type="text"
                 name="rua"
@@ -583,7 +606,9 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
             </div>
             {/* Bairro */}
             <div>
-              <Label htmlFor="bairro" required>Bairro</Label>
+              <Label htmlFor="bairro" required>
+                Bairro
+              </Label>
               <input
                 type="text"
                 name="bairro"
@@ -599,7 +624,9 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Cidade */}
             <div>
-              <Label htmlFor="cidade" required>Cidade</Label>
+              <Label htmlFor="cidade" required>
+                Cidade
+              </Label>
               <input
                 value={formData.cidade}
                 onChange={(e) => setFormData({ ...formData, cidade: e.target.value })}
@@ -609,7 +636,9 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
             </div>
             {/* Estado */}
             <div>
-              <Label htmlFor="estado" required>Estado (Sigla)</Label>
+              <Label htmlFor="estado" required>
+                Estado (Sigla)
+              </Label>
               <input
                 type="text"
                 name="estado"
@@ -663,7 +692,10 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
       >
         <div className="bg-blue-50/50 border border-blue-100 rounded-lg p-3 mb-4">
           <p className="text-[11px] text-blue-700 leading-tight">
-            <strong>✨ Dica de Visualização:</strong> Para que os cards fiquem "cheios" e sem faixas laterais, prefira fotos na <strong>horizontal (paisagem)</strong>. Recomendamos a proporção <strong>3:2</strong> ou <strong>4:3</strong> (ex: 1200x800 ou 1024x768 pixels).
+            <strong>✨ Dica de Visualização:</strong> Para que os cards fiquem &quot;cheios&quot; e
+            sem faixas laterais, prefira fotos na <strong>horizontal (paisagem)</strong>.
+            Recomendamos a proporção <strong>3:2</strong> ou <strong>4:3</strong> (ex: 1200x800 ou
+            1024x768 pixels).
           </p>
         </div>
         <div className="space-y-4">
@@ -727,9 +759,25 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
       >
         {loading ? (
           <span className="flex items-center justify-center gap-2">
-            <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            <svg
+              className="animate-spin h-5 w-5 text-white"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              />
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+              />
             </svg>
             Processando...
           </span>

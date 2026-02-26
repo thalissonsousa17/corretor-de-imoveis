@@ -14,12 +14,12 @@ const handleGetCorretorImoveis = async (req: AuthApiRequest, res: NextApiRespons
     });
 
     return res.status(200).json(
-      (imoveis || []).map(im => ({
+      (imoveis || []).map((im) => ({
         ...im,
-        fotos: (im.fotos || []).map((f: any) => ({
+        fotos: (im.fotos || []).map((f: { url: string | null; [key: string]: unknown }) => ({
           ...f,
-          url: resolveFotoUrl(f.url)
-        }))
+          url: resolveFotoUrl(f.url),
+        })),
       }))
     );
   } catch (error) {

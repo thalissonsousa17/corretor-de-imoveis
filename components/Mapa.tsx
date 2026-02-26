@@ -7,7 +7,7 @@ import "leaflet/dist/leaflet.css";
 
 // --- FIX PARA ÍCONES DO LEAFLET EM NEXT.JS ---
 // Os caminhos padrão dos ícones falham no Webpack do Next.js
-// @ts-ignore
+// @ts-expect-error - Leaflet icon fix for Next.js/Webpack
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
@@ -67,8 +67,10 @@ export default function Mapa({ endereco }: MapaProps) {
     return (
       <div className="flex items-center justify-center h-full bg-slate-50 animate-pulse rounded-2xl border border-slate-100">
         <div className="text-slate-300 font-medium flex flex-col items-center gap-2">
-           <div className="w-8 h-8 border-4 border-slate-200 border-t-emerald-500 rounded-full animate-spin" />
-           <span className="text-[10px] uppercase tracking-widest font-bold">Localizando Endereço...</span>
+          <div className="w-8 h-8 border-4 border-slate-200 border-t-emerald-500 rounded-full animate-spin" />
+          <span className="text-[10px] uppercase tracking-widest font-bold">
+            Localizando Endereço...
+          </span>
         </div>
       </div>
     );
@@ -78,7 +80,7 @@ export default function Mapa({ endereco }: MapaProps) {
     return (
       <div className="flex flex-col items-center justify-center h-full bg-slate-50 rounded-2xl border border-dashed border-slate-200 p-6 text-center">
         <p className="text-slate-400 text-sm font-medium">{error}</p>
-        <p className="text-slate-300 text-[10px] mt-2 italic px-4">"{endereco}"</p>
+        <p className="text-slate-300 text-[10px] mt-2 italic px-4">&quot;{endereco}&quot;</p>
       </div>
     );
   }
@@ -106,7 +108,9 @@ export default function Mapa({ endereco }: MapaProps) {
         </MapContainer>
       ) : (
         <div className="flex items-center justify-center h-full bg-slate-50 rounded-2xl">
-          <span className="text-slate-300 text-[10px] uppercase tracking-widest font-bold">Aguardando endereço...</span>
+          <span className="text-slate-300 text-[10px] uppercase tracking-widest font-bold">
+            Aguardando endereço...
+          </span>
         </div>
       )}
     </div>
