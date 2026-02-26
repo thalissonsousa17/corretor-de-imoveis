@@ -26,8 +26,6 @@ interface ImovelCardProps {
   slug: string;
 }
 
-
-
 const tipoLabel: Record<string, string> = {
   APARTAMENTO: "Apartamento",
   CASA: "Casa",
@@ -61,7 +59,7 @@ export default function ImovelCard({ imovel, slug }: ImovelCardProps) {
       <article className="relative bg-white dark:bg-slate-900 rounded-[3rem] overflow-hidden shadow-[0_50px_100px_-20px_rgba(0,0,0,0.15)] dark:shadow-[0_40px_80px_-15px_rgba(0,0,0,0.4)] border border-white dark:border-white/5 hover:border-accent/30 dark:hover:border-accent/40 transition-all duration-700 h-full flex flex-col group-hover:-translate-y-8 group-hover:shadow-[0_80px_150px_-20px_rgba(0,0,0,0.2)] dark:group-hover:shadow-[0_0_50px_rgba(var(--accent-color-rgb),0.15)]">
         {/* Shine effect overlay for dark mode */}
         <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
-        
+
         {/* FOTO CONTAINER */}
         <div className="relative h-72 overflow-hidden bg-slate-950 flex items-center justify-center">
           <img
@@ -75,10 +73,12 @@ export default function ImovelCard({ imovel, slug }: ImovelCardProps) {
 
           {/* Overlays */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-700" />
-          
+
           {/* Top Actions */}
           <div className="absolute top-4 left-4 right-4 flex justify-between items-center z-10">
-            <span className={`${badgeColor} text-white text-[10px] font-black uppercase tracking-[0.2em] px-4 py-1.5 rounded-full backdrop-blur-md shadow-lg`}>
+            <span
+              className={`${badgeColor} text-white text-[10px] font-black uppercase tracking-[0.2em] px-4 py-1.5 rounded-full backdrop-blur-md shadow-lg`}
+            >
               {badgeText}
             </span>
             <button className="p-2 bg-white/10 hover:bg-white/20 backdrop-blur-md text-white rounded-full transition-all active:scale-95">
@@ -88,9 +88,9 @@ export default function ImovelCard({ imovel, slug }: ImovelCardProps) {
 
           {/* Quick Reveal Info (Visual on Hover) */}
           <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-4 group-hover:translate-y-0">
-             <div className="px-6 py-3 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl text-white font-black text-[10px] uppercase tracking-widest pointer-events-none">
-                Ver Detalhes Exclusivos
-             </div>
+            <div className="px-6 py-3 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl text-white font-black text-[10px] uppercase tracking-widest pointer-events-none">
+              Ver Detalhes Exclusivos
+            </div>
           </div>
 
           {/* Price Tag */}
@@ -120,7 +120,9 @@ export default function ImovelCard({ imovel, slug }: ImovelCardProps) {
 
           <div className="flex items-center gap-2 text-slate-400 text-xs font-bold uppercase tracking-wider">
             <FiMapPin size={14} className="text-slate-300 dark:text-slate-600" />
-            <span className="line-clamp-1">{imovel.cidade}, {imovel.estado}</span>
+            <span className="line-clamp-1">
+              {imovel.cidade}, {imovel.estado}
+            </span>
           </div>
 
           {/* Premium Specs Grid */}
@@ -128,20 +130,32 @@ export default function ImovelCard({ imovel, slug }: ImovelCardProps) {
             <div className="grid grid-cols-3 gap-2 mt-auto pt-6 border-t border-slate-50 dark:border-white/5">
               {imovel.quartos != null && imovel.quartos > 0 && (
                 <div className="flex flex-col items-center gap-1 p-2 rounded-2xl bg-slate-50/50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors border border-transparent dark:border-white/5">
-                  <span className="text-slate-950 dark:text-white font-black text-sm">{imovel.quartos}</span>
-                  <span className="text-slate-400 dark:text-slate-500 text-[9px] font-bold uppercase tracking-widest">Quartos</span>
+                  <span className="text-slate-950 dark:text-white font-black text-sm">
+                    {imovel.quartos}
+                  </span>
+                  <span className="text-slate-400 dark:text-slate-500 text-[9px] font-bold uppercase tracking-widest">
+                    Quartos
+                  </span>
                 </div>
               )}
               {imovel.banheiros != null && imovel.banheiros > 0 && (
                 <div className="flex flex-col items-center gap-1 p-2 rounded-2xl bg-slate-50/50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors border border-transparent dark:border-white/5">
-                  <span className="text-slate-950 dark:text-white font-black text-sm">{imovel.banheiros}</span>
-                  <span className="text-slate-400 dark:text-slate-500 text-[9px] font-bold uppercase tracking-widest">Banhs</span>
+                  <span className="text-slate-950 dark:text-white font-black text-sm">
+                    {imovel.banheiros}
+                  </span>
+                  <span className="text-slate-400 dark:text-slate-500 text-[9px] font-bold uppercase tracking-widest">
+                    Banhs
+                  </span>
                 </div>
               )}
               {imovel.areaTotal != null && imovel.areaTotal > 0 && (
                 <div className="flex flex-col items-center gap-1 p-2 rounded-2xl bg-slate-50/50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors border border-transparent dark:border-white/5">
-                  <span className="text-slate-950 dark:text-white font-black text-sm">{imovel.areaTotal}</span>
-                  <span className="text-slate-400 dark:text-slate-500 text-[9px] font-bold uppercase tracking-widest">m² Úteis</span>
+                  <span className="text-slate-950 dark:text-white font-black text-sm">
+                    {imovel.areaTotal}
+                  </span>
+                  <span className="text-slate-400 dark:text-slate-500 text-[9px] font-bold uppercase tracking-widest">
+                    m² Úteis
+                  </span>
                 </div>
               )}
             </div>
