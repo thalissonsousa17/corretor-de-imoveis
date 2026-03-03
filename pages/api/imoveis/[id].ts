@@ -182,6 +182,7 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse) => {
             url: `/uploads/${fileName}`,
             ordem: ordemBase + index + 1,
             imovelId: id,
+            principal: false,
           });
         } catch (moveError) {
           console.error("Erro ao mover arquivo:", moveError);
@@ -197,12 +198,14 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse) => {
 
     const imovelAtualizado = await prisma.imovel.findUnique({
       where: { id },
-      include: { fotos: { orderBy: { ordem: "asc" } } },
+      include: { fotos: true },
     });
 
     if (!imovelAtualizado) return res.status(404).json({ message: "Erro ao recuperar imóvel." });
 
-    const fotosFormatadas = imovelAtualizado.fotos.map((f) => ({
+    (imovelAtualizado as any).fotos?.sort((a: any, b: any) => (a.ordem ?? 0) - (b.ordem ?? 0));
+
+    const fotosFormatadas = (imovelAtualizado as any).fotos.map((f: any) => ({
       ...f,
       url: resolveFotoUrl(f.url),
     }));
@@ -224,12 +227,14 @@ const handleGetById = async (req: AuthApiRequest, res: NextApiResponse) => {
 
   const imovel = await prisma.imovel.findUnique({
     where: { id },
-    include: { fotos: { orderBy: { ordem: "asc" } } },
+    include: { fotos: true },
   });
 
   if (!imovel) return res.status(404).json({ message: "Imóvel não encontrado." });
 
-  const fotosFormatadas = imovel.fotos.map((f) => ({
+  (imovel as any).fotos?.sort((a: any, b: any) => (a.ordem ?? 0) - (b.ordem ?? 0));
+
+  const fotosFormatadas = (imovel as any).fotos.map((f: any) => ({
     ...f,
     url: resolveFotoUrl(f.url),
   }));

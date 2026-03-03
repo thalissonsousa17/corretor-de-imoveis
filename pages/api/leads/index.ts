@@ -43,7 +43,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         include: { user: true },
       });
 
-      if (!session || session.expiresAt < new Date()) {
+      if (!session || new Date((session as any).expiresAt) < new Date()) {
         return res.status(401).json({ message: "Sessão inválida ou expirada." });
       }
 

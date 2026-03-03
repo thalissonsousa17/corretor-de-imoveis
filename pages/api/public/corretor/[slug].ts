@@ -47,28 +47,21 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
     const imoveisRaw = await prisma.imovel.findMany({
       where,
       orderBy: { createdAt: "desc" },
-      include: {
-        fotos: {
-          orderBy: { ordem: "asc" },
-          take: 1,
-        },
-      },
+      include: { fotos: true },
       take: 50,
     });
 
-    const imoveis = imoveisRaw.map((imovel) => {
-      const capaRaw = imovel.fotos?.[0]?.url ?? null;
+    const imoveis = (imoveisRaw as any[]).map((imovel: any) => {
+      // Supabase adapter não suporta orderBy em include aninhado — ordenar client-side
+      const fotosOrdenadas: any[] = (imovel.fotos ?? []).sort(
+        (a: any, b: any) => (a.ordem ?? 0) - (b.ordem ?? 0)
+      );
+      const capaRaw = fotosOrdenadas[0]?.url ?? null;
 
       return {
         ...imovel,
-
         fotoPrincipal: resolveFotoUrl(capaRaw),
-
-        fotos:
-          imovel.fotos?.map((f) => ({
-            ...f,
-            url: resolveFotoUrl(f.url),
-          })) ?? [],
+        fotos: fotosOrdenadas.map((f: any) => ({ ...f, url: resolveFotoUrl(f.url) })),
       };
     });
 

@@ -37,7 +37,7 @@ export const authorize =
         return res.status(401).json({ error: "Sessão inválida." });
       }
 
-      if (session.expiresAt < new Date()) {
+      if (new Date(session.expiresAt) < new Date()) {
         await prisma.session.delete({ where: { id: sessionId } });
         res.setHeader("Set-Cookie", cookie.serialize("sessionId", "", { maxAge: 0, path: "/" }));
         return res.status(401).json({ error: "Sessão expirada." });

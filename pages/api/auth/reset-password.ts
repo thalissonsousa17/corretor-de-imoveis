@@ -23,7 +23,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ message: "Link de redefinição inválido ou já utilizado" });
   }
 
-  if (resetToken.expiresAt < new Date()) {
+  if (new Date(resetToken.expiresAt) < new Date()) {
     await prisma.passwordResetToken.delete({ where: { token } });
     return res.status(400).json({ message: "Link de redefinição expirado. Solicite um novo." });
   }

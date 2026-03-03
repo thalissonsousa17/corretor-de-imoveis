@@ -61,7 +61,7 @@ async function handler(req: AuthApiRequest, res: NextApiResponse) {
       viewsPorDia[key] = 0;
     }
     for (const v of viewsRaw) {
-      const key = v.createdAt.toISOString().slice(0, 10);
+      const key = (v.createdAt as string).slice(0, 10);
       if (viewsPorDia[key] !== undefined) {
         viewsPorDia[key]++;
       }

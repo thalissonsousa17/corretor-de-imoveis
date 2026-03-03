@@ -45,7 +45,7 @@ async function handler(req: AuthApiRequest, res: NextApiResponse) {
           (c) =>
             c.status === "RECEBIDA" &&
             c.dataRecebimento &&
-            c.dataRecebimento >= inicioMes
+            new Date(c.dataRecebimento as string) >= inicioMes
         )
         .reduce((s, c) => s + c.valorComissao, 0);
 
