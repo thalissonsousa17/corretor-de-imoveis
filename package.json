@@ -17,8 +17,6 @@
     "@hello-pangea/dnd": "^18.0.1",
     "@material-tailwind/react": "^2.1.10",
     "@next-auth/prisma-adapter": "^1.0.7",
-    "@prisma/adapter-pg": "^7.0.1",
-    "@prisma/extension-accelerate": "^3.0.1",
     "@react-google-maps/api": "^2.20.7",
     "@supabase/supabase-js": "^2.98.0",
     "@tiptap/extension-color": "^3.19.0",
