@@ -34,18 +34,22 @@ async function handler(req: AuthApiRequest, res: NextApiResponse) {
       imovelCountMap[im.corretorId] = (imovelCountMap[im.corretorId] || 0) + 1;
     }
 
-    const formattedUsers = (users as any[]).map((user: any) => ({
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      creci: user.profile?.creci || "N/A",
-      whatsapp: user.profile?.whatsapp || "N/A",
-      slug: user.profile?.slug || "",
-      plano: user.profile?.plano || "GRATUITO",
-      status: user.profile?.planoStatus || "INATIVO",
-      imoveisCount: imovelCountMap[user.id] || 0,
-      createdAt: user.createdAt,
-    }));
+    const formattedUsers = (users as any[]).map((user: any) => {
+      // PostgREST pode retornar o perfil como objeto ou array (depende do FK único)
+      const profile = Array.isArray(user.profile) ? user.profile[0] : user.profile;
+      return {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        creci: profile?.creci || "N/A",
+        whatsapp: profile?.whatsapp || "N/A",
+        slug: profile?.slug || "",
+        plano: profile?.plano || "GRATUITO",
+        status: profile?.planoStatus || "INATIVO",
+        imoveisCount: imovelCountMap[user.id] || 0,
+        createdAt: user.createdAt,
+      };
+    });
 
     return res.status(200).json(formattedUsers);
   } catch (error) {

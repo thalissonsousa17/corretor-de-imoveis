@@ -73,6 +73,7 @@ const handlePost = async (req: AuthApiRequest, res: NextApiResponse) => {
           url: urlData.publicUrl,
           ordem: index + 1,
           imovelId: String(imovelId),
+          principal: false,
         };
       })
     );
