@@ -103,20 +103,21 @@ function applyWhere(query: ReturnType<typeof supabase.from>, where: Record<strin
       continue;
     } else if (typeof value === "object" && !Array.isArray(value)) {
       const op = value as Record<string, unknown>;
-      if ("in" in op)       query = (query as any).in(key, op.in);
-      else if ("notIn" in op) query = (query as any).not(key, "in", `(${(op.notIn as unknown[]).join(",")})`);
-      else if ("contains" in op) query = (query as any).ilike(key, `%${op.contains}%`);
-      else if ("startsWith" in op) query = (query as any).ilike(key, `${op.startsWith}%`);
-      else if ("endsWith" in op) query = (query as any).ilike(key, `%${op.endsWith}`);
-      else if ("gte" in op)  query = (query as any).gte(key, op.gte);
-      else if ("lte" in op)  query = (query as any).lte(key, op.lte);
-      else if ("gt" in op)   query = (query as any).gt(key, op.gt);
-      else if ("lt" in op)   query = (query as any).lt(key, op.lt);
-      else if ("not" in op) {
+      // Use independent ifs so compound operators like { gte: x, lt: y } all get applied
+      if ("in" in op)         query = (query as any).in(key, op.in);
+      if ("notIn" in op)      query = (query as any).not(key, "in", `(${(op.notIn as unknown[]).join(",")})`);
+      if ("contains" in op)   query = (query as any).ilike(key, `%${op.contains}%`);
+      if ("startsWith" in op) query = (query as any).ilike(key, `${op.startsWith}%`);
+      if ("endsWith" in op)   query = (query as any).ilike(key, `%${op.endsWith}`);
+      if ("gte" in op)        query = (query as any).gte(key, op.gte);
+      if ("lte" in op)        query = (query as any).lte(key, op.lte);
+      if ("gt" in op)         query = (query as any).gt(key, op.gt);
+      if ("lt" in op)         query = (query as any).lt(key, op.lt);
+      if ("not" in op) {
         if (op.not === null) query = (query as any).not(key, "is", null);
         else                 query = (query as any).neq(key, op.not);
       }
-      else if ("equals" in op) query = (query as any).eq(key, op.equals);
+      if ("equals" in op)     query = (query as any).eq(key, op.equals);
     } else {
       query = (query as any).eq(key, value);
     }

@@ -230,6 +230,7 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
         });
       } else {
         const createData: any = {
+          userId,
           creci: creci || undefined,
           slug: finalSlug || `corretor-${userId.slice(0, 6)}`,
           biografia: biografia || undefined,
@@ -239,12 +240,11 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
           whatsapp: whatsapp || undefined,
           metaTitle: metaTitle || undefined,
           metaDescription: metaDescription || undefined,
+          plano: "GRATUITO",
+          planoStatus: "INATIVO",
           ...(avatarUrl !== undefined && { avatarUrl }),
           ...(bannerUrl !== undefined && { bannerUrl }),
           ...(logoUrl !== undefined && { logoUrl }),
-          user: {
-            connect: { id: userId },
-          },
         };
 
         perfil = await prisma.corretorProfile.create({
