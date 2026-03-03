@@ -52,3 +52,8 @@ next-env.d.ts
 # Ignorar imagens de uploads
 /public/uploads/*
 !/public/uploads/.gitkeep
+
+# Segredos e scripts internos
+.claude/
+scripts/
+

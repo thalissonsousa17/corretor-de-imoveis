@@ -1,5 +1,6 @@
 import { useAuth } from "@/lib/AuthContext";
 import axios from "axios";
+import Link from "next/link";
 import { useRouter } from "next/router";
 import { useState } from "react";
 
@@ -88,13 +89,19 @@ const LoginPage = () => {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full flex justify-center py-2 px-4 rounded shadow-sm text-sm font-medium 
-                       text-white bg-blue-600 hover:bg-blue-700 
+            className="w-full flex justify-center py-2 px-4 rounded shadow-sm text-sm font-medium
+                       text-white bg-blue-600 hover:bg-blue-700
                        focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
           >
             {isLoading ? "Entrando..." : "Entrar"}
           </button>
         </form>
+
+        <div className="text-center">
+          <Link href="/forgot-password" className="text-sm text-blue-600 hover:underline">
+            Esqueceu a senha?
+          </Link>
+        </div>
       </div>
     </div>
   );

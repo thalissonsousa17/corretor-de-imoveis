@@ -1,6 +1,5 @@
 generator client {
-  provider   = "prisma-client-js"
-  engineType = "client"
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -27,7 +26,8 @@ model User {
   comissoes        Comissao[]
 
   // Relacionamento com Domínio
-  dominios Dominio[]
+  dominios     Dominio[]
+  resetTokens  PasswordResetToken[]
 }
 
 model CorretorProfile {
@@ -63,6 +63,8 @@ model CorretorProfile {
   ultimos4               String?
   assinaturaCriadaEm     DateTime?
   ultimoPagamentoEm      DateTime?
+  tokensUsados           Int         @default(0)
+  totalVisualizacoes     Int         @default(0)
   user                   User        @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
@@ -378,4 +380,13 @@ model Assinatura {
   assinadoEm DateTime @default(now())
 
   @@index([contratoId])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
