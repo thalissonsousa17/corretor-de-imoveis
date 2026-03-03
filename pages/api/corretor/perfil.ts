@@ -29,14 +29,17 @@ export interface AuthApiRequest extends NextApiRequest {
 }
 
 const getUploadDir = () => process.env.UPLOAD_DIR || path.join(process.cwd(), "public", "uploads");
-const uploadDir = getUploadDir();
-
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
 
 const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => cb(null, uploadDir),
+  destination: (_req, _file, cb) => {
+    const dir = getUploadDir();
+    try {
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    } catch {
+      // Vercel read-only filesystem – files will be stored via Supabase Storage
+    }
+    cb(null, dir);
+  },
   filename: (_req, file, cb) => {
     const ext = path.extname(file.originalname);
     const uniqueName = `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
@@ -127,28 +130,32 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
   }
 
   if (req.method === "POST") {
-    await new Promise<void>((resolve, reject) => {
-      upload.fields([
-        { name: "avatar", maxCount: 1 },
-        { name: "banner", maxCount: 1 },
-        { name: "logo", maxCount: 1 },
-      ])(
-        req as unknown as Parameters<ReturnType<typeof upload.fields>>[0],
-        res as unknown as Parameters<ReturnType<typeof upload.fields>>[1],
-        (err: unknown) => (err ? reject(err) : resolve())
-      );
-    });
+    try {
+      // ── Parse multipart form (multer) ──────────────────────────────────────
+      await new Promise<void>((resolve, reject) => {
+        upload.fields([
+          { name: "avatar", maxCount: 1 },
+          { name: "banner", maxCount: 1 },
+          { name: "logo", maxCount: 1 },
+        ])(
+          req as unknown as Parameters<ReturnType<typeof upload.fields>>[0],
+          res as unknown as Parameters<ReturnType<typeof upload.fields>>[1],
+          (err: unknown) => (err ? reject(err) : resolve())
+        );
+      });
 
-    if (typeof req.body === "object" && req.body !== null) {
-      for (const key of Object.keys(req.body)) {
-        const value = req.body[key as keyof typeof req.body];
-        if (typeof value === "object" && value !== null) {
-          (req.body as Record<string, string>)[key] = String(value);
+      // Normalise multer body – v2 may return arrays for text fields
+      if (typeof req.body === "object" && req.body !== null) {
+        for (const key of Object.keys(req.body)) {
+          const value = req.body[key as keyof typeof req.body];
+          if (typeof value === "object" && value !== null) {
+            (req.body as Record<string, string>)[key] = String(value);
+          }
         }
       }
-    }
 
-    try {
+      const body = (req.body || {}) as Record<string, string>;
+
       const {
         name,
         email,
@@ -161,11 +168,11 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
         whatsapp,
         metaTitle,
         metaDescription,
-      } = (req.body || {}) as Record<string, string>;
+      } = body;
 
-      let avatarUrl: string | null | undefined = req.body.avatar || undefined;
-      let bannerUrl: string | null | undefined = req.body.banner || undefined;
-      let logoUrl: string | null | undefined = req.body.logo || undefined;
+      let avatarUrl: string | null | undefined = body.avatar || undefined;
+      let bannerUrl: string | null | undefined = body.banner || undefined;
+      let logoUrl: string | null | undefined = body.logo || undefined;
 
       if (req.files?.avatar?.[0]) avatarUrl = `/uploads/${req.files.avatar[0].filename}`;
       if (req.files?.banner?.[0]) bannerUrl = `/uploads/${req.files.banner[0].filename}`;
@@ -173,28 +180,34 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
 
       if (logoUrl === "null" || logoUrl === "undefined") logoUrl = null;
 
-      await prisma.user.update({
-        where: { id: userId },
-        data: {
-          ...(name && { name }),
-          ...(email && { email }),
-        },
-      });
+      // ── Update user name/email only if provided ────────────────────────────
+      const userUpdateData: Record<string, string> = {};
+      if (name) userUpdateData.name = name;
+      if (email) userUpdateData.email = email;
 
+      if (Object.keys(userUpdateData).length > 0) {
+        await prisma.user.update({
+          where: { id: userId },
+          data: userUpdateData,
+        });
+      }
+
+      // ── Slug deduplication ────────────────────────────────────────────────
       let finalSlug = slug ? normalizeSlug(slug) : undefined;
 
       if (finalSlug) {
         let existing = await prisma.corretorProfile.findUnique({ where: { slug: finalSlug } });
         let suffix = 1;
 
-        while (existing && existing.userId !== userId) {
+        while (existing && (existing as any).userId !== userId) {
           finalSlug = normalizeSlug(slug + suffix.toString());
           existing = await prisma.corretorProfile.findUnique({ where: { slug: finalSlug } });
           suffix++;
         }
       }
 
-      const dataToSave: any = {
+      // ── Build update payload – strip undefined so Supabase ignores them ───
+      const rawData: Record<string, unknown> = {
         creci,
         slug: finalSlug,
         biografia,
@@ -204,34 +217,32 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
         whatsapp,
         metaTitle,
         metaDescription,
-        slogan: req.body.slogan,
-        accentColor: req.body.accentColor,
-        videoUrl: req.body.videoUrl,
-        bioTitle: req.body.bioTitle,
+        slogan: body.slogan,
+        accentColor: body.accentColor,
+        videoUrl: body.videoUrl,
+        bioTitle: body.bioTitle,
       };
 
-      if (avatarUrl !== undefined) dataToSave.avatarUrl = avatarUrl;
-      if (bannerUrl !== undefined) dataToSave.bannerUrl = bannerUrl;
-      if (logoUrl !== undefined) dataToSave.logoUrl = logoUrl;
-      if (finalSlug !== undefined) dataToSave.slug = finalSlug;
-      if (creci !== undefined) dataToSave.creci = creci;
-      if (biografia !== undefined) dataToSave.biografia = biografia;
-      if (instagram !== undefined) dataToSave.instagram = instagram;
-      if (facebook !== undefined) dataToSave.facebook = facebook;
-      if (linkedin !== undefined) dataToSave.linkedin = linkedin;
-      if (whatsapp !== undefined) dataToSave.whatsapp = whatsapp;
-      if (metaTitle !== undefined) dataToSave.metaTitle = metaTitle;
-      if (metaDescription !== undefined) dataToSave.metaDescription = metaDescription;
+      if (avatarUrl !== undefined) rawData.avatarUrl = avatarUrl;
+      if (bannerUrl !== undefined) rawData.bannerUrl = bannerUrl;
+      if (logoUrl !== undefined) rawData.logoUrl = logoUrl;
 
+      // Remove keys whose value is undefined so we never send {} to Supabase
+      const dataToSave = Object.fromEntries(
+        Object.entries(rawData).filter(([, v]) => v !== undefined)
+      );
+
+      // ── Upsert profile ────────────────────────────────────────────────────
       const existingPerfil = await prisma.corretorProfile.findUnique({ where: { userId } });
-      let perfil;
 
       if (existingPerfil) {
-        // Supabase REST não suporta include em UPDATE — fazer em 2 passos
-        await prisma.corretorProfile.update({
-          where: { userId },
-          data: dataToSave,
-        });
+        if (Object.keys(dataToSave).length > 0) {
+          // Use updateMany – no .single() constraint, simpler REST call
+          await prisma.corretorProfile.updateMany({
+            where: { userId },
+            data: dataToSave,
+          });
+        }
       } else {
         const createData: any = {
           userId,
@@ -254,8 +265,8 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
         await prisma.corretorProfile.create({ data: createData });
       }
 
-      // Buscar o perfil atualizado com o user separadamente
-      perfil = await prisma.corretorProfile.findUnique({
+      // ── Fetch updated profile with user ───────────────────────────────────
+      const perfil = await prisma.corretorProfile.findUnique({
         where: { userId },
         include: { user: true },
       });
@@ -271,8 +282,9 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
         email: perfilUser?.email ?? "",
       });
     } catch (err) {
-      console.error("❌ Erro ao salvar perfil:", err);
-      return res.status(500).json({ error: String(err) });
+      const message = err instanceof Error ? err.message : String(err);
+      console.error("❌ Erro ao salvar perfil:", message);
+      return res.status(500).json({ error: message });
     }
   }
 
