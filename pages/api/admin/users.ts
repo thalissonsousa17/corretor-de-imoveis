@@ -20,14 +20,21 @@ async function handler(req: AuthApiRequest, res: NextApiResponse) {
             slug: true,
           },
         },
-        _count: {
-          select: { imoveis: true },
-        },
       },
       orderBy: { createdAt: "desc" },
     });
 
-    const formattedUsers = users.map((user) => ({
+    // Contar imóveis por corretor separadamente (_count não é suportado no adapter Supabase)
+    const userIds = (users as any[]).map((u: any) => u.id);
+    const imoveis = userIds.length
+      ? await prisma.imovel.findMany({ where: { corretorId: { in: userIds } }, select: { corretorId: true } })
+      : [];
+    const imovelCountMap: Record<string, number> = {};
+    for (const im of imoveis as any[]) {
+      imovelCountMap[im.corretorId] = (imovelCountMap[im.corretorId] || 0) + 1;
+    }
+
+    const formattedUsers = (users as any[]).map((user: any) => ({
       id: user.id,
       name: user.name,
       email: user.email,
@@ -36,7 +43,7 @@ async function handler(req: AuthApiRequest, res: NextApiResponse) {
       slug: user.profile?.slug || "",
       plano: user.profile?.plano || "GRATUITO",
       status: user.profile?.planoStatus || "INATIVO",
-      imoveisCount: user._count.imoveis,
+      imoveisCount: imovelCountMap[user.id] || 0,
       createdAt: user.createdAt,
     }));
 

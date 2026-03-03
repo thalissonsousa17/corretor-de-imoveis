@@ -16,12 +16,7 @@ async function handler(req: AuthApiRequest, res: NextApiResponse) {
         include: {
           user: { select: { name: true, email: true } },
           mensagens: {
-            orderBy: { createdAt: "desc" as const },
-            take: 1,
             select: { conteudo: true, createdAt: true, lida: true, autorId: true },
-          },
-          _count: {
-            select: { mensagens: true },
           },
         },
         orderBy: { updatedAt: "desc" as const },
