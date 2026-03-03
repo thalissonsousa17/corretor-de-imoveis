@@ -9,6 +9,7 @@
  */
 
 import { createClient } from "@supabase/supabase-js";
+import { randomUUID } from "node:crypto";
 
 // ─── Supabase admin client (bypasses RLS) ────────────────────────────────────
 const supabase = createClient(
@@ -173,9 +174,10 @@ function createModel(modelName: string) {
     },
 
     async create({ data, include, select }: any) {
+      const row = data.id ? data : { id: randomUUID(), ...data };
       const { data: result, error } = await supabase
         .from(table)
-        .insert(data)
+        .insert(row)
         .select(buildSelect(include, select))
         .single();
       if (error) throw new Error(`[${table}.create] ${error.message}`);
@@ -183,7 +185,9 @@ function createModel(modelName: string) {
     },
 
     async createMany({ data, skipDuplicates }: any) {
-      const rows = Array.isArray(data) ? data : [data];
+      const rows = (Array.isArray(data) ? data : [data]).map((r: any) =>
+        r.id ? r : { id: randomUUID(), ...r }
+      );
       const q = supabase.from(table).insert(rows);
       const { error } = skipDuplicates ? (q as any).onConflict("id").merge() : await q;
       if (error) throw new Error(`[${table}.createMany] ${error.message}`);
