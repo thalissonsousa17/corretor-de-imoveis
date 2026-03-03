@@ -1,6 +1,7 @@
 import type { NextApiResponse } from "next";
 import { AuthApiRequest, authorize } from "@/lib/authMiddleware";
 import { prisma } from "@/lib/prisma";
+import { supabaseAdmin, STORAGE_BUCKET } from "@/lib/supabase";
 import formidable from "formidable";
 import path from "path";
 import fs from "fs";
@@ -9,16 +10,10 @@ export const config = {
   api: { bodyParser: false },
 };
 
-type MaybeFilepath = { filepath?: string; path?: string };
+type MaybeFilepath = { filepath?: string; path?: string; mimetype?: string; originalFilename?: string };
 
 const handlePost = async (req: AuthApiRequest, res: NextApiResponse) => {
-  const uploadDir = path.join(process.cwd(), "public/uploads");
-  if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-  }
-
   const form = formidable({
-    uploadDir,
     keepExtensions: true,
     maxFiles: 10,
     maxFileSize: 10 * 1024 * 1024, // 10 MB
@@ -46,19 +41,41 @@ const handlePost = async (req: AuthApiRequest, res: NextApiResponse) => {
       : [];
 
   try {
-    const fotosData = fotosArray.map((file, index) => {
-      const f = file as unknown as MaybeFilepath;
-      const filePath = f.filepath ?? f.path;
-      if (!filePath) {
-        throw new Error("Caminho do arquivo indefinido");
-      }
+    const fotosData = await Promise.all(
+      fotosArray.map(async (file, index) => {
+        const f = file as unknown as MaybeFilepath;
+        const filePath = f.filepath ?? f.path;
+        if (!filePath) {
+          throw new Error("Caminho do arquivo indefinido");
+        }
 
-      return {
-        url: `/uploads/${path.basename(filePath)}`,
-        ordem: index + 1,
-        imovelId: String(imovelId),
-      };
-    });
+        const buffer = fs.readFileSync(filePath);
+        const ext = path.extname(f.originalFilename ?? filePath);
+        const storagePath = `${imovelId}/${Date.now()}-${index}${ext}`;
+        const contentType = f.mimetype ?? "image/jpeg";
+
+        const { error } = await supabaseAdmin.storage
+          .from(STORAGE_BUCKET)
+          .upload(storagePath, buffer, { contentType, upsert: false });
+
+        if (error) {
+          throw new Error(`Erro ao enviar imagem para Supabase: ${error.message}`);
+        }
+
+        const { data: urlData } = supabaseAdmin.storage
+          .from(STORAGE_BUCKET)
+          .getPublicUrl(storagePath);
+
+        // Limpa o arquivo temporário do disco
+        fs.unlinkSync(filePath);
+
+        return {
+          url: urlData.publicUrl,
+          ordem: index + 1,
+          imovelId: String(imovelId),
+        };
+      })
+    );
 
     await prisma.foto.createMany({ data: fotosData });
 

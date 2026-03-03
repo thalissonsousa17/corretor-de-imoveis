@@ -1,7 +1,7 @@
 import type { NextApiResponse } from "next";
 import { prisma } from "@/lib/prisma";
 import { AuthApiRequest, authorize } from "@/lib/authMiddleware";
-import type { StatusComissao, TipoComissao } from "@prisma/client";
+import type { StatusComissao, TipoComissao } from "@/lib/types";
 
 async function handler(req: AuthApiRequest, res: NextApiResponse) {
   const corretorId = req.user!.id;

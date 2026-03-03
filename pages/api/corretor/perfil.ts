@@ -4,7 +4,6 @@ import { authorize } from "../../../lib/authMiddleware";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
-import type { Prisma } from "@prisma/client";
 
 function normalizeSlug(value: string): string {
   return value
@@ -191,7 +190,7 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
         }
       }
 
-      const dataToSave: Prisma.CorretorProfileUpdateInput = {
+      const dataToSave: any = {
         creci,
         slug: finalSlug,
         biografia,
@@ -230,7 +229,7 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
           include: { user: true },
         });
       } else {
-        const createData: Prisma.CorretorProfileCreateInput = {
+        const createData: any = {
           creci: creci || undefined,
           slug: finalSlug || `corretor-${userId.slice(0, 6)}`,
           biografia: biografia || undefined,

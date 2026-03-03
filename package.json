@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && next build",
+    "build": "next build",
     "start": "next start",
     "lint": "eslint",
     "prepare": "husky",
@@ -69,7 +69,6 @@
     "@commitlint/cli": "^20.1.0",
     "@commitlint/config-conventional": "^20.0.0",
     "@eslint/eslintrc": "^3",
-    "@prisma/client": "^7.4.0",
     "@tailwindcss/postcss": "^4",
     "@types/bcrypt": "^6.0.0",
     "@types/bcryptjs": "^2.4.6",
@@ -91,7 +90,6 @@
     "eslint-config-prettier": "^10.1.8",
     "husky": "^9.1.7",
     "prettier": "^3.6.2",
-    "prisma": "^7.4.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

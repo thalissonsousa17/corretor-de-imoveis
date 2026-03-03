@@ -5,7 +5,6 @@ import { resend } from "@/lib/resend";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 import { mapPriceToPlano } from "@/lib/stripe";
-import { PlanoTipo, PlanoStatus } from "@prisma/client";
 
 // const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 //   apiVersion: "2025-11-17.clover",
@@ -158,14 +157,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       update: {
         stripeCustomerId,
         plano,
-        planoStatus: PlanoStatus.ATIVO,
+        planoStatus: "ATIVO",
       },
       create: {
         userId: user.id,
         stripeCustomerId,
         slug: `${name.toLowerCase().replace(/\s+/g, "-")}-${crypto.randomBytes(2).toString("hex")}`,
         plano,
-        planoStatus: PlanoStatus.ATIVO,
+        planoStatus: "ATIVO",
       },
     });
 
@@ -193,7 +192,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (!perfil) return res.json({ received: true });
 
-    if (perfil.plano === PlanoTipo.GRATUITO && !perfil.stripeSubscriptionId) {
+    if (perfil.plano === "GRATUITO" && !perfil.stripeSubscriptionId) {
       return res.json({ received: true });
     }
 
@@ -251,7 +250,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
 
       data: {
-        planoStatus: PlanoStatus.ATIVO,
+        planoStatus: "ATIVO",
         stripeSubscriptionId: subscription.id,
         ultimos4,
         stripeCurrentPeriodEnd: new Date(subscription.current_period_end * 1000),

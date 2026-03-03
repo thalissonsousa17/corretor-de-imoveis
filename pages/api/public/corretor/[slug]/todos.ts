@@ -1,12 +1,9 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { prisma } from "@/lib/prisma";
-import { Prisma } from "@prisma/client";
 import path from "path";
 import { resolveFotoUrl } from "@/lib/imageUtils";
 
-type ImovelComFotos = Prisma.ImovelGetPayload<{
-  include: { fotos: true };
-}>;
+type ImovelComFotos = any;
 
 
 

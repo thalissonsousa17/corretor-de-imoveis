@@ -264,6 +264,53 @@ function createModel(modelName: string) {
       }
       return {};
     },
+
+    // groupBy — client-side aggregation (Supabase REST doesn't support GROUP BY directly)
+    async groupBy({ by, where, _count, _sum, _avg, orderBy, take, skip }: any) {
+      let q = supabase.from(table).select("*");
+      if (where) q = applyWhere(q as any, where) as any;
+      const { data, error } = await q;
+      if (error) throw new Error(`[${table}.groupBy] ${error.message}`);
+
+      const records: any[] = data ?? [];
+      const groups: Record<string, any> = {};
+
+      for (const row of records) {
+        const key = (by as string[]).map((f) => row[f]).join("__||__");
+        if (!groups[key]) {
+          const base: any = {};
+          for (const f of by as string[]) base[f] = row[f];
+          if (_count) { base._count = {}; for (const f of Object.keys(_count)) base._count[f] = 0; }
+          if (_sum)   { base._sum   = {}; for (const f of Object.keys(_sum))   base._sum[f]   = 0; }
+          groups[key] = base;
+        }
+        if (_count) for (const f of Object.keys(_count)) if (row[f] != null) groups[key]._count[f]++;
+        if (_sum)   for (const f of Object.keys(_sum))   if (row[f] != null) groups[key]._sum[f] += row[f];
+      }
+
+      let result: any[] = Object.values(groups);
+
+      if (orderBy) {
+        if (orderBy._count) {
+          const [field, dir] = Object.entries(orderBy._count as Record<string, string>)[0];
+          result.sort((a, b) => dir === "asc"
+            ? (a._count?.[field] ?? 0) - (b._count?.[field] ?? 0)
+            : (b._count?.[field] ?? 0) - (a._count?.[field] ?? 0));
+        } else {
+          const [field, dir] = Object.entries(orderBy as Record<string, string>)[0];
+          result.sort((a, b) => dir === "asc"
+            ? String(a[field]).localeCompare(String(b[field]))
+            : String(b[field]).localeCompare(String(a[field])));
+        }
+      }
+
+      if (skip !== undefined || take !== undefined) {
+        const from = skip ?? 0;
+        result = result.slice(from, take !== undefined ? from + take : undefined);
+      }
+
+      return result;
+    },
   };
 }
 

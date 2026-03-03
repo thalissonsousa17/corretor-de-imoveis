@@ -3,7 +3,7 @@ import { prisma } from "../../../lib/prisma";
 import { AuthApiRequest, authorize } from "../../../lib/authMiddleware";
 import fs from "fs/promises";
 import path from "path";
-import type { Imovel, Foto, ImovelStatus } from "@prisma/client";
+import type { Imovel, Foto, ImovelStatus } from "@/lib/types";
 import formidable from "formidable";
 import crypto from "crypto";
 import { resolveFotoUrl } from "../../../lib/imageUtils";

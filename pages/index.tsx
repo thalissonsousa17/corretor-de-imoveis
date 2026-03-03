@@ -153,6 +153,7 @@ const RECURSOS = [
 const PLANOS = [
   {
     id: "gratuito",
+    stripeId: null,
     nome: "Gratuito",
     preco: "R$ 0",
     periodo: "para sempre",
@@ -167,6 +168,7 @@ const PLANOS = [
   },
   {
     id: "pro",
+    stripeId: process.env.NEXT_PUBLIC_PRICE_PRO,
     nome: "Pro",
     preco: "R$ 79,90",
     periodo: "por mês",
@@ -181,6 +183,7 @@ const PLANOS = [
   },
   {
     id: "start",
+    stripeId: process.env.NEXT_PUBLIC_PRICE_START,
     nome: "Start AI",
     preco: "R$ 99,90",
     periodo: "por mês",
@@ -191,6 +194,7 @@ const PLANOS = [
   },
   {
     id: "expert",
+    stripeId: process.env.NEXT_PUBLIC_PRICE_EXPERT,
     nome: "Expert",
     preco: "R$ 149,90",
     periodo: "por mês",
@@ -515,7 +519,7 @@ export default function LandingPagePremium() {
                     </ul>
 
                     <button
-                      onClick={() => handleCheckout(p.id)}
+                      onClick={() => p.stripeId ? handleCheckout(p.stripeId) : router.push("/register")}
                       className={`
                         w-full py-4 rounded-2xl font-black text-sm uppercase tracking-widest transition-all
                         ${

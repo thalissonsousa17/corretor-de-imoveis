@@ -1,7 +1,6 @@
 import type { NextApiResponse } from "next";
 import { prisma } from "@/lib/prisma";
 import { authorize, AuthApiRequest } from "@/lib/authMiddleware";
-import { ImovelStatus } from "@prisma/client";
 
 export default authorize(async function handler(req: AuthApiRequest, res: NextApiResponse) {
   const userId = req.user?.id;
@@ -20,10 +19,10 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
       const [totalImoveis, imovelDisponiveis, imovelVendido, imovelAlugado, imovelInativo] =
         await Promise.all([
           prisma.imovel.count({ where: { corretorId: userId } }),
-          prisma.imovel.count({ where: { corretorId: userId, status: ImovelStatus.DISPONIVEL } }),
-          prisma.imovel.count({ where: { corretorId: userId, status: ImovelStatus.VENDIDO } }),
-          prisma.imovel.count({ where: { corretorId: userId, status: ImovelStatus.ALUGADO } }),
-          prisma.imovel.count({ where: { corretorId: userId, status: ImovelStatus.INATIVO } }),
+          prisma.imovel.count({ where: { corretorId: userId, status: "DISPONIVEL" } }),
+          prisma.imovel.count({ where: { corretorId: userId, status: "VENDIDO" } }),
+          prisma.imovel.count({ where: { corretorId: userId, status: "ALUGADO" } }),
+          prisma.imovel.count({ where: { corretorId: userId, status: "INATIVO" } }),
         ]);
 
       const tipoImoveis = await prisma.imovel.groupBy({

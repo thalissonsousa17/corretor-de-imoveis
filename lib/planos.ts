@@ -1,4 +1,4 @@
-import { PlanoTipo } from "@prisma/client";
+import { PlanoTipo } from "@/lib/types";
 
 export const LIMITE_IMOVEIS_POR_PLANO: Record<PlanoTipo, number> = {
   GRATUITO: 5,
