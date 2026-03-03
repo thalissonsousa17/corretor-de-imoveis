@@ -81,40 +81,44 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
         });
       }
 
-      const assinaturaManual = perfil.plano !== "GRATUITO" && !perfil.stripeSubscriptionId;
+      // PostgREST pode retornar user como objeto (many-to-one) ou array — tratar ambos
+      const perfilAny = perfil as any;
+      const u = Array.isArray(perfilAny.user) ? perfilAny.user[0] : perfilAny.user;
+
+      const assinaturaManual = perfilAny.plano !== "GRATUITO" && !perfilAny.stripeSubscriptionId;
 
       return res.status(200).json({
-        plano: perfil.plano,
-        planoStatus: assinaturaManual ? "ATIVO" : perfil.planoStatus,
+        plano: perfilAny.plano,
+        planoStatus: assinaturaManual ? "ATIVO" : perfilAny.planoStatus,
 
-        stripeCurrentPeriodEnd: assinaturaManual ? null : perfil.stripeCurrentPeriodEnd,
+        stripeCurrentPeriodEnd: assinaturaManual ? null : perfilAny.stripeCurrentPeriodEnd,
 
-        assinaturaCriadaEm: assinaturaManual ? perfil.createdAt : perfil.assinaturaCriadaEm,
+        assinaturaCriadaEm: assinaturaManual ? perfilAny.createdAt : perfilAny.assinaturaCriadaEm,
 
-        ultimoPagamentoEm: assinaturaManual ? perfil.createdAt : perfil.ultimoPagamentoEm,
+        ultimoPagamentoEm: assinaturaManual ? perfilAny.createdAt : perfilAny.ultimoPagamentoEm,
 
-        stripeCustomerId: assinaturaManual ? null : (perfil.user.stripeCustomerId ?? null),
+        stripeCustomerId: assinaturaManual ? null : (u?.stripeCustomerId ?? null),
 
-        creci: perfil.creci,
-        slug: perfil.slug,
-        biografia: perfil.biografia,
-        instagram: perfil.instagram,
-        facebook: perfil.facebook,
-        linkedin: perfil.linkedin,
-        whatsapp: perfil.whatsapp,
-        metaTitle: perfil.metaTitle,
-        metaDescription: perfil.metaDescription,
-        avatarUrl: perfil.avatarUrl,
-        bannerUrl: perfil.bannerUrl,
-        logoUrl: perfil.logoUrl,
+        creci: perfilAny.creci,
+        slug: perfilAny.slug,
+        biografia: perfilAny.biografia,
+        instagram: perfilAny.instagram,
+        facebook: perfilAny.facebook,
+        linkedin: perfilAny.linkedin,
+        whatsapp: perfilAny.whatsapp,
+        metaTitle: perfilAny.metaTitle,
+        metaDescription: perfilAny.metaDescription,
+        avatarUrl: perfilAny.avatarUrl,
+        bannerUrl: perfilAny.bannerUrl,
+        logoUrl: perfilAny.logoUrl,
 
-        slogan: perfil.slogan,
-        accentColor: perfil.accentColor,
-        videoUrl: perfil.videoUrl,
-        bioTitle: perfil.bioTitle,
+        slogan: perfilAny.slogan,
+        accentColor: perfilAny.accentColor,
+        videoUrl: perfilAny.videoUrl,
+        bioTitle: perfilAny.bioTitle,
 
-        name: perfil.user.name,
-        email: perfil.user.email,
+        name: u?.name ?? "",
+        email: u?.email ?? "",
       });
     } catch (err) {
       console.error("❌ Erro ao buscar perfil:", err);
@@ -223,10 +227,10 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
       let perfil;
 
       if (existingPerfil) {
-        perfil = await prisma.corretorProfile.update({
+        // Supabase REST não suporta include em UPDATE — fazer em 2 passos
+        await prisma.corretorProfile.update({
           where: { userId },
           data: dataToSave,
-          include: { user: true },
         });
       } else {
         const createData: any = {
@@ -247,13 +251,25 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
           ...(logoUrl !== undefined && { logoUrl }),
         };
 
-        perfil = await prisma.corretorProfile.create({
-          data: createData,
-          include: { user: true },
-        });
+        await prisma.corretorProfile.create({ data: createData });
       }
 
-      return res.status(200).json(perfil);
+      // Buscar o perfil atualizado com o user separadamente
+      perfil = await prisma.corretorProfile.findUnique({
+        where: { userId },
+        include: { user: true },
+      });
+
+      const perfilUser = Array.isArray((perfil as any)?.user)
+        ? (perfil as any).user[0]
+        : (perfil as any)?.user;
+
+      return res.status(200).json({
+        ...(perfil as any),
+        user: perfilUser,
+        name: perfilUser?.name ?? "",
+        email: perfilUser?.email ?? "",
+      });
     } catch (err) {
       console.error("❌ Erro ao salvar perfil:", err);
       return res.status(500).json({ error: String(err) });
