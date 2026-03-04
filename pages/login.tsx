@@ -325,7 +325,7 @@ const LoginPage = () => {
               </div>
             </div>
 
-            <div className="login-left-footer">© 2026 IMOBHUB S.A.</div>
+            <div className="login-left-footer">© {new Date().getFullYear()} IMOBHUB</div>
           </div>
         </div>
 

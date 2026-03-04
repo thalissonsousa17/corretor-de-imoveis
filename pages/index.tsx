@@ -63,21 +63,21 @@ function Reveal({ children, direction = "up", delay = 0, className = "" }: Revea
 function FaqItem({ q, a }: { q: string; a: string }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className={`border-b border-[#1a1a2e] transition-all ${open ? "bg-white/[0.015]" : ""}`}>
+    <div className={`border-b border-[#e8e4dc] transition-all ${open ? "bg-[#fafaf8]" : ""}`}>
       <button
         onClick={() => setOpen(!open)}
         className="w-full flex items-center justify-between px-8 py-7 text-left group"
       >
-        <span className={`font-medium text-base tracking-tight transition-colors ${open ? "text-[#c9a84c]" : "text-slate-300 group-hover:text-white"}`}>
+        <span className={`font-medium text-base tracking-tight transition-colors ${open ? "text-[#b8912a]" : "text-[#5a5650] group-hover:text-[#1a1814]"}`}>
           {q}
         </span>
         <ChevronDown
           size={18}
-          className={`transition-all duration-300 flex-shrink-0 ml-4 ${open ? "rotate-180 text-[#c9a84c]" : "text-slate-600"}`}
+          className={`transition-all duration-300 flex-shrink-0 ml-4 ${open ? "rotate-180 text-[#b8912a]" : "text-[#9c9890]"}`}
         />
       </button>
       <div className={`overflow-hidden transition-all duration-300 ${open ? "max-h-80 opacity-100" : "max-h-0 opacity-0"}`}>
-        <p className="px-8 pb-7 text-slate-500 leading-relaxed text-sm">{a}</p>
+        <p className="px-8 pb-7 text-[#5a5650] leading-relaxed text-sm">{a}</p>
       </div>
     </div>
   );
@@ -286,23 +286,23 @@ export default function LandingPage() {
             <div className="relative group">
               {/* Glow */}
               <div className="absolute -inset-px bg-gradient-to-r from-[#c9a84c]/20 via-transparent to-[#c9a84c]/10 opacity-0 group-hover:opacity-100 transition duration-700 blur-sm" />
-              <div className="border border-white/[0.07] bg-white/[0.02] overflow-hidden">
+              <div className="border border-[#e8e4dc] bg-white overflow-hidden">
                 {/* Browser chrome */}
-                <div className="bg-[#0d0d1a] px-5 py-4 flex items-center justify-between border-b border-white/[0.05]">
+                <div className="bg-[#f3f2ee] px-5 py-4 flex items-center justify-between border-b border-[#e8e4dc]">
                   <div className="flex gap-2">
                     {["#ff5f57", "#febc2e", "#28c840"].map(c => (
-                      <div key={c} className="w-3 h-3 rounded-full opacity-40" style={{ background: c }} />
+                      <div key={c} className="w-3 h-3 rounded-full opacity-50" style={{ background: c }} />
                     ))}
                   </div>
                   <div className="flex-1 mx-6 max-w-xs">
-                    <div className="bg-white/[0.04] border border-white/[0.06] px-4 py-1.5 text-center text-[11px] text-slate-600 font-mono">
+                    <div className="bg-white border border-[#e8e4dc] px-4 py-1.5 text-center text-[11px] text-[#9c9890] font-mono">
                       imobhub.com/dashboard
                     </div>
                   </div>
                   <div className="w-16" />
                 </div>
                 {/* Screen */}
-                <div className="aspect-[16/9] relative bg-[#06060f] overflow-hidden flex items-center justify-center">
+                <div className="aspect-[16/9] relative bg-[#eeede9] overflow-hidden flex items-center justify-center">
                   <Image
                     src="/demo/dashboard.svg"
                     alt="Interface ImobHub"
@@ -310,10 +310,10 @@ export default function LandingPage() {
                     className="object-cover opacity-70 group-hover:opacity-90 transition-opacity duration-700"
                   />
                   {/* Floating card */}
-                  <div className="absolute top-8 right-10 bg-[#0d0d1a]/90 backdrop-blur border border-[#c9a84c]/20 px-5 py-4 shadow-2xl animate-[float_5s_ease-in-out_infinite]">
-                    <div className="text-[9px] uppercase tracking-[0.2em] text-[#c9a84c]/70 mb-1">Novo Lead</div>
-                    <div className="text-sm font-semibold text-white">Ricardo Oliveira</div>
-                    <div className="text-[10px] text-slate-500 mt-0.5">há 2 minutos</div>
+                  <div className="absolute top-8 right-10 bg-white border border-[#e8e4dc] px-5 py-4 shadow-lg animate-[float_5s_ease-in-out_infinite]">
+                    <div className="text-[9px] uppercase tracking-[0.2em] text-[#b8912a] mb-1 font-bold">Novo Lead</div>
+                    <div className="text-sm font-semibold text-[#1a1814]">Ricardo Oliveira</div>
+                    <div className="text-[10px] text-[#9c9890] mt-0.5">há 2 minutos</div>
                   </div>
                 </div>
               </div>
@@ -330,32 +330,32 @@ export default function LandingPage() {
             <div className="max-w-3xl mb-24">
               <Reveal>
                 <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-[#c9a84c] mb-5">Plataforma Completa</p>
-                <h2 className="font-['Cormorant_Garamond'] font-300 text-[clamp(40px,6vw,72px)] text-white leading-[1.05] tracking-tight">
-                  Ferramentas para quem<br /><em className="text-[#c9a84c]">não aceita o comum.</em>
+                <h2 className="font-['Cormorant_Garamond'] font-300 text-[clamp(40px,6vw,72px)] text-[#1a1814] leading-[1.05] tracking-tight">
+                  Ferramentas para quem<br /><em className="text-[#b8912a]">não aceita o comum.</em>
                 </h2>
               </Reveal>
               <Reveal delay={150}>
-                <p className="mt-6 text-slate-500 text-lg font-light leading-relaxed max-w-xl">
+                <p className="mt-6 text-[#5a5650] text-lg font-light leading-relaxed max-w-xl">
                   Desenvolvemos cada módulo pensando na jornada do corretor moderno. Menos burocracia, mais fechamentos.
                 </p>
               </Reveal>
             </div>
 
             {/* Grid */}
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-px bg-white/[0.04]">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-px bg-[#e8e4dc]">
               {RECURSOS.map((r, i) => (
                 <Reveal key={r.titulo} delay={i * 80} direction="up">
-                  <div className="bg-[#06060f] p-10 group hover:bg-[#0d0d1a] transition-colors duration-500 relative overflow-hidden h-full">
+                  <div className="bg-white p-10 group hover:bg-[#fafaf8] transition-colors duration-500 relative overflow-hidden h-full">
                     {/* Number */}
-                    <div className="font-['Cormorant_Garamond'] text-6xl font-300 text-white/[0.03] absolute top-4 right-6 leading-none select-none group-hover:text-[#c9a84c]/[0.07] transition-colors duration-500">
+                    <div className="font-['Cormorant_Garamond'] text-6xl font-300 text-[#1a1814]/[0.04] absolute top-4 right-6 leading-none select-none group-hover:text-[#b8912a]/[0.1] transition-colors duration-500">
                       {r.num}
                     </div>
                     {/* Icon */}
-                    <div className="w-12 h-12 border border-[#c9a84c]/20 flex items-center justify-center mb-7 group-hover:border-[#c9a84c]/50 transition-colors">
-                      <r.icon size={22} className="text-[#c9a84c]/60 group-hover:text-[#c9a84c] transition-colors" />
+                    <div className="w-12 h-12 border border-[#b8912a]/25 flex items-center justify-center mb-7 group-hover:border-[#b8912a]/55 transition-colors">
+                      <r.icon size={22} className="text-[#b8912a]/55 group-hover:text-[#b8912a] transition-colors" />
                     </div>
-                    <h3 className="text-white font-semibold mb-3 tracking-tight">{r.titulo}</h3>
-                    <p className="text-slate-500 text-sm leading-relaxed font-light">{r.desc}</p>
+                    <h3 className="text-[#1a1814] font-semibold mb-3 tracking-tight">{r.titulo}</h3>
+                    <p className="text-[#5a5650] text-sm leading-relaxed font-light">{r.desc}</p>
                   </div>
                 </Reveal>
               ))}
@@ -364,10 +364,10 @@ export default function LandingPage() {
         </section>
 
         {/* ── DIVISOR EDITORIAL ── */}
-        <section className="py-24 overflow-hidden border-y border-white/[0.04]">
+        <section className="py-24 overflow-hidden border-y border-[#e8e4dc] bg-[#f5edd8]">
           <div className="flex items-center gap-0 animate-[marquee_25s_linear_infinite] whitespace-nowrap">
             {Array(8).fill(null).map((_, i) => (
-              <span key={i} className="font-['Cormorant_Garamond'] text-6xl font-300 text-white/[0.04] pr-16 tracking-tight flex-shrink-0">
+              <span key={i} className="font-['Cormorant_Garamond'] text-6xl font-300 text-[#b8912a]/20 pr-16 tracking-tight flex-shrink-0">
                 Vitrine Premium &nbsp;•&nbsp; Contratos com IA &nbsp;•&nbsp; Gestão de Leads &nbsp;•&nbsp; Top 1%
               </span>
             ))}
@@ -375,37 +375,37 @@ export default function LandingPage() {
         </section>
 
         {/* ── PRICING ── */}
-        <section id="planos" className="py-32">
+        <section id="planos" className="py-32 bg-[#f3f2ee]">
           <div className="max-w-7xl mx-auto px-6">
             <Reveal className="mb-20">
-              <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-[#c9a84c] mb-5">Planos e Preços</p>
-              <h2 className="font-['Cormorant_Garamond'] font-300 text-[clamp(40px,6vw,72px)] text-white leading-tight tracking-tight">
+              <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-[#b8912a] mb-5">Planos e Preços</p>
+              <h2 className="font-['Cormorant_Garamond'] font-300 text-[clamp(40px,6vw,72px)] text-[#1a1814] leading-tight tracking-tight">
                 Investimento que se paga.
               </h2>
-              <p className="text-slate-500 text-lg font-light mt-4 max-w-md">
+              <p className="text-[#5a5650] text-lg font-light mt-4 max-w-md">
                 Escolha o plano que acompanha o ritmo do seu crescimento.
               </p>
             </Reveal>
 
-            <div className="grid lg:grid-cols-4 gap-px bg-white/[0.04]">
+            <div className="grid lg:grid-cols-4 gap-px bg-[#e8e4dc]">
               {PLANOS.map((p, i) => (
                 <Reveal key={p.id} delay={i * 80}>
-                  <div className={`relative flex flex-col h-full p-8 transition-all duration-500 group ${p.destaque ? "bg-[#c9a84c]" : "bg-[#06060f] hover:bg-[#0d0d1a]"}`}>
+                  <div className={`relative flex flex-col h-full p-8 transition-all duration-500 group ${p.destaque ? "bg-[#b8912a]" : "bg-white hover:bg-[#fafaf8]"}`}>
                     {p.tag && (
-                      <div className={`absolute -top-3.5 left-8 text-[9px] font-black uppercase tracking-[0.25em] px-3 py-1.5 ${p.destaque ? "bg-[#06060f] text-[#c9a84c]" : "bg-[#c9a84c] text-[#06060f]"}`}>
+                      <div className={`absolute -top-3.5 left-8 text-[9px] font-black uppercase tracking-[0.25em] px-3 py-1.5 ${p.destaque ? "bg-[#1a1814] text-[#b8912a]" : "bg-[#b8912a] text-white"}`}>
                         {p.tag}
                       </div>
                     )}
 
-                    <div className={`text-xs font-bold tracking-[0.2em] uppercase mb-6 ${p.destaque ? "text-[#06060f]/60" : "text-slate-600"}`}>
+                    <div className={`text-xs font-bold tracking-[0.2em] uppercase mb-6 ${p.destaque ? "text-white/60" : "text-[#9c9890]"}`}>
                       {p.nome}
                     </div>
 
                     <div className="mb-8">
-                      <span className={`font-['Cormorant_Garamond'] text-5xl font-400 tracking-tight ${p.destaque ? "text-[#06060f]" : "text-white"}`}>
+                      <span className={`font-['Cormorant_Garamond'] text-5xl font-400 tracking-tight ${p.destaque ? "text-white" : "text-[#1a1814]"}`}>
                         {p.preco}
                       </span>
-                      <span className={`text-xs ml-1 ${p.destaque ? "text-[#06060f]/50" : "text-slate-600"}`}>
+                      <span className={`text-xs ml-1 ${p.destaque ? "text-white/50" : "text-[#9c9890]"}`}>
                         /{p.periodo}
                       </span>
                     </div>
@@ -413,8 +413,8 @@ export default function LandingPage() {
                     <ul className="space-y-3.5 flex-1 mb-10">
                       {p.recursos.map((rec) => (
                         <li key={rec} className="flex items-start gap-3 text-sm font-light">
-                          <CheckCircle2 size={14} className={`mt-0.5 flex-shrink-0 ${p.destaque ? "text-[#06060f]/50" : "text-[#c9a84c]/70"}`} />
-                          <span className={p.destaque ? "text-[#06060f]/80" : "text-slate-400"}>{rec}</span>
+                          <CheckCircle2 size={14} className={`mt-0.5 flex-shrink-0 ${p.destaque ? "text-white/60" : "text-[#b8912a]/70"}`} />
+                          <span className={p.destaque ? "text-white/85" : "text-[#5a5650]"}>{rec}</span>
                         </li>
                       ))}
                     </ul>
@@ -423,8 +423,8 @@ export default function LandingPage() {
                       onClick={() => p.stripeId ? handleCheckout(p.stripeId) : router.push("/register")}
                       className={`w-full py-4 text-[11px] font-bold tracking-[0.2em] uppercase transition-all ${
                         p.destaque
-                          ? "bg-[#06060f] text-[#c9a84c] hover:bg-[#0d0d1a]"
-                          : "border border-white/10 text-white hover:border-[#c9a84c]/40 hover:text-[#c9a84c]"
+                          ? "bg-[#1a1814] text-[#b8912a] hover:bg-[#2d2a24]"
+                          : "border border-[#e8e4dc] text-[#5a5650] hover:border-[#b8912a] hover:text-[#b8912a]"
                       }`}
                     >
                       {p.cta}
@@ -437,15 +437,15 @@ export default function LandingPage() {
         </section>
 
         {/* ── FAQ ── */}
-        <section id="faq" className="py-32 border-t border-white/[0.04]">
+        <section id="faq" className="py-32 border-t border-[#e8e4dc] bg-[#fafaf8]">
           <div className="max-w-4xl mx-auto px-6">
             <Reveal className="mb-16">
-              <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-[#c9a84c] mb-5">Dúvidas Frequentes</p>
-              <h2 className="font-['Cormorant_Garamond'] font-300 text-[clamp(36px,5vw,60px)] text-white tracking-tight">
+              <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-[#b8912a] mb-5">Dúvidas Frequentes</p>
+              <h2 className="font-['Cormorant_Garamond'] font-300 text-[clamp(36px,5vw,60px)] text-[#1a1814] tracking-tight">
                 Perguntas frequentes.
               </h2>
             </Reveal>
-            <div className="border border-white/[0.06]">
+            <div className="border border-[#e8e4dc] bg-white">
               {FAQS.map((f) => (
                 <FaqItem key={f.q} q={f.q} a={f.a} />
               ))}
@@ -454,48 +454,48 @@ export default function LandingPage() {
         </section>
 
         {/* ── CONTATO ── */}
-        <section id="contato" className="py-32 border-t border-white/[0.04]">
+        <section id="contato" className="py-32 border-t border-[#e8e4dc] bg-[#f3f2ee]">
           <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-20 items-start">
             <Reveal direction="left">
-              <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-[#c9a84c] mb-5">Contato</p>
-              <h2 className="font-['Cormorant_Garamond'] font-300 text-[clamp(36px,5vw,64px)] text-white leading-tight tracking-tight mb-6">
-                Alguma dúvida<br /><em className="text-[#c9a84c]">específica?</em>
+              <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-[#b8912a] mb-5">Contato</p>
+              <h2 className="font-['Cormorant_Garamond'] font-300 text-[clamp(36px,5vw,64px)] text-[#1a1814] leading-tight tracking-tight mb-6">
+                Alguma dúvida<br /><em className="text-[#b8912a]">específica?</em>
               </h2>
-              <p className="text-slate-500 font-light leading-relaxed mb-10 max-w-sm">
+              <p className="text-[#5a5650] font-light leading-relaxed mb-10 max-w-sm">
                 Nossa equipe está pronta para ajudar você a migrar sua carteira ou configurar sua nova página.
               </p>
               <div className="flex items-center gap-4 group">
-                <div className="w-12 h-12 border border-[#c9a84c]/20 flex items-center justify-center group-hover:border-[#c9a84c]/50 transition-colors">
-                  <MessageCircle size={20} className="text-[#c9a84c]/60 group-hover:text-[#c9a84c] transition-colors" />
+                <div className="w-12 h-12 border border-[#b8912a]/25 flex items-center justify-center group-hover:border-[#b8912a]/55 transition-colors">
+                  <MessageCircle size={20} className="text-[#b8912a]/60 group-hover:text-[#b8912a] transition-colors" />
                 </div>
                 <div>
-                  <p className="text-white font-medium text-sm">WhatsApp Suporte</p>
-                  <p className="text-xs text-slate-600 mt-0.5">Resposta em até 15 minutos</p>
+                  <p className="text-[#1a1814] font-medium text-sm">WhatsApp Suporte</p>
+                  <p className="text-xs text-[#9c9890] mt-0.5">Resposta em até 15 minutos</p>
                 </div>
               </div>
             </Reveal>
 
             <Reveal direction="right" delay={150}>
               {contactStatus === "SUCCESS" ? (
-                <div className="border border-white/[0.06] p-12 text-center">
-                  <CheckCircle2 size={36} className="text-[#c9a84c] mx-auto mb-5" />
-                  <h3 className="font-['Cormorant_Garamond'] text-3xl font-300 text-white mb-2">Mensagem Enviada!</h3>
-                  <p className="text-slate-500 text-sm">Retornaremos em breve.</p>
+                <div className="border border-[#e8e4dc] bg-white p-12 text-center">
+                  <CheckCircle2 size={36} className="text-[#b8912a] mx-auto mb-5" />
+                  <h3 className="font-['Cormorant_Garamond'] text-3xl font-300 text-[#1a1814] mb-2">Mensagem Enviada!</h3>
+                  <p className="text-[#5a5650] text-sm">Retornaremos em breve.</p>
                 </div>
               ) : (
                 <form onSubmit={handleContactSubmit} className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <input required placeholder="Nome" onChange={(e) => setContactForm({ ...contactForm, nome: e.target.value })}
-                      className="bg-transparent border border-white/[0.07] px-5 py-4 text-sm text-white placeholder:text-slate-700 outline-none focus:border-[#c9a84c]/40 transition-colors font-light" />
+                      className="bg-white border border-[#e8e4dc] px-5 py-4 text-sm text-[#1a1814] placeholder:text-[#c8c4bc] outline-none focus:border-[#b8912a] transition-colors font-light" />
                     <input required placeholder="WhatsApp" onChange={(e) => setContactForm({ ...contactForm, whatsapp: e.target.value })}
-                      className="bg-transparent border border-white/[0.07] px-5 py-4 text-sm text-white placeholder:text-slate-700 outline-none focus:border-[#c9a84c]/40 transition-colors font-light" />
+                      className="bg-white border border-[#e8e4dc] px-5 py-4 text-sm text-[#1a1814] placeholder:text-[#c8c4bc] outline-none focus:border-[#b8912a] transition-colors font-light" />
                   </div>
                   <input required type="email" placeholder="E-mail profissional" onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
-                    className="w-full bg-transparent border border-white/[0.07] px-5 py-4 text-sm text-white placeholder:text-slate-700 outline-none focus:border-[#c9a84c]/40 transition-colors font-light" />
+                    className="w-full bg-white border border-[#e8e4dc] px-5 py-4 text-sm text-[#1a1814] placeholder:text-[#c8c4bc] outline-none focus:border-[#b8912a] transition-colors font-light" />
                   <textarea rows={4} placeholder="Como podemos ajudar?" onChange={(e) => setContactForm({ ...contactForm, mensagem: e.target.value })}
-                    className="w-full bg-transparent border border-white/[0.07] px-5 py-4 text-sm text-white placeholder:text-slate-700 outline-none focus:border-[#c9a84c]/40 transition-colors resize-none font-light" />
+                    className="w-full bg-white border border-[#e8e4dc] px-5 py-4 text-sm text-[#1a1814] placeholder:text-[#c8c4bc] outline-none focus:border-[#b8912a] transition-colors resize-none font-light" />
                   <button disabled={contactStatus === "SENDING"}
-                    className="w-full bg-[#c9a84c] hover:bg-[#e2c06a] text-[#06060f] py-4 text-[11px] font-bold tracking-[0.2em] uppercase transition-colors disabled:opacity-50">
+                    className="w-full bg-[#b8912a] hover:bg-[#d4aa4a] text-white py-4 text-[11px] font-bold tracking-[0.2em] uppercase transition-colors disabled:opacity-50">
                     {contactStatus === "SENDING" ? "Enviando..." : "Enviar Mensagem"}
                   </button>
                 </form>
@@ -506,39 +506,42 @@ export default function LandingPage() {
       </main>
 
       {/* ── CTA FINAL ── */}
-      <section className="py-40 relative overflow-hidden border-t border-white/[0.04]">
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1600&q=60')] bg-cover bg-center opacity-[0.03]" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[300px] bg-[#c9a84c]/[0.05] blur-[120px] rounded-full" />
+      <section className="py-40 relative overflow-hidden border-t border-white/[0.06] bg-[#1a1814]">
+        <div className="absolute inset-0 opacity-[0.03]" style={{
+          backgroundImage: 'linear-gradient(rgba(255,255,255,0.8) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.8) 1px, transparent 1px)',
+          backgroundSize: '72px 72px',
+        }} />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[300px] bg-[#b8912a]/[0.08] blur-[120px] rounded-full" />
 
         <div className="relative max-w-4xl mx-auto px-6 text-center">
           <Reveal>
-            <div className="inline-flex items-center gap-2 border border-[#c9a84c]/20 px-5 py-2 mb-10">
-              <span className="w-1.5 h-1.5 bg-[#c9a84c] rounded-full animate-pulse" />
-              <span className="text-[9px] font-bold tracking-[0.35em] uppercase text-[#c9a84c]/70">Comece hoje — é gratuito</span>
+            <div className="inline-flex items-center gap-2 border border-[#b8912a]/30 bg-[#b8912a]/[0.06] px-5 py-2 mb-10">
+              <span className="w-1.5 h-1.5 bg-[#b8912a] rounded-full animate-pulse" />
+              <span className="text-[9px] font-bold tracking-[0.35em] uppercase text-[#b8912a]/75">Comece hoje — é gratuito</span>
             </div>
           </Reveal>
           <Reveal delay={100}>
             <h2 className="font-['Cormorant_Garamond'] font-300 text-[clamp(44px,7vw,88px)] text-white leading-[1.0] tracking-tight mb-6">
-              Pronto para profissionalizar<br /><em className="text-[#c9a84c]">sua carreira?</em>
+              Pronto para profissionalizar<br /><em className="text-[#d4aa4a]">sua carreira?</em>
             </h2>
           </Reveal>
           <Reveal delay={200}>
-            <p className="text-slate-500 text-lg font-light max-w-xl mx-auto leading-relaxed mb-14">
-              Junte-se a centenas de corretores que já usam o ImobHub para gerir ativos e fechar negócios com inteligência.
+            <p className="text-white/40 text-lg font-light max-w-xl mx-auto leading-relaxed mb-14">
+              Junte-se a centenas de corretores que já usam o <span className="text-white/75 font-medium">ImobHub</span> para gerir ativos e fechar negócios com inteligência.
             </p>
           </Reveal>
           <Reveal delay={300}>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-5">
               <Link href="/register"
-                className="group flex items-center gap-3 bg-[#c9a84c] hover:bg-[#e2c06a] text-[#06060f] px-10 py-5 font-bold text-[11px] tracking-[0.25em] uppercase transition-all hover:-translate-y-0.5 shadow-2xl shadow-[#c9a84c]/10">
+                className="group flex items-center gap-3 bg-[#b8912a] hover:bg-[#d4aa4a] text-white px-10 py-5 font-bold text-[11px] tracking-[0.25em] uppercase transition-all hover:-translate-y-0.5 shadow-2xl shadow-[#b8912a]/10">
                 Criar minha conta grátis
                 <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform" />
               </Link>
-              <Link href="/login" className="text-slate-600 hover:text-white font-bold text-[11px] transition-colors tracking-[0.2em] uppercase">
+              <Link href="/login" className="text-white/35 hover:text-white/70 font-bold text-[11px] transition-colors tracking-[0.2em] uppercase">
                 Já tenho uma conta →
               </Link>
             </div>
-            <p className="mt-8 text-[10px] text-slate-700 font-bold uppercase tracking-[0.2em]">
+            <p className="mt-8 text-[10px] text-white/20 font-bold uppercase tracking-[0.2em]">
               Sem cartão de crédito • Cancele quando quiser
             </p>
           </Reveal>
@@ -546,26 +549,26 @@ export default function LandingPage() {
       </section>
 
       {/* ── FOOTER ── */}
-      <footer className="border-t border-white/[0.04] py-14">
+      <footer className="border-t border-white/[0.06] py-14 bg-[#1a1814]">
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-8">
           <Link href="/" className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-[#c9a84c] flex items-center justify-center">
-              <HomeIcon size={15} className="text-[#06060f]" />
+            <div className="w-8 h-8 bg-[#b8912a] flex items-center justify-center">
+              <HomeIcon size={15} className="text-white" />
             </div>
             <span className="font-['Cormorant_Garamond'] text-lg font-400 tracking-[0.15em] uppercase text-white">
-              Imob<span className="text-[#c9a84c]">Hub</span>
+              Imob<span className="text-[#d4aa4a]">Hub</span>
             </span>
           </Link>
 
-          <div className="flex flex-wrap justify-center gap-8 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-600">
-            <Link href="/login" className="hover:text-[#c9a84c] transition-colors">Entrar</Link>
-            <Link href="/register" className="hover:text-[#c9a84c] transition-colors">Cadastrar</Link>
-            <Link href="#recursos" className="hover:text-[#c9a84c] transition-colors">Recursos</Link>
-            <Link href="mailto:thallisson.sousa17@gmail.com" className="hover:text-[#c9a84c] transition-colors">Suporte</Link>
+          <div className="flex flex-wrap justify-center gap-8 text-[10px] font-bold uppercase tracking-[0.2em] text-white/25">
+            <Link href="/login" className="hover:text-[#d4aa4a] transition-colors">Entrar</Link>
+            <Link href="/register" className="hover:text-[#d4aa4a] transition-colors">Cadastrar</Link>
+            <Link href="#recursos" className="hover:text-[#d4aa4a] transition-colors">Recursos</Link>
+            <Link href="mailto:thallisson.sousa17@gmail.com" className="hover:text-[#d4aa4a] transition-colors">Suporte</Link>
           </div>
 
-          <p className="text-[10px] text-slate-700 font-bold uppercase tracking-widest">
-            © {new Date().getFullYear()} IMOBHUB S.A.
+          <p className="text-[10px] text-white/15 font-bold uppercase tracking-widest">
+            © {new Date().getFullYear()} IMOBHUB 
           </p>
         </div>
       </footer>
