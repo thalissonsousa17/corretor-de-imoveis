@@ -1,6 +1,7 @@
 import axios from "axios";
 import React from "react";
 import { Imovel } from "@/types/Imovel";
+import toast from "react-hot-toast";
 
 interface DeleteImovelModalProps {
   imovel: Imovel | null;
@@ -22,7 +23,7 @@ const DeleteImovelModal: React.FC<DeleteImovelModalProps> = ({
       onClose();
     } catch (error) {
       console.error("Erro ao deletar:", error);
-      alert("Falha ao deletar o imóvel. Verifique se possui permissão.");
+      toast.error("Falha ao deletar o imóvel. Verifique se possui permissão.");
     }
   };
 

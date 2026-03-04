@@ -3,6 +3,7 @@ import CorretorLayout from "@/components/CorretorLayout";
 import api from "@/lib/api";
 import toast from "react-hot-toast";
 import UpgradeModal from "@/components/UpgradeModal";
+import ConfirmModal from "@/components/ConfirmModal";
 import {
   CalendarDays,
   ChevronLeft,
@@ -76,6 +77,7 @@ export default function CorretorVisitas() {
   const [editingVisita, setEditingVisita] = useState<Visita | null>(null);
   const [saving, setSaving] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(false);
+  const [confirmState, setConfirmState] = useState<{ message: string; onConfirm: () => void } | null>(null);
 
   // Form
   const [formData, setFormData] = useState("");
@@ -217,15 +219,19 @@ export default function CorretorVisitas() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Remover esta visita?")) return;
-    try {
-      await api.delete(`/corretor/visitas/${id}`);
-      setVisitas((prev) => prev.filter((v) => v.id !== id));
-      toast.success("Visita removida.");
-    } catch {
-      toast.error("Erro ao remover.");
-    }
+  const handleDelete = (id: string) => {
+    setConfirmState({
+      message: "Remover esta visita? Esta ação não pode ser desfeita.",
+      onConfirm: async () => {
+        try {
+          await api.delete(`/corretor/visitas/${id}`);
+          setVisitas((prev) => prev.filter((v) => v.id !== id));
+          toast.success("Visita removida.");
+        } catch {
+          toast.error("Erro ao remover.");
+        }
+      },
+    });
   };
 
   const formatHora = (d: string) => {
@@ -243,6 +249,13 @@ export default function CorretorVisitas() {
   return (
     <CorretorLayout>
       {showUpgrade && <UpgradeModal recurso="visitas" onClose={() => setShowUpgrade(false)} />}
+      {confirmState && (
+        <ConfirmModal
+          message={confirmState.message}
+          onConfirm={confirmState.onConfirm}
+          onCancel={() => setConfirmState(null)}
+        />
+      )}
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">

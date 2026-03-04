@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 import SignaturePad from "@/components/SignaturePad";
 import { PenTool, Trash2, X } from "lucide-react";
 import UpgradeModal from "@/components/UpgradeModal";
+import ConfirmModal from "@/components/ConfirmModal";
 
 // Importação dinâmica (sem SSR) do editor TipTap
 const RichTextEditor = dynamic(() => import("@/components/editor/RichTextEditor"), {
@@ -212,6 +213,7 @@ export default function ContratosPage() {
   const [contratoEditandoId, setContratoEditandoId] = useState<string | null>(null);
   const [salvando, setSalvando] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(false);
+  const [confirmState, setConfirmState] = useState<{ message: string; onConfirm: () => void } | null>(null);
   // key para forçar remontagem do editor ao trocar contrato ou aplicar preenchimento da IA
   const [editorKey, setEditorKey] = useState(0);
 
@@ -278,15 +280,19 @@ export default function ContratosPage() {
     }
   };
 
-  const excluirAssinatura = async (id: string) => {
-    if (!confirm("Remover esta assinatura?")) return;
-    try {
-      await api.delete(`/corretor/contratos/${contratoEditandoId}/assinaturas`, { data: { id } });
-      setAssinaturas((prev) => prev.filter((a) => a.id !== id));
-      toast.success("Assinatura removida.");
-    } catch {
-      toast.error("Erro ao remover assinatura.");
-    }
+  const excluirAssinatura = (id: string) => {
+    setConfirmState({
+      message: "Remover esta assinatura?",
+      onConfirm: async () => {
+        try {
+          await api.delete(`/corretor/contratos/${contratoEditandoId}/assinaturas`, { data: { id } });
+          setAssinaturas((prev) => prev.filter((a) => a.id !== id));
+          toast.success("Assinatura removida.");
+        } catch {
+          toast.error("Erro ao remover assinatura.");
+        }
+      },
+    });
   };
 
   // ── Carregar template no editor ───────────────────────────────────────────────
@@ -369,20 +375,24 @@ export default function ContratosPage() {
   };
 
   // ── Excluir contrato ──────────────────────────────────────────────────────────
-  const excluir = async (id: string) => {
-    if (!confirm("Excluir este contrato? Essa ação não pode ser desfeita.")) return;
-    try {
-      await api.delete(`/corretor/contratos/${id}`, { withCredentials: true });
-      setSalvos((prev) => prev.filter((c) => c.id !== id));
-      if (contratoEditandoId === id) {
-        setContratoEditandoId(null);
-        setEditorConteudo("");
-        setEditorTitulo("");
-      }
-      toast.success("Contrato excluído.");
-    } catch {
-      toast.error("Erro ao excluir contrato.");
-    }
+  const excluir = (id: string) => {
+    setConfirmState({
+      message: "Excluir este contrato? Essa ação não pode ser desfeita.",
+      onConfirm: async () => {
+        try {
+          await api.delete(`/corretor/contratos/${id}`, { withCredentials: true });
+          setSalvos((prev) => prev.filter((c) => c.id !== id));
+          if (contratoEditandoId === id) {
+            setContratoEditandoId(null);
+            setEditorConteudo("");
+            setEditorTitulo("");
+          }
+          toast.success("Contrato excluído.");
+        } catch {
+          toast.error("Erro ao excluir contrato.");
+        }
+      },
+    });
   };
 
   // ── PDF ───────────────────────────────────────────────────────────────────────
@@ -472,6 +482,13 @@ export default function ContratosPage() {
   return (
     <CorretorLayout>
       {showUpgrade && <UpgradeModal recurso="contratos" onClose={() => setShowUpgrade(false)} />}
+      {confirmState && (
+        <ConfirmModal
+          message={confirmState.message}
+          onConfirm={confirmState.onConfirm}
+          onCancel={() => setConfirmState(null)}
+        />
+      )}
       <div className="min-h-screen bg-gray-50 pb-16">
         {/* ── Templates ─────────────────────────────────────────────────────────── */}
         <section className="mb-8">

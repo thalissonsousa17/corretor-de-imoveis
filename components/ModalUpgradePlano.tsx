@@ -1,5 +1,6 @@
 import { X, CheckCircle, CreditCard, RefreshCcw } from "lucide-react";
 import { useRef, useState } from "react";
+import toast from "react-hot-toast";
 
 type BillingAction = "SUBSCRIBE" | "UPGRADE_KEEP" | "UPGRADE_CHANGE";
 
@@ -59,7 +60,7 @@ export function ModalUpgradePlano({ open, onClose, hasSubscription }: Props) {
       setShowSuccess(true);
     } catch (err) {
       console.error("CHECKOUT_FRONTEND_ERROR:", err);
-      alert(err instanceof Error ? err.message : "Erro inesperado");
+      toast.error(err instanceof Error ? err.message : "Erro inesperado");
     } finally {
       isProcessingRef.current = false;
       setLoadingPrice(null);

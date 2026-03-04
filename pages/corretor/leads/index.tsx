@@ -3,6 +3,7 @@ import CorretorLayout from "@/components/CorretorLayout";
 import api from "@/lib/api";
 import toast from "react-hot-toast";
 import UpgradeModal from "@/components/UpgradeModal";
+import ConfirmModal from "@/components/ConfirmModal";
 import {
   UserPlus,
   Search,
@@ -69,6 +70,7 @@ export default function CorretorLeads() {
   const [editingLead, setEditingLead] = useState<Lead | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [confirmState, setConfirmState] = useState<{ message: string; onConfirm: () => void } | null>(null);
 
   // Form fields
   const [formNome, setFormNome] = useState("");
@@ -173,15 +175,19 @@ export default function CorretorLeads() {
     }
   };
 
-  const handleDelete = async (leadId: string) => {
-    if (!confirm("Remover este lead?")) return;
-    try {
-      await api.delete(`/corretor/leads/${leadId}`);
-      setLeads((prev) => prev.filter((l) => l.id !== leadId));
-      toast.success("Lead removido.");
-    } catch {
-      toast.error("Erro ao remover lead.");
-    }
+  const handleDelete = (leadId: string) => {
+    setConfirmState({
+      message: "Remover este lead? Esta ação não pode ser desfeita.",
+      onConfirm: async () => {
+        try {
+          await api.delete(`/corretor/leads/${leadId}`);
+          setLeads((prev) => prev.filter((l) => l.id !== leadId));
+          toast.success("Lead removido.");
+        } catch {
+          toast.error("Erro ao remover lead.");
+        }
+      },
+    });
   };
 
   const handleSaveObservacoes = async (leadId: string, obs: string) => {
@@ -222,6 +228,13 @@ export default function CorretorLeads() {
   return (
     <CorretorLayout>
       {showUpgrade && <UpgradeModal recurso="leads" onClose={() => setShowUpgrade(false)} />}
+      {confirmState && (
+        <ConfirmModal
+          message={confirmState.message}
+          onConfirm={confirmState.onConfirm}
+          onCancel={() => setConfirmState(null)}
+        />
+      )}
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">

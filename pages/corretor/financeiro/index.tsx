@@ -4,6 +4,7 @@ import api from "@/lib/api";
 import toast from "react-hot-toast";
 import { DollarSign, TrendingUp, Clock, Plus, X, Edit2, Trash2, CheckCircle, XCircle } from "lucide-react";
 import UpgradeModal from "@/components/UpgradeModal";
+import ConfirmModal from "@/components/ConfirmModal";
 
 interface Comissao {
   id: string;
@@ -58,6 +59,7 @@ export default function FinanceiroPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showUpgrade, setShowUpgrade] = useState(false);
+  const [confirmState, setConfirmState] = useState<{ message: string; onConfirm: () => void } | null>(null);
   const [imoveis, setImoveis] = useState<ImovelOption[]>([]);
 
   // Form
@@ -175,16 +177,20 @@ export default function FinanceiroPage() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Remover esta comissão?")) return;
-    try {
-      await api.delete(`/corretor/financeiro/${id}`);
-      setComissoes((prev) => prev.filter((c) => c.id !== id));
-      toast.success("Comissão removida.");
-      fetchData();
-    } catch {
-      toast.error("Erro ao remover.");
-    }
+  const handleDelete = (id: string) => {
+    setConfirmState({
+      message: "Remover esta comissão? Esta ação não pode ser desfeita.",
+      onConfirm: async () => {
+        try {
+          await api.delete(`/corretor/financeiro/${id}`);
+          setComissoes((prev) => prev.filter((c) => c.id !== id));
+          toast.success("Comissão removida.");
+          fetchData();
+        } catch {
+          toast.error("Erro ao remover.");
+        }
+      },
+    });
   };
 
   const handleStatusChange = async (id: string, newStatus: string) => {
@@ -205,6 +211,13 @@ export default function FinanceiroPage() {
   return (
     <CorretorLayout>
       {showUpgrade && <UpgradeModal recurso="financeiro" onClose={() => setShowUpgrade(false)} />}
+      {confirmState && (
+        <ConfirmModal
+          message={confirmState.message}
+          onConfirm={confirmState.onConfirm}
+          onCancel={() => setConfirmState(null)}
+        />
+      )}
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">

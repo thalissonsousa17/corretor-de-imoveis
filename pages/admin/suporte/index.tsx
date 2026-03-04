@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import AdminLayout from "@/components/AdminLayout";
 import api from "@/lib/api";
+import toast from "react-hot-toast";
 import { MessageSquare, Clock, AlertTriangle, CheckCircle, X, User, ExternalLink, RefreshCw, type LucideIcon } from "lucide-react";
 
 interface Ticket {
@@ -103,7 +104,7 @@ export default function AdminSuporte() {
       await api.patch(`/leads/${leadId}`, { status: newStatus });
       await fetchLeads();
     } catch (error) {
-      alert("Erro ao atualizar status do lead");
+      toast.error("Erro ao atualizar status do lead");
     } finally {
       setUpdatingLead(null);
     }
