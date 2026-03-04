@@ -241,8 +241,9 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
       });
 
       onSuccess();
-    } catch {
-      setMessage({ text: "Erro ao salvar imóvel.", type: "error" });
+    } catch (err: any) {
+      const apiMsg = err?.response?.data?.message || err?.response?.data?.error;
+      setMessage({ text: apiMsg || "Erro ao salvar imóvel.", type: "error" });
     } finally {
       setLoading(false);
     }

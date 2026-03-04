@@ -5,6 +5,7 @@ import { uploadFotoToStorage } from "../../../lib/storageUtils";
 import { randomUUID } from "node:crypto";
 import formidable from "formidable";
 import fs from "fs/promises";
+import { LIMITE_IMOVEIS_POR_PLANO } from "@/lib/planos";
 
 export const config = {
   api: {
@@ -38,6 +39,31 @@ const handleGet = async (req: AuthApiRequest, res: NextApiResponse) => {
 
 const handlePost = async (req: AuthApiRequest, res: NextApiResponse) => {
   const corretorId = req.user!.id;
+
+  // ── Verificar limite do plano ──────────────────────────────────────────────
+  const { data: profile } = await supabaseAdmin
+    .from("CorretorProfile")
+    .select("plano, planoStatus")
+    .eq("userId", corretorId)
+    .maybeSingle();
+
+  const plano = (profile?.plano ?? "GRATUITO") as keyof typeof LIMITE_IMOVEIS_POR_PLANO;
+  const limite = LIMITE_IMOVEIS_POR_PLANO[plano] ?? LIMITE_IMOVEIS_POR_PLANO.GRATUITO;
+
+  if (limite !== Infinity) {
+    const { count: totalImoveis } = await supabaseAdmin
+      .from("Imovel")
+      .select("*", { count: "exact", head: true })
+      .eq("corretorId", corretorId);
+
+    if ((totalImoveis ?? 0) >= limite) {
+      return res.status(403).json({
+        message: `Limite de ${limite} imóveis do plano ${plano} atingido. Faça upgrade para continuar.`,
+        code: "PLANO_LIMITE_ATINGIDO",
+      });
+    }
+  }
+  // ──────────────────────────────────────────────────────────────────────────
 
   const form = formidable({
     keepExtensions: true,
