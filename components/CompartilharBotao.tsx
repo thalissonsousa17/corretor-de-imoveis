@@ -39,30 +39,25 @@ export default function CompartilharBotao({ titulo, url }: CompartilharBotaoProp
     <button
       onClick={compartilhar}
       className={`
-        relative overflow-hidden
         flex items-center gap-2.5
         px-5 py-2.5
-        rounded-xl
         transition-all duration-300
-        text-sm font-semibold
+        text-xs font-bold uppercase tracking-widest
         cursor-pointer
-        shadow-sm hover:shadow-md
-        ${copiado 
-          ? "bg-emerald-50 text-emerald-600 border border-emerald-100" 
-          : "bg-white text-slate-700 border border-slate-200 hover:border-blue-200 hover:bg-blue-50/50 hover:text-blue-600"
+        ${copiado
+          ? "bg-[#b8912a] text-white border border-[#b8912a]"
+          : "bg-white dark:bg-[#231f18] text-[#1a1814] dark:text-white border border-[#e8e4dc] dark:border-white/10 hover:bg-[#1a1814] hover:text-white hover:border-[#1a1814]"
         }
       `}
     >
       <div className={`transition-all duration-300 ${copiado ? "scale-110" : "scale-100"}`}>
-        {copiado ? <FiCheck size={18} /> : <FiShare2 size={18} className="text-slate-400 group-hover:text-blue-600" />}
+        {copiado ? <FiCheck size={15} /> : <FiShare2 size={15} />}
       </div>
       
       <span className="tracking-tight">
         {copiado ? "Link copiado!" : "Compartilhar"}
       </span>
 
-      {/* Efeito de brilho sutil ao passar o mouse */}
-      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full hover:animate-[shimmer_1.5s_infinite] pointer-events-none" />
     </button>
   );
 }
