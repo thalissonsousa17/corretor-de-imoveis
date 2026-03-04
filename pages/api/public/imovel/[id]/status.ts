@@ -1,7 +1,9 @@
 import { NextApiResponse } from "next";
 import { supabaseAdmin } from "@/lib/supabase";
 import { AuthApiRequest, authorize } from "@/lib/authMiddleware";
-import { ImovelStatus } from "@/lib/types";
+
+const STATUS_VALIDOS = ["DISPONIVEL", "VENDIDO", "ALUGADO", "INATIVO"] as const;
+type ImovelStatus = typeof STATUS_VALIDOS[number];
 
 export default authorize(async (req: AuthApiRequest, res: NextApiResponse) => {
   try {
@@ -19,8 +21,7 @@ export default authorize(async (req: AuthApiRequest, res: NextApiResponse) => {
     }
 
     const { status } = req.body as { status?: string };
-
-    if (!status || !Object.values(ImovelStatus).includes(status as ImovelStatus)) {
+    if (!status || !STATUS_VALIDOS.includes(status as ImovelStatus)) {
       return res.status(400).json({ message: "Status inválido" });
     }
 

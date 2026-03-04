@@ -8,18 +8,24 @@ export async function getUserFromApiRequest(req: NextApiRequest) {
 
   const parsed = parse(cookies);
   const sessionToken = parsed["sessionId"];
-
   if (!sessionToken) return null;
 
+  // Query 1: sessão
   const { data: session } = await supabaseAdmin
     .from("Session")
-    .select("*, user:User(*)")
+    .select("id, userId, expiresAt")
     .eq("id", sessionToken)
     .gt("expiresAt", new Date().toISOString())
     .maybeSingle();
 
   if (!session) return null;
 
-  const u = Array.isArray(session.user) ? session.user[0] : session.user;
-  return u ?? null;
+  // Query 2: usuário
+  const { data: user } = await supabaseAdmin
+    .from("User")
+    .select("*")
+    .eq("id", session.userId)
+    .maybeSingle();
+
+  return user ?? null;
 }
