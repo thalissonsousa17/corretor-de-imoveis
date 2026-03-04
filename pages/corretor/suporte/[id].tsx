@@ -80,10 +80,10 @@ export default function TicketChat() {
   };
 
   const formatTime = (d: string) =>
-    new Date(d).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+    new Date(d).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" });
 
   const formatDate = (d: string) =>
-    new Date(d).toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
+    new Date(d).toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric", timeZone: "America/Sao_Paulo" });
 
   const isClosed = ticket?.status === "FECHADO";
 
