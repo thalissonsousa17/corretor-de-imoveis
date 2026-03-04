@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { GetServerSidePropsContext, GetServerSidePropsResult } from "next";
 import LayoutCorretor from "@/components/LayoutCorretor";
+import { getCorretorPublicData, getImoveisPublicData } from "@/lib/publicData";
 import ImovelCard from "@/components/ImovelCard";
 import type { ImovelCardData } from "@/components/ImovelCard";
 import { FaWhatsapp, FaInstagram, FaFacebook, FaLinkedin, FaQuoteLeft } from "react-icons/fa";
@@ -44,14 +45,16 @@ type Filtro = "VENDA" | "ALUGUEL";
 export const getServerSideProps = async (
   ctx: GetServerSidePropsContext
 ): Promise<GetServerSidePropsResult<PageProps>> => {
-  const slug = ctx.params?.slug as string;
-  const baseUrl = GetBaseUrl();
-
-  const res = await fetch(`${baseUrl}/api/public/corretor/${slug}`);
-  if (!res.ok) return { notFound: true };
-
-  const data = await res.json();
-  return { props: { corretor: data.corretor, imoveis: data.imoveis } };
+  try {
+    const slug = ctx.params?.slug as string;
+    const corretor = await getCorretorPublicData(slug);
+    if (!corretor) return { notFound: true };
+    const imoveis = await getImoveisPublicData(corretor.id);
+    return { props: { corretor, imoveis } };
+  } catch (err) {
+    console.error("[getServerSideProps /[slug]]", err);
+    return { notFound: true };
+  }
 };
 
 export default function CorretorHome({ corretor, imoveis }: PageProps) {

@@ -2,6 +2,7 @@ import type { GetServerSideProps } from "next";
 import Head from "next/head";
 import LayoutCorretor from "@/components/LayoutCorretor";
 import CarrosselDestaques from "@/components/CarrosselDestaques";
+import { getCorretorPublicData, getImoveisPublicData } from "@/lib/publicData";
 
 type Noticia = {
   titulo: string;
@@ -50,23 +51,29 @@ interface Props {
 }
 
 export const getServerSideProps: GetServerSideProps<Props> = async (ctx) => {
-  const slug = ctx.params?.slug as string;
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || `http://${ctx.req.headers.host}`;
+  try {
+    const slug = ctx.params?.slug as string;
+    const corretor = await getCorretorPublicData(slug);
+    if (!corretor) return { notFound: true };
 
-  const corretorRes = await fetch(`${baseUrl}/api/public/corretor/${slug}`);
-  if (!corretorRes.ok) return { notFound: true };
-  const corretorJson = await corretorRes.json();
+    const [imoveis, noticiasRes] = await Promise.all([
+      getImoveisPublicData(corretor.id),
+      fetch(`http://${ctx.req.headers.host}/api/noticias-externas`).catch(() => null),
+    ]);
 
-  const noticiasRes = await fetch(`${baseUrl}/api/noticias-externas`);
-  const noticiasJson = noticiasRes.ok ? await noticiasRes.json() : [];
+    const noticiasJson = noticiasRes?.ok ? await noticiasRes.json().catch(() => []) : [];
 
-  return {
-    props: {
-      corretor: corretorJson.corretor,
-      noticias: Array.isArray(noticiasJson) ? noticiasJson : [],
-      imoveis: (corretorJson.imoveis ?? []) as Imovel[],
-    },
-  };
+    return {
+      props: {
+        corretor,
+        noticias: Array.isArray(noticiasJson) ? noticiasJson : [],
+        imoveis,
+      },
+    };
+  } catch (err) {
+    console.error("[getServerSideProps /[slug]/noticias]", err);
+    return { notFound: true };
+  }
 };
 
 export default function NoticiasPage({ corretor, noticias, imoveis }: Props) {

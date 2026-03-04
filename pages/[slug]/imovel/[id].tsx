@@ -1,5 +1,6 @@
 import type { GetServerSideProps } from "next";
 import { resolveFotoUrl } from "@/lib/imageUtils";
+import { getCorretorPublicData, getImoveisPublicData, getImovelPublicData } from "@/lib/publicData";
 import { useEffect, useState, useCallback } from "react";
 import { toWaLink } from "@/lib/phone";
 import LayoutCorretor from "@/components/LayoutCorretor";
@@ -36,29 +37,34 @@ const tipoLabel: Record<string, string> = {
 };
 
 export const getServerSideProps: GetServerSideProps<Props> = async (ctx) => {
-  const slug = ctx.params?.slug as string;
-  const id = ctx.params?.id as string;
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || `http://${ctx.req.headers.host}`;
+  try {
+    const slug = ctx.params?.slug as string;
+    const id = ctx.params?.id as string;
 
-  const [resImovel, resCorretor] = await Promise.all([
-    fetch(`${baseUrl}/api/public/imovel/${id}`, { headers: { "cache-control": "no-cache" } }),
-    fetch(`${baseUrl}/api/public/corretor/${slug}`, { headers: { "cache-control": "no-cache" } }),
-  ]);
+    const [imovel, corretor] = await Promise.all([
+      getImovelPublicData(id),
+      getCorretorPublicData(slug),
+    ]);
 
-  if (!resImovel.ok || !resCorretor.ok) return { notFound: true };
+    if (!imovel || !corretor) return { notFound: true };
 
-  const dataImovel = await resImovel.json();
-  const dataCorretor = await resCorretor.json();
+    const imoveis = await getImoveisPublicData(corretor.id);
+    const host = ctx.req.headers.host ?? "";
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || `https://${host}`;
 
-  return {
-    props: {
-      imovel: dataImovel.imovel,
-      corretor: dataCorretor.corretor,
-      slug,
-      imoveis: dataCorretor.imoveis,
-      urlCompartilhamento: `${baseUrl}/${slug}/imovel/${id}`,
-    },
-  };
+    return {
+      props: {
+        imovel,
+        corretor,
+        slug,
+        imoveis,
+        urlCompartilhamento: `${baseUrl}/${slug}/imovel/${id}`,
+      },
+    };
+  } catch (err) {
+    console.error("[getServerSideProps /[slug]/imovel/[id]]", err);
+    return { notFound: true };
+  }
 };
 
 export default function ImovelDetalhe({ imovel, corretor, imoveis, urlCompartilhamento }: Props) {

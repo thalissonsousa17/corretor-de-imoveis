@@ -1,7 +1,7 @@
 import LayoutCorretor from "@/components/LayoutCorretor";
 import type { GetServerSideProps } from "next";
-import { resolveFotoUrl } from "@/lib/imageUtils";
 import Head from "next/head";
+import { getCorretorPublicData, getImoveisPublicData } from "@/lib/publicData";
 import CarrosselDestaques from "@/components/CarrosselDestaques";
 import { FiMail, FiAward } from "react-icons/fi";
 import {
@@ -67,33 +67,16 @@ function buildSocialUrl(
 }
 
 export const getServerSideProps: GetServerSideProps<Props> = async (ctx) => {
-  const slug = ctx.params?.slug as string;
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || `http://${ctx.req.headers.host}`;
-
-  const [corretorRes, todosRes] = await Promise.all([
-    fetch(`${baseUrl}/api/public/corretor/${slug}`, { headers: { "cache-control": "no-cache" } }),
-    fetch(`${baseUrl}/api/public/corretor/${slug}/todos`, { headers: { "cache-control": "no-cache" } }),
-  ]);
-
-  if (!corretorRes.ok) return { notFound: true };
-
-  const corretorJson = await corretorRes.json();
-  const todosJson = todosRes.ok ? await todosRes.json() : { imoveis: [] };
-
-  const corretorRaw = corretorJson.corretor as Corretor;
-  const corretor: Corretor = {
-    ...corretorRaw,
-    avatarUrl: resolveFotoUrl(corretorRaw.avatarUrl),
-    bannerUrl: resolveFotoUrl(corretorRaw.bannerUrl),
-    logoUrl: resolveFotoUrl(corretorRaw.logoUrl),
-  };
-
-  const todos: ImovelCompleto[] = (todosJson.imoveis || []).map((im: ImovelCompleto) => ({
-    ...im,
-    fotos: (im.fotos || []).map((f) => ({ ...f, url: resolveFotoUrl(f.url) })),
-  }));
-
-  return { props: { corretor, todos } };
+  try {
+    const slug = ctx.params?.slug as string;
+    const corretor = await getCorretorPublicData(slug);
+    if (!corretor) return { notFound: true };
+    const todos = await getImoveisPublicData(corretor.id);
+    return { props: { corretor, todos } };
+  } catch (err) {
+    console.error("[getServerSideProps /[slug]/perfil]", err);
+    return { notFound: true };
+  }
 };
 
 export default function PerfilProfissional({ corretor, todos }: Props) {

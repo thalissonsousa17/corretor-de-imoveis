@@ -8,6 +8,7 @@ import ImovelCard from "@/components/ImovelCard";
 import type { ImovelCardData } from "@/components/ImovelCard";
 import { FiArrowLeft, FiSearch } from "react-icons/fi";
 import { useState } from "react";
+import { getCorretorPublicData, getImoveisPublicData } from "@/lib/publicData";
 
 type Props = {
   slug: string;
@@ -17,29 +18,21 @@ type Props = {
 };
 
 export const getServerSideProps: GetServerSideProps<Props> = async (ctx) => {
-  const slug = ctx.params?.slug as string;
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || `http://${ctx.req.headers.host}`;
+  try {
+    const slug = ctx.params?.slug as string;
+    const corretor = await getCorretorPublicData(slug);
+    if (!corretor) return { notFound: true };
 
-  const [topoRes, vendidosRes, todosRes] = await Promise.all([
-    fetch(`${baseUrl}/api/public/corretor/${slug}`),
-    fetch(`${baseUrl}/api/public/corretor/${slug}?filtro=vendido`),
-    fetch(`${baseUrl}/api/public/corretor/${slug}/todos`),
-  ]);
+    const [imoveis, todos] = await Promise.all([
+      getImoveisPublicData(corretor.id, { status: "VENDIDO" }),
+      getImoveisPublicData(corretor.id),
+    ]);
 
-  if (!topoRes.ok || !vendidosRes.ok) return { notFound: true };
-
-  const todosJson = todosRes.ok ? await todosRes.json() : { imoveis: [] };
-  const topo = await topoRes.json();
-  const vendidos = await vendidosRes.json();
-
-  return {
-    props: {
-      slug,
-      imoveis: vendidos.imoveis,
-      corretor: topo.corretor ?? null,
-      todos: todosJson.imoveis,
-    },
-  };
+    return { props: { slug, imoveis, corretor, todos } };
+  } catch (err) {
+    console.error("[getServerSideProps /[slug]/vendidos]", err);
+    return { notFound: true };
+  }
 };
 
 export default function Vendidos({ slug, imoveis, corretor, todos }: Props) {
