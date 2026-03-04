@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { FiMapPin, FiHome, FiMaximize2, FiHeart } from "react-icons/fi";
-import { FaBed, FaBath, FaCar } from "react-icons/fa";
+import { FiMapPin, FiArrowRight } from "react-icons/fi";
 import { resolveFotoUrl } from "@/lib/imageUtils";
 
 type Foto = { id: string; url: string };
@@ -41,133 +40,132 @@ export default function ImovelCard({ imovel, slug }: ImovelCardProps) {
   const badgeText = vendido
     ? "Vendido"
     : alugado
-      ? "Alugado"
-      : imovel.finalidade === "VENDA"
-        ? "Venda"
-        : "Aluguel";
+    ? "Alugado"
+    : imovel.finalidade === "VENDA"
+    ? "Venda"
+    : "Aluguel";
 
-  const badgeColor = vendido
-    ? "bg-rose-500"
-    : alugado
-      ? "bg-amber-500"
-      : imovel.finalidade === "VENDA"
-        ? "bg-accent"
-        : "bg-indigo-600";
+  const priceFormatted = vendido
+    ? "Esgotado"
+    : Number(imovel.preco).toLocaleString("pt-BR", {
+        style: "currency",
+        currency: "BRL",
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      });
+
+  const specs = [
+    imovel.quartos && imovel.quartos > 0 ? `${imovel.quartos} qts` : null,
+    imovel.banheiros && imovel.banheiros > 0 ? `${imovel.banheiros} banh` : null,
+    imovel.areaTotal && imovel.areaTotal > 0 ? `${imovel.areaTotal} m²` : null,
+  ].filter(Boolean) as string[];
 
   return (
-    <Link href={`/${slug}/imovel/${imovel.id}`} className="group block perspective-1000">
-      <article className="relative bg-white dark:bg-slate-900 rounded-[3rem] overflow-hidden shadow-[0_50px_100px_-20px_rgba(0,0,0,0.15)] dark:shadow-[0_40px_80px_-15px_rgba(0,0,0,0.4)] border border-white dark:border-white/5 hover:border-accent/30 dark:hover:border-accent/40 transition-all duration-700 h-full flex flex-col group-hover:-translate-y-8 group-hover:shadow-[0_80px_150px_-20px_rgba(0,0,0,0.2)] dark:group-hover:shadow-[0_0_50px_rgba(var(--accent-color-rgb),0.15)]">
-        {/* Shine effect overlay for dark mode */}
-        <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+    <Link href={`/${slug}/imovel/${imovel.id}`} className="group block">
+      <article className="relative bg-white dark:bg-[#231f18] border border-[#e8e4dc] dark:border-white/5 overflow-hidden transition-all duration-500 hover:border-[#b8912a]/40 dark:hover:border-[#b8912a]/25 hover:shadow-[0_24px_64px_rgba(184,145,42,0.09)] flex flex-col h-full">
 
-        {/* FOTO CONTAINER */}
-        <div className="relative h-72 overflow-hidden bg-slate-950 flex items-center justify-center">
+        {/* FOTO */}
+        <div className="relative h-64 overflow-hidden bg-[#1a1814]">
           <img
             src={capa}
             alt={imovel.titulo}
-            className="max-w-full max-h-full object-contain transition-transform duration-1000 group-hover:scale-110"
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
             onError={(e) => {
               (e.currentTarget as HTMLImageElement).src = "/placeholder.png";
             }}
           />
 
-          {/* Overlays */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-700" />
+          {/* Gradient bottom overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#1a1814]/55 via-transparent to-transparent" />
 
-          {/* Top Actions */}
-          <div className="absolute top-4 left-4 right-4 flex justify-between items-center z-10">
+          {/* Badge — top left */}
+          <div className="absolute top-0 left-0 z-10">
             <span
-              className={`${badgeColor} text-white text-[10px] font-black uppercase tracking-[0.2em] px-4 py-1.5 rounded-full backdrop-blur-md shadow-lg`}
+              className={`block text-[9px] font-black uppercase tracking-[0.28em] px-4 py-2 ${
+                vendido
+                  ? "bg-rose-600 text-white"
+                  : alugado
+                  ? "bg-amber-600 text-white"
+                  : imovel.finalidade === "VENDA"
+                  ? "bg-[#b8912a] text-white"
+                  : "bg-[#1a1814] text-[#b8912a]"
+              }`}
             >
               {badgeText}
             </span>
-            <button className="p-2 bg-white/10 hover:bg-white/20 backdrop-blur-md text-white rounded-full transition-all active:scale-95">
-              <FiHeart size={18} />
-            </button>
           </div>
 
-          {/* Quick Reveal Info (Visual on Hover) */}
-          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-4 group-hover:translate-y-0">
-            <div className="px-6 py-3 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl text-white font-black text-[10px] uppercase tracking-widest pointer-events-none">
-              Ver Detalhes Exclusivos
-            </div>
-          </div>
-
-          {/* Price Tag */}
-          <div className="absolute bottom-6 left-6 z-10 transition-transform duration-500 group-hover:-translate-y-1">
-            <p className="text-white font-black text-2xl tracking-tighter drop-shadow-2xl">
-              {vendido
-                ? "Esgotado"
-                : Number(imovel.preco).toLocaleString("pt-BR", {
-                    style: "currency",
-                    currency: "BRL",
-                  })}
-            </p>
+          {/* Tipo — bottom left */}
+          <div className="absolute bottom-4 left-5 z-10">
+            <span className="text-[9px] font-bold uppercase tracking-[0.22em] text-white/65">
+              {tipoLabel[imovel.tipo] || imovel.tipo}
+            </span>
           </div>
         </div>
 
         {/* CONTENT */}
-        <div className="p-8 flex-1 flex flex-col gap-4">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2 text-accent font-black text-[10px] uppercase tracking-widest">
-              <FiHome size={12} />
-              {tipoLabel[imovel.tipo] || imovel.tipo}
-            </div>
-            <h3 className="font-black text-slate-950 dark:text-white text-xl leading-tight tracking-tight line-clamp-2 group-hover:text-accent transition-colors duration-300">
-              {imovel.titulo}
-            </h3>
+        <div className="p-6 flex-1 flex flex-col gap-3">
+
+          {/* Preço — tipografia serif grande */}
+          <div>
+            <p
+              className="leading-none tracking-tight text-[#1a1814] dark:text-white"
+              style={{
+                fontFamily: "'Cormorant Garamond', Georgia, serif",
+                fontSize: "clamp(26px, 3.5vw, 32px)",
+                fontWeight: 400,
+              }}
+            >
+              {priceFormatted}
+            </p>
+            {!vendido && (
+              <p className="text-[9px] text-[#b8912a] font-bold uppercase tracking-[0.22em] mt-1.5">
+                {imovel.finalidade === "ALUGUEL" ? "por mês" : "valor de venda"}
+              </p>
+            )}
           </div>
 
-          <div className="flex items-center gap-2 text-slate-400 text-xs font-bold uppercase tracking-wider">
-            <FiMapPin size={14} className="text-slate-300 dark:text-slate-600" />
+          {/* Título */}
+          <h3 className="text-[#1a1814] dark:text-white/90 text-[13px] font-semibold leading-snug line-clamp-2 group-hover:text-[#b8912a] transition-colors duration-300">
+            {imovel.titulo}
+          </h3>
+
+          {/* Localização */}
+          <div className="flex items-center gap-1.5 text-[#9c9890] text-[11px] font-medium">
+            <FiMapPin size={11} />
             <span className="line-clamp-1">
               {imovel.cidade}, {imovel.estado}
             </span>
           </div>
 
-          {/* Premium Specs Grid */}
-          {(imovel.quartos || imovel.banheiros || imovel.vagas || imovel.areaTotal) && (
-            <div className="grid grid-cols-3 gap-2 mt-auto pt-6 border-t border-slate-50 dark:border-white/5">
-              {imovel.quartos != null && imovel.quartos > 0 && (
-                <div className="flex flex-col items-center gap-1 p-2 rounded-2xl bg-slate-50/50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors border border-transparent dark:border-white/5">
-                  <span className="text-slate-950 dark:text-white font-black text-sm">
-                    {imovel.quartos}
-                  </span>
-                  <span className="text-slate-400 dark:text-slate-500 text-[9px] font-bold uppercase tracking-widest">
-                    Quartos
-                  </span>
-                </div>
-              )}
-              {imovel.banheiros != null && imovel.banheiros > 0 && (
-                <div className="flex flex-col items-center gap-1 p-2 rounded-2xl bg-slate-50/50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors border border-transparent dark:border-white/5">
-                  <span className="text-slate-950 dark:text-white font-black text-sm">
-                    {imovel.banheiros}
-                  </span>
-                  <span className="text-slate-400 dark:text-slate-500 text-[9px] font-bold uppercase tracking-widest">
-                    Banhs
+          {/* Specs — linha horizontal com separadores */}
+          {specs.length > 0 && (
+            <div className="flex items-center pt-3 mt-auto border-t border-[#e8e4dc] dark:border-white/5">
+              {specs.map((spec, i) => (
+                <div key={i} className="flex items-center">
+                  {i > 0 && (
+                    <span className="inline-block w-px h-3 bg-[#e8e4dc] dark:bg-white/10 mx-3" />
+                  )}
+                  <span className="text-[10px] text-[#9c9890] dark:text-white/40 font-bold uppercase tracking-wider">
+                    {spec}
                   </span>
                 </div>
-              )}
-              {imovel.areaTotal != null && imovel.areaTotal > 0 && (
-                <div className="flex flex-col items-center gap-1 p-2 rounded-2xl bg-slate-50/50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors border border-transparent dark:border-white/5">
-                  <span className="text-slate-950 dark:text-white font-black text-sm">
-                    {imovel.areaTotal}
-                  </span>
-                  <span className="text-slate-400 dark:text-slate-500 text-[9px] font-bold uppercase tracking-widest">
-                    m² Úteis
-                  </span>
-                </div>
-              )}
+              ))}
             </div>
           )}
+
+          {/* CTA */}
+          <div className="flex items-center justify-between pt-3 border-t border-[#e8e4dc] dark:border-white/5">
+            <span className="text-[10px] font-black uppercase tracking-[0.22em] text-[#b8912a] group-hover:tracking-[0.3em] transition-all duration-300">
+              Ver Imóvel
+            </span>
+            <FiArrowRight
+              size={13}
+              className="text-[#b8912a] group-hover:translate-x-1 transition-transform duration-300"
+            />
+          </div>
         </div>
       </article>
-
-      <style jsx>{`
-        .perspective-1000 {
-          perspective: 1000px;
-        }
-      `}</style>
     </Link>
   );
 }
