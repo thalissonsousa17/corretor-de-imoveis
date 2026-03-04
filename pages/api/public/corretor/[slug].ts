@@ -4,18 +4,26 @@ import { resolveFotoUrl } from "@/lib/imageUtils";
 
 export default async function handle(req: NextApiRequest, res: NextApiResponse) {
   const { slug, filtro } = req.query;
-
   if (typeof slug !== "string") return res.status(400).json({ message: "Slug inválido." });
 
   try {
+    // Query 1: busca o perfil do corretor
     const { data: profile } = await supabaseAdmin
       .from("CorretorProfile")
-      .select("*, user:User(name,email)")
+      .select("*")
       .eq("slug", slug)
       .maybeSingle();
 
     if (!profile) return res.status(404).json({ message: "Corretor não encontrado." });
 
+    // Query 2: busca o usuário pelo userId
+    const { data: user } = await supabaseAdmin
+      .from("User")
+      .select("name, email")
+      .eq("id", profile.userId)
+      .maybeSingle();
+
+    // Query 3: busca imóveis do corretor
     let query = supabaseAdmin
       .from("Imovel")
       .select("*, fotos:Foto(*)")
@@ -25,46 +33,32 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
 
     if (typeof filtro === "string") {
       switch (filtro.toUpperCase()) {
-        case "VENDA":
-          query = query.eq("finalidade", "VENDA").eq("status", "DISPONIVEL");
-          break;
-        case "ALUGUEL":
-          query = query.eq("finalidade", "ALUGUEL").eq("status", "DISPONIVEL");
-          break;
-        case "VENDIDO":
-          query = query.eq("status", "VENDIDO");
-          break;
-        case "ALUGADO":
-          query = query.eq("status", "ALUGADO");
-          break;
-        case "INATIVO":
-          query = query.eq("status", "INATIVO");
-          break;
+        case "VENDA":    query = query.eq("finalidade", "VENDA").eq("status", "DISPONIVEL"); break;
+        case "ALUGUEL":  query = query.eq("finalidade", "ALUGUEL").eq("status", "DISPONIVEL"); break;
+        case "VENDIDO":  query = query.eq("status", "VENDIDO"); break;
+        case "ALUGADO":  query = query.eq("status", "ALUGADO"); break;
+        case "INATIVO":  query = query.eq("status", "INATIVO"); break;
       }
     }
 
     const { data: imoveisRaw } = await query;
 
     const imoveis = (imoveisRaw ?? []).map((imovel: any) => {
-      const fotosOrdenadas: any[] = (imovel.fotos ?? []).sort(
+      const fotosOrdenadas = (imovel.fotos ?? []).sort(
         (a: any, b: any) => (a.ordem ?? 0) - (b.ordem ?? 0)
       );
-      const capaRaw = fotosOrdenadas[0]?.url ?? null;
-
       return {
         ...imovel,
-        fotoPrincipal: resolveFotoUrl(capaRaw),
+        fotoPrincipal: resolveFotoUrl(fotosOrdenadas[0]?.url ?? null),
         fotos: fotosOrdenadas.map((f: any) => ({ ...f, url: resolveFotoUrl(f.url) })),
       };
     });
 
-    const user = Array.isArray(profile.user) ? profile.user[0] : profile.user;
-
-    res.json({
+    return res.json({
       corretor: {
         id: profile.userId,
-        name: user?.name,
-        email: user?.email,
+        name: user?.name ?? "",
+        email: user?.email ?? "",
         creci: profile.creci,
         avatarUrl: resolveFotoUrl(profile.avatarUrl),
         bannerUrl: resolveFotoUrl(profile.bannerUrl),
@@ -84,6 +78,6 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
     });
   } catch (error) {
     console.error("Erro ao buscar corretor:", error);
-    res.status(500).json({ message: "Erro interno do servidor." });
+    return res.status(500).json({ message: "Erro interno do servidor." });
   }
 }
