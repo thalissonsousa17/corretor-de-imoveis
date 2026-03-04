@@ -31,13 +31,13 @@ export default function HeroSlider({
     return imoveis.slice(0, 3);
   }, [imoveis]);
 
-  const bgBase = accentColor || "#1A2A4F";
+  const bgBase = accentColor || "#b8912a";
 
   return (
-    <section className="relative w-full min-h-[850px] lg:h-[900px] overflow-hidden flex items-center justify-center py-20 px-4 transition-colors duration-500 bg-slate-50 dark:bg-slate-950">
+    <section className="relative w-full min-h-[850px] lg:h-[900px] overflow-hidden flex items-center justify-center py-20 px-4 transition-colors duration-500 bg-[#fafaf8] dark:bg-[#1a1814]">
       {/* Background with Accent Color Gradient */}
       <div
-        className="absolute inset-0 z-0 opacity-0 dark:opacity-100 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 transition-opacity duration-500"
+        className="absolute inset-0 z-0 opacity-0 dark:opacity-100 bg-gradient-to-br from-[#1a1814] via-[#231f18] to-[#1a1814] transition-opacity duration-500"
         style={{ backgroundColor: bgBase }}
       >
         <div
@@ -50,7 +50,7 @@ export default function HeroSlider({
       </div>
 
       {/* Light Mode Specific Background */}
-      <div className="absolute inset-0 z-0 dark:hidden bg-gradient-to-br from-white via-slate-50 to-white">
+      <div className="absolute inset-0 z-0 dark:hidden bg-gradient-to-br from-[#fafaf8] via-[#f5f1ea] to-[#fafaf8]">
         <div
           className="absolute inset-0 opacity-5"
           style={{
@@ -78,12 +78,12 @@ export default function HeroSlider({
               >
                 {corretorName} — Portfólio de Luxo
               </span>
-              <h1 className="text-slate-950 dark:text-white text-4xl sm:text-6xl font-black tracking-tighter leading-[1.1] mb-6 drop-shadow-sm dark:drop-shadow-2xl">
+              <h1 className="text-[#1a1814] dark:text-white text-4xl sm:text-6xl font-black tracking-tighter leading-[1.1] mb-6 drop-shadow-sm dark:drop-shadow-2xl">
                 Encontre o seu <br />
-                <span className="text-slate-400 dark:text-slate-500">Novo Legado.</span>
+                <span className="text-[#9c9890] dark:text-white/50">Novo Legado.</span>
               </h1>
               {slogan && (
-                <p className="text-slate-500 dark:text-white/60 text-lg font-medium max-w-md leading-relaxed">
+                <p className="text-[#9c9890] dark:text-white/60 text-lg font-medium max-w-md leading-relaxed">
                   {slogan}
                 </p>
               )}
@@ -94,7 +94,7 @@ export default function HeroSlider({
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.4 }}
-              className="bg-white/10 dark:bg-white/5 backdrop-blur-2xl border border-slate-200 dark:border-white/10 rounded-2xl p-2 shadow-2xl flex flex-col sm:flex-row items-center gap-2 max-w-xl"
+              className="bg-white/70 dark:bg-white/5 backdrop-blur-2xl border border-[#e8e4dc] dark:border-white/10 rounded-2xl p-2 shadow-2xl flex flex-col sm:flex-row items-center gap-2 max-w-xl"
             >
               <div className="flex-1 w-full flex items-center px-4 gap-3">
                 <FiSearch className="text-slate-400 dark:text-white/40" size={20} />
@@ -103,13 +103,13 @@ export default function HeroSlider({
                   value={busca}
                   onChange={(e) => setBusca(e.target.value)}
                   placeholder="Localização, tipo ou condomínio..."
-                  className="w-full bg-transparent text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-white/40 py-4 focus:outline-none text-sm font-medium"
+                  className="w-full bg-transparent text-[#1a1814] dark:text-white placeholder-[#9c9890] dark:placeholder-white/40 py-4 focus:outline-none text-sm font-medium"
                   onKeyDown={(e) => e.key === "Enter" && onSearch(busca)}
                 />
               </div>
               <button
                 onClick={() => onSearch(busca)}
-                className="w-full sm:w-auto px-8 py-4 bg-white text-slate-950 font-black text-xs uppercase tracking-widest rounded-xl hover:bg-[var(--accent-color)] hover:text-white transition-all duration-300 active:scale-95 shadow-xl"
+                className="w-full sm:w-auto px-8 py-4 bg-[#1a1814] text-white font-black text-xs uppercase tracking-widest rounded-xl hover:bg-[var(--accent-color)] hover:text-white transition-all duration-300 active:scale-95 shadow-xl"
               >
                 Explorar
               </button>
@@ -158,7 +158,7 @@ export default function HeroSlider({
               </div>
             ) : (
               /* Fallback se não houver imóveis */
-              <div className="w-64 h-96 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-[2rem] flex flex-col items-center justify-center text-slate-300 dark:text-white/20">
+              <div className="w-64 h-96 bg-[#e8e4dc] dark:bg-white/5 border border-[#e8e4dc] dark:border-white/10 rounded-[2rem] flex flex-col items-center justify-center text-[#9c9890] dark:text-white/20">
                 <FiMapPin size={48} />
                 <p className="mt-4 font-black text-xs uppercase tracking-widest text-center px-8">
                   Nenhum imóvel disponível para destaque

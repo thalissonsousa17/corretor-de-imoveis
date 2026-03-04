@@ -58,13 +58,13 @@ export default function HeaderCorretor({ corretor, theme, toggleTheme }: HeaderC
     <>
       <header
         className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${
-          isScrolled 
-            ? "py-2 bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.05)] border-b border-white/20 dark:border-slate-800/50" 
+          isScrolled
+            ? "py-2 bg-[#fafaf8]/90 dark:bg-[#1a1814]/90 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.06)] border-b border-[#e8e4dc]/60 dark:border-white/5"
             : "py-4 bg-transparent"
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-8">
-          <div className="flex justify-between items-center bg-white/40 dark:bg-slate-900/40 backdrop-blur-md rounded-2xl border border-white/40 dark:border-white/10 px-6 py-3 shadow-sm">
+          <div className="flex justify-between items-center bg-[#fafaf8]/60 dark:bg-[#1a1814]/60 backdrop-blur-md rounded-2xl border border-[#e8e4dc]/60 dark:border-white/8 px-6 py-3 shadow-sm">
             {/* Logo Section */}
             <Link href={slug ? `/${slug}` : "/"} className="flex items-center gap-3 group">
               <div className="relative">
@@ -96,7 +96,7 @@ export default function HeaderCorretor({ corretor, theme, toggleTheme }: HeaderC
                   className={`px-5 py-2 text-[13px] font-bold uppercase tracking-wider transition-all duration-300 rounded-full ${
                     isActive(item.href)
                       ? "text-accent bg-accent/10"
-                      : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/50 dark:hover:bg-slate-800/50"
+                      : "text-[#9c9890] dark:text-[#9c9890] hover:text-[#1a1814] dark:hover:text-white hover:bg-[#e8e4dc]/50 dark:hover:bg-white/5"
                   }`}
                 >
                   {item.label}
@@ -110,7 +110,7 @@ export default function HeaderCorretor({ corretor, theme, toggleTheme }: HeaderC
                   console.log("Desktop theme toggle clicked");
                   toggleTheme?.();
                 }}
-                className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-accent dark:hover:text-accent transition-all duration-300"
+                className="p-2.5 rounded-xl bg-[#f0ede6] dark:bg-white/5 text-[#9c9890] hover:text-accent dark:hover:text-accent transition-all duration-300"
                 aria-label="Alternar Tema"
               >
                 {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
@@ -124,7 +124,7 @@ export default function HeaderCorretor({ corretor, theme, toggleTheme }: HeaderC
                   href={waHref}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="hidden md:flex items-center gap-2.5 px-5 py-2.5 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-accent transition-all duration-300 shadow-lg shadow-slate-900/10 hover:shadow-accent/20 active:scale-95"
+                  className="hidden md:flex items-center gap-2.5 px-5 py-2.5 bg-[#1a1814] text-white rounded-xl text-xs font-bold hover:bg-accent transition-all duration-300 shadow-lg shadow-black/10 hover:shadow-accent/20 active:scale-95"
                 >
                   <Phone size={14} className="animate-pulse" />
                   AGENDAR VISITA
@@ -133,7 +133,7 @@ export default function HeaderCorretor({ corretor, theme, toggleTheme }: HeaderC
 
               {/* Mobile Toggle */}
               <button 
-                className="lg:hidden p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                className="lg:hidden p-2.5 rounded-xl bg-[#e8e4dc] dark:bg-white/5 text-[#1a1814] dark:text-white hover:bg-[#ddd9d0] dark:hover:bg-white/10 transition-colors"
                 onClick={() => setMenuOpen(true)}
               >
                 <Menu size={20} />
@@ -150,12 +150,12 @@ export default function HeaderCorretor({ corretor, theme, toggleTheme }: HeaderC
         }`}
       >
         <div 
-          className="absolute inset-0 bg-slate-950/40 backdrop-blur-md" 
+          className="absolute inset-0 bg-[#1a1814]/50 backdrop-blur-md" 
           onClick={() => setMenuOpen(false)} 
         />
         
         <div 
-          className={`absolute right-0 top-0 bottom-0 w-80 bg-white dark:bg-slate-950 shadow-2xl transition-transform duration-500 ease-out ${
+          className={`absolute right-0 top-0 bottom-0 w-80 bg-[#fafaf8] dark:bg-[#1a1814] shadow-2xl transition-transform duration-500 ease-out ${
             menuOpen ? "translate-x-0" : "translate-x-full"
           }`}
         >
@@ -170,12 +170,12 @@ export default function HeaderCorretor({ corretor, theme, toggleTheme }: HeaderC
                     console.log("Mobile theme toggle clicked");
                     toggleTheme?.();
                   }}
-                  className="p-2 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-400 hover:text-accent transition-colors"
+                  className="p-2 rounded-lg bg-[#e8e4dc] dark:bg-white/5 text-[#9c9890] hover:text-accent transition-colors"
                 >
                   {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
                 </button>
-                <button 
-                  className="p-2 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
+                <button
+                  className="p-2 rounded-lg bg-[#e8e4dc] dark:bg-white/5 text-[#9c9890] hover:text-[#1a1814] dark:hover:text-white transition-colors"
                   onClick={() => setMenuOpen(false)}
                 >
                   <X size={20} />
@@ -192,7 +192,7 @@ export default function HeaderCorretor({ corretor, theme, toggleTheme }: HeaderC
                   className={`px-6 py-4 rounded-2xl text-sm font-bold uppercase tracking-widest transition-all ${
                     isActive(item.href)
                       ? "bg-accent text-white shadow-xl shadow-accent/20"
-                      : "text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-900 hover:text-slate-900 dark:hover:text-white"
+                      : "text-[#9c9890] hover:bg-[#e8e4dc] dark:hover:bg-white/5 hover:text-[#1a1814] dark:hover:text-white"
                   }`}
                   style={{ transitionDelay: `${idx * 50}ms` }}
                 >
@@ -205,12 +205,12 @@ export default function HeaderCorretor({ corretor, theme, toggleTheme }: HeaderC
               {/* Redes Sociais */}
               <div className="flex items-center gap-4 px-2">
                 {corretor.instagram && (
-                  <a href={`https://instagram.com/${corretor.instagram}`} target="_blank" className="p-3 bg-slate-50 dark:bg-slate-900 rounded-xl text-slate-400 hover:text-accent hover:bg-accent/10 transition-all">
+                  <a href={`https://instagram.com/${corretor.instagram}`} target="_blank" className="p-3 bg-[#e8e4dc] dark:bg-white/5 rounded-xl text-[#9c9890] hover:text-accent hover:bg-accent/10 transition-all">
                     <FiInstagram size={20} />
                   </a>
                 )}
                 {corretor.facebook && (
-                  <a href={`https://facebook.com/${corretor.facebook}`} target="_blank" className="p-3 bg-slate-50 dark:bg-slate-900 rounded-xl text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all">
+                  <a href={`https://facebook.com/${corretor.facebook}`} target="_blank" className="p-3 bg-[#e8e4dc] dark:bg-white/5 rounded-xl text-[#9c9890] hover:text-white hover:bg-[#1a1814] transition-all">
                     <FiFacebook size={20} />
                   </a>
                 )}

@@ -102,7 +102,7 @@ useEffect(() => {
         <meta name="description" content={corretor.biografia?.substring(0, 160)} />
       </Head>
 
-      <div className="bg-white dark:bg-slate-950 transition-colors duration-500">
+      <div className="bg-[#fafaf8] dark:bg-[#1a1814] transition-colors duration-500">
         {/* ══════ HERO CINEMÁTICO ══════ */}
         <HeroSlider
           imoveis={imoveis.filter((i) => i.status === "DISPONIVEL")}
@@ -116,7 +116,7 @@ useEffect(() => {
         />
 
         {/* ══════ VITRINE DE IMÓVEIS ══════ */}
-        <section id="vitrine" className="py-24 bg-white dark:bg-slate-900/20">
+        <section id="vitrine" className="py-24 bg-[#fafaf8] dark:bg-[#1e1a13]">
           <div className="max-w-7xl mx-auto px-6">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16">
               <div className="max-w-xl">
@@ -130,22 +130,22 @@ useEffect(() => {
                 >
                   Curadoria Exclusiva
                 </span>
-                <h2 className="text-3xl md:text-5xl font-black text-slate-950 dark:text-white tracking-tighter leading-tight">
+                <h2 className="text-3xl md:text-5xl font-black text-[#1a1814] dark:text-white tracking-tighter leading-tight">
                   Imóveis Selecionados{" "}
-                  <span className="text-slate-400 dark:text-slate-500">
+                  <span className="text-[#9c9890] dark:text-white/40">
                     para o seu estilo de vida.
                   </span>
                 </h2>
               </div>
 
               {/* Filtros Pill-Style */}
-              <div className="flex bg-white dark:bg-slate-900 p-1.5 rounded-2xl shadow-sm border border-slate-100 dark:border-white/5">
+              <div className="flex bg-white dark:bg-[#231f18] p-1.5 rounded-2xl shadow-sm border border-[#e8e4dc] dark:border-white/5">
                 <button
                   onClick={() => setFiltro("VENDA")}
                   className={`px-8 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
                     filtro === "VENDA"
-                      ? "bg-slate-900 dark:bg-white dark:text-slate-950 text-white shadow-xl shadow-slate-900/20"
-                      : "text-slate-400 hover:text-slate-950 dark:hover:text-white"
+                      ? "bg-[#1a1814] dark:bg-white dark:text-[#1a1814] text-white shadow-xl shadow-black/20"
+                      : "text-[#9c9890] hover:text-[#1a1814] dark:hover:text-white"
                   }`}
                 >
                   Comprar ({totalVenda})
@@ -154,8 +154,8 @@ useEffect(() => {
                   onClick={() => setFiltro("ALUGUEL")}
                   className={`px-8 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
                     filtro === "ALUGUEL"
-                      ? "bg-slate-900 dark:bg-white dark:text-slate-950 text-white shadow-xl shadow-slate-900/20"
-                      : "text-slate-400 hover:text-slate-950 dark:hover:text-white"
+                      ? "bg-[#1a1814] dark:bg-white dark:text-[#1a1814] text-white shadow-xl shadow-black/20"
+                      : "text-[#9c9890] hover:text-[#1a1814] dark:hover:text-white"
                   }`}
                 >
                   Alugar ({totalAluguel})
@@ -165,9 +165,9 @@ useEffect(() => {
 
             {/* Grid de Imóveis Premium */}
             {imoveisFiltrados.length === 0 ? (
-              <div className="bg-white dark:bg-slate-900 rounded-3xl p-20 text-center border-2 border-dashed border-slate-100 dark:border-white/5">
+              <div className="bg-white dark:bg-[#231f18] rounded-3xl p-20 text-center border-2 border-dashed border-[#e8e4dc] dark:border-white/5">
                 <FiSearch className="mx-auto text-slate-200 dark:text-slate-800 mb-6" size={64} />
-                <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
+                <h3 className="text-xl font-bold text-[#1a1814] dark:text-white mb-2">
                   Sem resultados no momento
                 </h3>
                 <p className="text-slate-400 text-sm">
@@ -186,7 +186,7 @@ useEffect(() => {
               <div className="mt-16 text-center">
                 <Link
                   href={`/${corretor.slug}/${filtro === "VENDA" ? "vendas" : "aluguel"}`}
-                  className="inline-flex items-center gap-4 px-10 py-5 bg-slate-900 dark:bg-white dark:text-slate-950 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-accent hover:text-white transition-all shadow-2xl shadow-slate-900/20 hover:shadow-accent/30 group"
+                  className="inline-flex items-center gap-4 px-10 py-5 bg-[#1a1814] dark:bg-white dark:text-[#1a1814] text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-accent hover:text-white transition-all shadow-2xl shadow-black/20 hover:shadow-accent/30 group"
                 >
                   Ver coleção completa
                   <FiArrowRight
@@ -200,9 +200,9 @@ useEffect(() => {
         </section>
 
         {/* ══════ SEÇÃO DESEJA VENDER (CTA) ══════ */}
-        <section className="py-24 bg-white dark:bg-slate-950">
+        <section className="py-24 bg-[#fafaf8] dark:bg-[#1a1814]">
           <div className="max-w-7xl mx-auto px-6">
-            <div className="bg-slate-950 dark:bg-gradient-to-br dark:from-slate-900 dark:to-slate-950 rounded-[3rem] p-12 lg:p-20 relative overflow-hidden shadow-[0_48px_96px_rgba(0,0,0,0.2)] dark:shadow-[0_40px_80px_rgba(0,0,0,0.6)] border border-white/5">
+            <div className="bg-[#1a1814] rounded-[3rem] p-12 lg:p-20 relative overflow-hidden shadow-[0_48px_96px_rgba(0,0,0,0.25)] border border-white/5">
               {/* Decorative background */}
               <div className="absolute top-0 right-0 w-1/2 h-full bg-white/10 -skew-x-12 translate-x-1/4 pointer-events-none" />
 
@@ -239,8 +239,8 @@ useEffect(() => {
         </section>
 
         {/* ══════ SEÇÃO SOBRE (EDITORIAL) ══════ */}
-        <section className="py-32 relative overflow-hidden bg-white dark:bg-slate-950">
-          <div className="absolute top-0 right-0 w-1/3 h-full bg-white dark:bg-slate-900/50 -z-10" />
+        <section className="py-32 relative overflow-hidden bg-[#fafaf8] dark:bg-[#1a1814]">
+          <div className="absolute top-0 right-0 w-1/3 h-full bg-[#f5f1ea] dark:bg-[#231f18]/50 -z-10" />
           <div className="max-w-7xl mx-auto px-6">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
               {/* Lado da Imagem Editorial */}
@@ -265,8 +265,8 @@ useEffect(() => {
                   )}
                 </div>
                 {/* Badge de Autoridade */}
-                <div className="absolute -bottom-6 -right-6 bg-white dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900 p-8 rounded-[2rem] shadow-2xl hidden md:block z-20 border border-white/5">
-                  <p className="text-slate-900 dark:text-white font-black text-3xl tracking-tighter italic">
+                <div className="absolute -bottom-6 -right-6 bg-white dark:bg-[#231f18] p-8 rounded-[2rem] shadow-2xl hidden md:block z-20 border border-[#e8e4dc] dark:border-white/5">
+                  <p className="text-[#1a1814] dark:text-white font-black text-3xl tracking-tighter italic">
                     {corretor.creci ? `CRECI ${corretor.creci}` : "Autoridade"}
                   </p>
                   <p className="text-slate-400 dark:text-slate-500 text-[10px] font-bold uppercase tracking-widest mt-1">
@@ -280,7 +280,7 @@ useEffect(() => {
                 <span className="text-blue-600 text-[10px] font-black uppercase tracking-[0.3em] mb-4 block">
                   Storytelling
                 </span>
-                <h2 className="text-4xl md:text-6xl font-black text-slate-950 dark:text-white tracking-tighter leading-tight mb-8">
+                <h2 className="text-4xl md:text-6xl font-black text-[#1a1814] dark:text-white tracking-tighter leading-tight mb-8">
                   {corretor.bioTitle ?? "Excelência em cada detalhe."}
                 </h2>
                 <div className="relative">
@@ -289,7 +289,7 @@ useEffect(() => {
                     size={120}
                   />
                   <div
-                    className="relative z-10 text-slate-600 text-lg leading-relaxed space-y-4 prose prose-slate"
+                    className="relative z-10 text-[#6b6660] dark:text-white/70 text-lg leading-relaxed space-y-4 prose prose-slate dark:prose-invert"
                     dangerouslySetInnerHTML={{ __html: safeHtml }}
                   />
                 </div>
@@ -300,7 +300,7 @@ useEffect(() => {
                     <a
                       href={`https://instagram.com/${corretor.instagram}`}
                       target="_blank"
-                      className="flex items-center gap-3 px-6 py-4 rounded-xl border border-slate-200 dark:border-white/5 text-slate-600 dark:text-slate-400 hover:bg-slate-900 dark:hover:bg-white hover:text-white dark:hover:text-slate-950 hover:border-slate-900 dark:hover:border-white transition-all font-bold text-xs uppercase tracking-widest"
+                      className="flex items-center gap-3 px-6 py-4 rounded-xl border border-[#e8e4dc] dark:border-white/5 text-[#9c9890] dark:text-[#9c9890] hover:bg-[#1a1814] dark:hover:bg-white hover:text-white dark:hover:text-[#1a1814] hover:border-[#1a1814] dark:hover:border-white transition-all font-bold text-xs uppercase tracking-widest"
                     >
                       <FaInstagram size={18} /> Instagram
                     </a>
@@ -327,7 +327,7 @@ useEffect(() => {
                     <a
                       href={`https://linkedin.com/in/${corretor.linkedin}`}
                       target="_blank"
-                      className="flex items-center gap-3 px-6 py-4 rounded-xl border border-slate-200 dark:border-white/5 text-slate-600 dark:text-slate-400 hover:bg-slate-800 dark:hover:bg-white hover:text-white dark:hover:text-slate-950 hover:border-slate-800 dark:hover:border-white transition-all font-bold text-xs uppercase tracking-widest"
+                      className="flex items-center gap-3 px-6 py-4 rounded-xl border border-[#e8e4dc] dark:border-white/5 text-[#9c9890] dark:text-[#9c9890] hover:bg-[#1a1814] dark:hover:bg-white hover:text-white dark:hover:text-[#1a1814] hover:border-[#1a1814] dark:hover:border-white transition-all font-bold text-xs uppercase tracking-widest"
                     >
                       <FaLinkedin size={18} /> LinkedIn
                     </a>
@@ -339,7 +339,7 @@ useEffect(() => {
         </section>
 
         {/* ══════ CARROSSEL DE DESTAQUES (REFINADO) ══════ */}
-        <div className="bg-white dark:bg-slate-950 text-slate-900 dark:text-white transition-colors duration-500">
+        <div className="bg-[#fafaf8] dark:bg-[#1a1814] text-[#1a1814] dark:text-white transition-colors duration-500">
           <CarrosselDestaques imoveis={imoveis} />
         </div>
       </div>

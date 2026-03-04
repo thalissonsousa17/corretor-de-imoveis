@@ -63,10 +63,10 @@ export default function LayoutCorretor({ corretor, children }: LayoutCorretorPro
     linkedin: "",
     whatsapp: "",
     logoUrl: "",
-    accentColor: "#1A2A4F",
+    accentColor: "#b8912a",
   };
 
-  const accentColor = safeCorretor.accentColor || "#1A2A4F";
+  const accentColor = safeCorretor.accentColor || "#b8912a";
 
   // Converter HEX para RGB para uso em RGBA/Sombras
   const hexToRgb = (hex: string) => {
@@ -79,7 +79,7 @@ export default function LayoutCorretor({ corretor, children }: LayoutCorretorPro
   const accentRgb = hexToRgb(accentColor.startsWith('#') ? accentColor : "#1A2A4F");
 
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-950 flex flex-col transition-colors duration-500">
+    <div className="min-h-screen bg-[#fafaf8] dark:bg-[#1a1814] flex flex-col transition-colors duration-500">
       <Head>
         <script dangerouslySetInnerHTML={{ __html: `
           (function() {
