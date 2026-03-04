@@ -71,7 +71,7 @@ const handlePost = async (req: AuthApiRequest, res: NextApiResponse) => {
       maxFiles: 20,
       maxFileSize: 15 * 1024 * 1024,
       maxTotalFileSize: 200 * 1024 * 1024,
-      allowEmptyFiles: true,
+      allowEmptyFiles: false, // ✅ rejeita arquivos vazios
       multiples: true,
     });
 
@@ -136,11 +136,16 @@ const handlePost = async (req: AuthApiRequest, res: NextApiResponse) => {
 
     if (imovelError) throw new Error(imovelError.message);
 
-    const photosArray = Array.isArray(files.fotos) ? files.fotos : files.fotos ? [files.fotos] : [];
+    // ✅ Filtra arquivos vazios antes de tentar fazer upload
+    const rawPhotos = Array.isArray(files.fotos) ? files.fotos : files.fotos ? [files.fotos] : [];
+    const photosArray = rawPhotos.filter((f) => f.size > 0);
+
+    console.log(`[POST /api/imoveis] Fotos recebidas: ${rawPhotos.length}, válidas: ${photosArray.length}`);
 
     if (photosArray.length > 0) {
       const fotosData = await Promise.all(
         photosArray.map(async (file: formidable.File, index: number) => {
+          console.log(`[upload] foto ${index}: ${file.originalFilename} | ${file.mimetype} | ${file.size} bytes`);
           const buffer = await fs.readFile(file.filepath);
           const url = await uploadFotoToStorage(buffer, file.originalFilename ?? "foto.jpg");
           await fs.unlink(file.filepath).catch(() => {});
@@ -154,6 +159,7 @@ const handlePost = async (req: AuthApiRequest, res: NextApiResponse) => {
         })
       );
       await supabaseAdmin.from("Foto").insert(fotosData);
+      console.log(`[POST /api/imoveis] ${fotosData.length} fotos inseridas no banco.`);
     }
 
     return res.status(201).json({ message: "Imóvel cadastrado com sucesso!", imovel: novoImovel });
