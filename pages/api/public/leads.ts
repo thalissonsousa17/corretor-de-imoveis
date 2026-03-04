@@ -8,7 +8,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const { nome, whatsapp, email, tipo, localizacao, mensagem, corretorId, origem, status } = req.body;
+    const { nome, whatsapp, email, tipo, localizacao, mensagem, corretorId, origem } = req.body;
 
     if (!nome || !whatsapp || !corretorId) {
       return res.status(400).json({ error: "Nome, WhatsApp e ID do corretor são obrigatórios." });
@@ -36,12 +36,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .insert({
         id: randomUUID(),
         nome,
-        email: email || null,
+        email: email?.trim() || "",
         whatsapp,
         mensagem: mensagem || "Gostaria de uma avaliação para venda do meu imóvel.",
         imovelInteresse,
         corretorId,
-        status: status || "NOVO",
         origem: origem || "SITE",
       })
       .select("*")
