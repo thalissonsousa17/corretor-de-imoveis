@@ -12,14 +12,7 @@ export default async function handleLougout(req: NextApiRequest, res: NextApiRes
   const cookies = cookie.parse(req.headers.cookie || "");
   const sessionId = cookies.sessionId;
 
-  if (sessionId) {
-    try {
-      await supabaseAdmin.from("Session").delete().eq("id", sessionId);
-    } catch (error) {
-      return res.status(500).json({ message: "Erro ao encerrar a sessão", error });
-    }
-  }
-
+  // Clear cookie FIRST — always, regardless of session delete outcome
   res.setHeader(
     "Set-Cookie",
     serialize("sessionId", "", {
@@ -28,6 +21,10 @@ export default async function handleLougout(req: NextApiRequest, res: NextApiRes
       expires: new Date(0),
     })
   );
+
+  if (sessionId) {
+    await supabaseAdmin.from("Session").delete().eq("id", sessionId).catch(() => {});
+  }
 
   return res.status(200).json({ message: "Logout realizado com sucesso." });
 }
