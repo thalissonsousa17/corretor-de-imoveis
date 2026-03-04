@@ -14,7 +14,7 @@ interface Ticket {
   updatedAt: string;
   naoLidas: number;
   user: { name: string; email: string };
-  _count: { mensagens: number };
+  mensagens: { conteudo: string; createdAt: string; lida: boolean; autorId: string }[];
 }
 
 interface Lead {
@@ -224,7 +224,7 @@ export default function AdminSuporte() {
                         </span>
                         <span className={`text-xs font-medium ${pc.color}`}>{pc.label}</span>
                         <span className="text-xs text-gray-400 flex items-center gap-1">
-                          <MessageSquare size={12} /> {ticket._count.mensagens}
+                          <MessageSquare size={12} /> {(ticket.mensagens ?? []).length}
                         </span>
                         <span className="text-xs text-gray-400 flex items-center gap-1">
                           <User size={12} /> {ticket.user.name}

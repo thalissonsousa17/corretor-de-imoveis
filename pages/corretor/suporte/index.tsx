@@ -13,8 +13,7 @@ interface Ticket {
   createdAt: string;
   updatedAt: string;
   naoLidas: number;
-  _count: { mensagens: number };
-  mensagens: { conteudo: string; createdAt: string }[];
+  mensagens: { conteudo: string; createdAt: string; lida: boolean; autorId: string }[];
 }
 
 const statusConfig: Record<string, { label: string; color: string; icon: LucideIcon }> = {
@@ -175,7 +174,7 @@ export default function SuporteCorretor() {
                         </span>
                         <span className={`text-xs font-medium ${pc.color}`}>{pc.label}</span>
                         <span className="text-xs text-gray-400 flex items-center gap-1">
-                          <MessageSquare size={12} /> {ticket._count.mensagens}
+                          <MessageSquare size={12} /> {(ticket.mensagens ?? []).length}
                         </span>
                       </div>
                     </div>
