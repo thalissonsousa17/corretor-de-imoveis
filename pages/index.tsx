@@ -159,8 +159,9 @@ const PLANOS = [
     periodo: "para sempre",
     destaque: false,
     recursos: [
-      "Até 5 imóveis",
-      "Página pública básica",
+      "Até 5 imóveis cadastrados",
+      "1 Lead, 1 Visita, 1 Contrato",
+      "Página pública do corretor",
       "Painel de gerenciamento",
       "Suporte via comunidade",
     ],
@@ -175,9 +176,11 @@ const PLANOS = [
     destaque: false,
     recursos: [
       "Até 50 imóveis",
+      "Leads / CRM ilimitados",
+      "Visitas ilimitadas",
+      "Contratos digitais ilimitados",
+      "Relatório financeiro completo",
       "Página personalizada",
-      "Gerenciamento completo",
-      "Contratos digitais",
     ],
     cta: "Assinar Pro",
   },
@@ -189,7 +192,12 @@ const PLANOS = [
     periodo: "por mês",
     destaque: false,
     tag: "Mais vendido",
-    recursos: ["Até 100 imóveis", "Tudo do Pro", "Domínio personalizado", "IA de Copywriting"],
+    recursos: [
+      "Até 100 imóveis",
+      "Tudo do Pro",
+      "Domínio personalizado",
+      "IA para contratos e copywriting",
+    ],
     cta: "Assinar Start",
   },
   {
@@ -202,7 +210,7 @@ const PLANOS = [
     tag: "Performance Máxima",
     recursos: [
       "Imóveis ilimitados",
-      "Tudo do Start",
+      "Tudo do Start AI",
       "Suporte Premium 24/7",
       "Plano anual: R$ 119/mês",
     ],

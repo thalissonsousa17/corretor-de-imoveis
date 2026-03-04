@@ -3,6 +3,7 @@ import { authorize, AuthApiRequest } from "@/lib/authMiddleware";
 import { supabaseAdmin } from "@/lib/supabase";
 import { randomUUID } from "node:crypto";
 import { CONTRATOS_TEMPLATES } from "@/lib/contratos-templates";
+import { verificarLimitePlano } from "@/lib/verificarLimitePlano";
 
 export default authorize(async function handler(req: AuthApiRequest, res: NextApiResponse) {
   const userId = req.user?.id;
@@ -36,6 +37,15 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
     }
 
     try {
+      const limite = await verificarLimitePlano(userId, "contratos");
+      if (!limite.permitido) {
+        return res.status(403).json({
+          error: `Limite de ${limite.limite} contrato(s) do plano ${limite.plano} atingido. Faça upgrade para continuar.`,
+          code: "PLANO_LIMITE_ATINGIDO",
+          recurso: "contratos",
+          planoAtual: limite.plano,
+        });
+      }
       const { data: contrato, error } = await supabaseAdmin
         .from("Contrato")
         .insert({

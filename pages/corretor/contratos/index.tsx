@@ -6,6 +6,7 @@ import { CONTRATOS_TEMPLATES, ContratoTemplate, TipoContrato } from "@/lib/contr
 import toast from "react-hot-toast";
 import SignaturePad from "@/components/SignaturePad";
 import { PenTool, Trash2, X } from "lucide-react";
+import UpgradeModal from "@/components/UpgradeModal";
 
 // Importação dinâmica (sem SSR) do editor TipTap
 const RichTextEditor = dynamic(() => import("@/components/editor/RichTextEditor"), {
@@ -210,6 +211,7 @@ export default function ContratosPage() {
   const [editorTipo, setEditorTipo] = useState<TipoContrato>("PERSONALIZADO");
   const [contratoEditandoId, setContratoEditandoId] = useState<string | null>(null);
   const [salvando, setSalvando] = useState(false);
+  const [showUpgrade, setShowUpgrade] = useState(false);
   // key para forçar remontagem do editor ao trocar contrato ou aplicar preenchimento da IA
   const [editorKey, setEditorKey] = useState(0);
 
@@ -355,8 +357,12 @@ export default function ContratosPage() {
         setContratoEditandoId(r.data.id);
         toast.success("Contrato salvo!");
       }
-    } catch {
-      toast.error("Erro ao salvar contrato.");
+    } catch (err: any) {
+      if (err?.response?.data?.code === "PLANO_LIMITE_ATINGIDO") {
+        setShowUpgrade(true);
+      } else {
+        toast.error("Erro ao salvar contrato.");
+      }
     } finally {
       setSalvando(false);
     }
@@ -465,6 +471,7 @@ export default function ContratosPage() {
   // ── Render ────────────────────────────────────────────────────────────────────
   return (
     <CorretorLayout>
+      {showUpgrade && <UpgradeModal recurso="contratos" onClose={() => setShowUpgrade(false)} />}
       <div className="min-h-screen bg-gray-50 pb-16">
         {/* ── Templates ─────────────────────────────────────────────────────────── */}
         <section className="mb-8">

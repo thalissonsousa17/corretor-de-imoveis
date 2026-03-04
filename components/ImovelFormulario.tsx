@@ -1,4 +1,5 @@
 import React, { useState, FormEvent, ChangeEvent, useEffect } from "react";
+import UpgradeModal from "@/components/UpgradeModal";
 import axios from "axios";
 import { resolveFotoUrl } from "@/lib/imageUtils";
 import { Imovel, Foto } from "@/types/Imovel";
@@ -123,6 +124,7 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
   const [fotosSelecionadas, setFotosSelecionadas] = useState<FileList | null>(null);
   const [existingPhotos, setExistingPhotos] = useState<ExistingPhoto[]>([]);
   const [loading, setLoading] = useState(false);
+  const [showUpgrade, setShowUpgrade] = useState(false);
   const [message, setMessage] = useState<{ text: string; type: "success" | "error" | "" }>({
     text: "",
     type: "",
@@ -242,8 +244,12 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
 
       onSuccess();
     } catch (err: any) {
-      const apiMsg = err?.response?.data?.message || err?.response?.data?.error;
-      setMessage({ text: apiMsg || "Erro ao salvar imóvel.", type: "error" });
+      if (err?.response?.data?.code === "PLANO_LIMITE_ATINGIDO") {
+        setShowUpgrade(true);
+      } else {
+        const apiMsg = err?.response?.data?.message || err?.response?.data?.error;
+        setMessage({ text: apiMsg || "Erro ao salvar imóvel.", type: "error" });
+      }
     } finally {
       setLoading(false);
     }
@@ -252,6 +258,8 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
   const descLen = formData.descricao?.length || 0;
 
   return (
+    <>
+      {showUpgrade && <UpgradeModal recurso="imoveis" onClose={() => setShowUpgrade(false)} />}
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* ─── Mensagem de status ──────────────────────── */}
       {message.text && (
@@ -789,6 +797,7 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
         )}
       </button>
     </form>
+    </>
   );
 };
 

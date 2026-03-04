@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import CorretorLayout from "@/components/CorretorLayout";
 import api from "@/lib/api";
 import toast from "react-hot-toast";
+import UpgradeModal from "@/components/UpgradeModal";
 import {
   CalendarDays,
   ChevronLeft,
@@ -74,6 +75,7 @@ export default function CorretorVisitas() {
   const [showForm, setShowForm] = useState(false);
   const [editingVisita, setEditingVisita] = useState<Visita | null>(null);
   const [saving, setSaving] = useState(false);
+  const [showUpgrade, setShowUpgrade] = useState(false);
 
   // Form
   const [formData, setFormData] = useState("");
@@ -194,8 +196,12 @@ export default function CorretorVisitas() {
       setShowForm(false);
       resetForm();
       fetchVisitas();
-    } catch {
-      toast.error("Erro ao salvar visita.");
+    } catch (err: any) {
+      if (err?.response?.data?.code === "PLANO_LIMITE_ATINGIDO") {
+        setShowUpgrade(true);
+      } else {
+        toast.error("Erro ao salvar visita.");
+      }
     } finally {
       setSaving(false);
     }
@@ -236,6 +242,7 @@ export default function CorretorVisitas() {
 
   return (
     <CorretorLayout>
+      {showUpgrade && <UpgradeModal recurso="visitas" onClose={() => setShowUpgrade(false)} />}
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">

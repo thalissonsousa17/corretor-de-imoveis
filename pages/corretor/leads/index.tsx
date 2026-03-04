@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import CorretorLayout from "@/components/CorretorLayout";
 import api from "@/lib/api";
 import toast from "react-hot-toast";
+import UpgradeModal from "@/components/UpgradeModal";
 import {
   UserPlus,
   Search,
@@ -64,6 +65,7 @@ export default function CorretorLeads() {
   const [filter, setFilter] = useState<FilterStatus>("TODOS");
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
+  const [showUpgrade, setShowUpgrade] = useState(false);
   const [editingLead, setEditingLead] = useState<Lead | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -150,8 +152,12 @@ export default function CorretorLeads() {
       setShowForm(false);
       resetForm();
       fetchLeads();
-    } catch {
-      toast.error("Erro ao salvar lead.");
+    } catch (err: any) {
+      if (err?.response?.data?.code === "PLANO_LIMITE_ATINGIDO") {
+        setShowUpgrade(true);
+      } else {
+        toast.error("Erro ao salvar lead.");
+      }
     } finally {
       setSaving(false);
     }
@@ -215,6 +221,7 @@ export default function CorretorLeads() {
 
   return (
     <CorretorLayout>
+      {showUpgrade && <UpgradeModal recurso="leads" onClose={() => setShowUpgrade(false)} />}
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">

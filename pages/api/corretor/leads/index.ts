@@ -2,6 +2,7 @@ import type { NextApiResponse } from "next";
 import { supabaseAdmin } from "@/lib/supabase";
 import { AuthApiRequest, authorize } from "@/lib/authMiddleware";
 import { randomUUID } from "node:crypto";
+import { verificarLimitePlano } from "@/lib/verificarLimitePlano";
 
 async function handler(req: AuthApiRequest, res: NextApiResponse) {
   const corretorId = req.user!.id;
@@ -30,6 +31,16 @@ async function handler(req: AuthApiRequest, res: NextApiResponse) {
 
       if (!nome?.trim()) {
         return res.status(400).json({ message: "Nome é obrigatório." });
+      }
+
+      const limite = await verificarLimitePlano(corretorId, "leads");
+      if (!limite.permitido) {
+        return res.status(403).json({
+          message: `Limite de ${limite.limite} lead(s) do plano ${limite.plano} atingido. Faça upgrade para continuar.`,
+          code: "PLANO_LIMITE_ATINGIDO",
+          recurso: "leads",
+          planoAtual: limite.plano,
+        });
       }
 
       const now = new Date().toISOString();

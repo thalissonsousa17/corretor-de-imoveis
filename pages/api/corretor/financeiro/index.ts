@@ -3,6 +3,7 @@ import { supabaseAdmin } from "@/lib/supabase";
 import { AuthApiRequest, authorize } from "@/lib/authMiddleware";
 import { randomUUID } from "node:crypto";
 import type { StatusComissao, TipoComissao } from "@/lib/types";
+import { verificarLimitePlano } from "@/lib/verificarLimitePlano";
 
 async function handler(req: AuthApiRequest, res: NextApiResponse) {
   const corretorId = req.user!.id;
@@ -68,6 +69,16 @@ async function handler(req: AuthApiRequest, res: NextApiResponse) {
 
       if (!descricao?.trim() || valorComissao === undefined) {
         return res.status(400).json({ message: "Descrição e valor da comissão são obrigatórios." });
+      }
+
+      const limite = await verificarLimitePlano(corretorId, "financeiro");
+      if (!limite.permitido) {
+        return res.status(403).json({
+          message: `Limite de ${limite.limite} registro(s) financeiro(s) do plano ${limite.plano} atingido. Faça upgrade para continuar.`,
+          code: "PLANO_LIMITE_ATINGIDO",
+          recurso: "financeiro",
+          planoAtual: limite.plano,
+        });
       }
 
       if (imovelId) {

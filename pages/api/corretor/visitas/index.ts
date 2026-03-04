@@ -2,6 +2,7 @@ import type { NextApiResponse } from "next";
 import { supabaseAdmin } from "@/lib/supabase";
 import { AuthApiRequest, authorize } from "@/lib/authMiddleware";
 import { randomUUID } from "node:crypto";
+import { verificarLimitePlano } from "@/lib/verificarLimitePlano";
 
 async function handler(req: AuthApiRequest, res: NextApiResponse) {
   const corretorId = req.user!.id;
@@ -41,6 +42,16 @@ async function handler(req: AuthApiRequest, res: NextApiResponse) {
 
       if (!dataHora || !nomeVisitante?.trim()) {
         return res.status(400).json({ message: "Data/hora e nome do visitante sao obrigatorios." });
+      }
+
+      const limite = await verificarLimitePlano(corretorId, "visitas");
+      if (!limite.permitido) {
+        return res.status(403).json({
+          message: `Limite de ${limite.limite} visita(s) do plano ${limite.plano} atingido. Faça upgrade para continuar.`,
+          code: "PLANO_LIMITE_ATINGIDO",
+          recurso: "visitas",
+          planoAtual: limite.plano,
+        });
       }
 
       if (imovelId) {

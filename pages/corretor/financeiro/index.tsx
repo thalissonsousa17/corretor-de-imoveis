@@ -3,6 +3,7 @@ import CorretorLayout from "@/components/CorretorLayout";
 import api from "@/lib/api";
 import toast from "react-hot-toast";
 import { DollarSign, TrendingUp, Clock, Plus, X, Edit2, Trash2, CheckCircle, XCircle } from "lucide-react";
+import UpgradeModal from "@/components/UpgradeModal";
 
 interface Comissao {
   id: string;
@@ -56,6 +57,7 @@ export default function FinanceiroPage() {
   const [filter, setFilter] = useState("TODOS");
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [showUpgrade, setShowUpgrade] = useState(false);
   const [imoveis, setImoveis] = useState<ImovelOption[]>([]);
 
   // Form
@@ -164,8 +166,12 @@ export default function FinanceiroPage() {
       setShowForm(false);
       resetForm();
       fetchData();
-    } catch {
-      toast.error("Erro ao salvar comissão.");
+    } catch (err: any) {
+      if (err?.response?.data?.code === "PLANO_LIMITE_ATINGIDO") {
+        setShowUpgrade(true);
+      } else {
+        toast.error("Erro ao salvar comissão.");
+      }
     }
   };
 
@@ -198,6 +204,7 @@ export default function FinanceiroPage() {
 
   return (
     <CorretorLayout>
+      {showUpgrade && <UpgradeModal recurso="financeiro" onClose={() => setShowUpgrade(false)} />}
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
