@@ -184,12 +184,15 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
           await supabaseAdmin.from("CorretorProfile").update(dataToSave).eq("userId", userId);
         }
       } else {
+        const now = new Date().toISOString();
         await supabaseAdmin.from("CorretorProfile").insert({
           id: randomUUID(),
           userId,
           slug: finalSlug || `corretor-${userId.slice(0, 6)}`,
           plano: "GRATUITO",
           planoStatus: "INATIVO",
+          createdAt: now,
+          updatedAt: now,
           ...dataToSave,
         });
       }

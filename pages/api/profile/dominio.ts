@@ -114,6 +114,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           status: novoStatus,
           verificadoEm: dnsCheck.ok ? agora : null,
           ultimaVerificacao: agora,
+          createdAt: agora,
+          updatedAt: agora,
         });
       }
 
