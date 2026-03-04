@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Bell } from "lucide-react";
 import SidebarCorretor from "./SidebarCorretor";
 import api from "@/lib/api";
+import NovoLeadToast from "./NovoLeadToast";
 
 const pageTitles: Record<string, string> = {
   "/corretor/dashboard": "Dashboard",
@@ -30,6 +31,7 @@ const getTitle = (pathname: string) => {
 const CorretorLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const router = useRouter();
   const [naoLidas, setNaoLidas] = useState(0);
+  const [leadNotif, setLeadNotif] = useState<{ nome: string; createdAt: string } | null>(null);
 
   useEffect(() => {
     const fetchNotifs = async () => {
@@ -40,6 +42,38 @@ const CorretorLayout: React.FC<{ children: React.ReactNode }> = ({ children }) =
     };
     fetchNotifs();
     const interval = setInterval(fetchNotifs, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const LS_KEY = "lastLeadSeenAt";
+
+    const checkLeads = async () => {
+      try {
+        const res = await api.get("/corretor/leads");
+        const leads: Array<{ nome: string; createdAt: string }> = Array.isArray(res.data) ? res.data : [];
+        if (!leads.length) return;
+
+        const newest = leads.reduce((a, b) =>
+          new Date(a.createdAt) > new Date(b.createdAt) ? a : b
+        );
+
+        const lastSeen = localStorage.getItem(LS_KEY);
+        if (!lastSeen) {
+          // First load — mark as seen, no popup
+          localStorage.setItem(LS_KEY, newest.createdAt);
+          return;
+        }
+
+        if (new Date(newest.createdAt) > new Date(lastSeen)) {
+          localStorage.setItem(LS_KEY, newest.createdAt);
+          setLeadNotif({ nome: newest.nome, createdAt: newest.createdAt });
+        }
+      } catch {}
+    };
+
+    checkLeads();
+    const interval = setInterval(checkLeads, 30000);
     return () => clearInterval(interval);
   }, []);
 
@@ -66,6 +100,14 @@ const CorretorLayout: React.FC<{ children: React.ReactNode }> = ({ children }) =
           {children}
         </main>
       </div>
+
+      {leadNotif && (
+        <NovoLeadToast
+          nome={leadNotif.nome}
+          createdAt={leadNotif.createdAt}
+          onClose={() => setLeadNotif(null)}
+        />
+      )}
     </div>
   );
 };
