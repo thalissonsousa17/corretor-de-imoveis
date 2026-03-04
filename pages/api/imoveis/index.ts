@@ -103,6 +103,8 @@ const handlePost = async (req: AuthApiRequest, res: NextApiResponse) => {
   try {
     const imovelId = randomUUID();
 
+    const now = new Date().toISOString();
+
     const { data: novoImovel, error: imovelError } = await supabaseAdmin
       .from("Imovel")
       .insert({
@@ -121,6 +123,8 @@ const handlePost = async (req: AuthApiRequest, res: NextApiResponse) => {
         finalidade: finalidadeFinal,
         status: "DISPONIVEL",
         corretorId,
+        createdAt: now,
+        updatedAt: now,
         ...(getFieldValue(fields.quartos) ? { quartos: parseInt(getFieldValue(fields.quartos)) } : {}),
         ...(getFieldValue(fields.banheiros) ? { banheiros: parseInt(getFieldValue(fields.banheiros)) } : {}),
         ...(getFieldValue(fields.suites) ? { suites: parseInt(getFieldValue(fields.suites)) } : {}),

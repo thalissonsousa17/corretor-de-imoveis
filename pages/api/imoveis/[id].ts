@@ -171,9 +171,7 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse) => {
       }
     }
 
-    if (Object.keys(data).length > 0) {
-      await supabaseAdmin.from("Imovel").update(data).eq("id", id);
-    }
+    await supabaseAdmin.from("Imovel").update({ ...data, updatedAt: new Date().toISOString() }).eq("id", id);
 
     const { data: imovelAtualizado } = await supabaseAdmin
       .from("Imovel")
