@@ -2,20 +2,16 @@ import { useAuth } from "@/lib/AuthContext";
 import axios from "axios";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { HomeIcon } from "lucide-react";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [mounted, setMounted] = useState(false);
   const { login } = useAuth();
   const router = useRouter();
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,333 +41,278 @@ const LoginPage = () => {
   return (
     <>
       <style jsx global>{`
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=DM+Sans:wght@300;400;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400;500;600&display=swap');
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         .login-root {
           min-height: 100vh;
           display: flex;
-          background: #0a0a0a;
+          background: #fafaf8;
           font-family: 'DM Sans', sans-serif;
           overflow: hidden;
         }
 
-        /* LEFT PANEL */
+        /* ── LEFT PANEL ── */
         .login-left {
           flex: 1;
           position: relative;
           display: none;
           overflow: hidden;
+          background: #1a1814;
         }
         @media (min-width: 1024px) { .login-left { display: block; } }
 
-        .login-left-bg {
+        /* subtle grid on dark panel */
+        .login-left-grid {
+          position: absolute; inset: 0;
+          opacity: 0.04;
+          background-image:
+            linear-gradient(rgba(255,255,255,0.8) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.8) 1px, transparent 1px);
+          background-size: 72px 72px;
+        }
+        .login-left-glow {
           position: absolute;
-          inset: 0;
-          background: 
-            linear-gradient(160deg, rgba(10,10,10,0.55) 0%, rgba(10,10,10,0.2) 50%, rgba(10,10,10,0.8) 100%),
-            url('https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=1200&q=80') center/cover no-repeat;
+          top: 40%; left: 50%;
+          transform: translate(-50%, -50%);
+          width: 600px; height: 400px;
+          background: radial-gradient(ellipse, rgba(184,145,42,0.12) 0%, transparent 70%);
+          pointer-events: none;
         }
 
         .login-left-content {
-          position: relative;
-          z-index: 2;
+          position: relative; z-index: 2;
           height: 100%;
           display: flex;
           flex-direction: column;
           justify-content: space-between;
-          padding: 48px;
+          padding: 52px;
         }
 
         .login-logo {
+          display: flex; align-items: center; gap: 11px; text-decoration: none;
+        }
+        .login-logo-icon {
+          width: 34px; height: 34px; background: #b8912a;
+          display: flex; align-items: center; justify-content: center;
+        }
+        .login-logo-text {
           font-family: 'Cormorant Garamond', serif;
-          font-size: 22px;
-          font-weight: 500;
-          letter-spacing: 0.18em;
-          color: #f5f0e8;
-          text-transform: uppercase;
+          font-size: 19px; font-weight: 500;
+          letter-spacing: 0.18em; color: white; text-transform: uppercase;
         }
-        .login-logo span {
-          color: #c9a84c;
-        }
-
-        .login-left-headline {
-          font-family: 'Cormorant Garamond', serif;
-          font-size: clamp(36px, 4vw, 52px);
-          font-weight: 300;
-          line-height: 1.2;
-          color: #f5f0e8;
-          letter-spacing: -0.01em;
-        }
-        .login-left-headline em {
-          font-style: italic;
-          color: #c9a84c;
-        }
+        .login-logo-text span { color: #b8912a; }
 
         .login-left-sub {
-          font-size: 13px;
-          font-weight: 300;
-          color: rgba(245,240,232,0.55);
-          letter-spacing: 0.12em;
-          text-transform: uppercase;
-          margin-top: 16px;
+          font-size: 9.5px; font-weight: 700;
+          letter-spacing: 0.28em; text-transform: uppercase;
+          color: rgba(184,145,42,0.7); margin-bottom: 16px;
+        }
+        .login-left-headline {
+          font-family: 'Cormorant Garamond', serif;
+          font-size: clamp(38px, 4vw, 56px);
+          font-weight: 300; line-height: 1.1;
+          color: white; letter-spacing: -0.01em;
+        }
+        .login-left-headline em {
+          font-style: italic; color: #b8912a;
         }
 
         .login-left-badge {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          border: 1px solid rgba(201,168,76,0.3);
-          padding: 8px 16px;
-          border-radius: 2px;
-          margin-top: 28px;
-          width: fit-content;
+          display: inline-flex; align-items: center; gap: 9px;
+          border: 1px solid rgba(184,145,42,0.3);
+          background: rgba(184,145,42,0.06);
+          padding: 9px 16px; margin-top: 28px; width: fit-content;
         }
-        .login-left-badge-dot {
-          width: 6px; height: 6px;
-          border-radius: 50%;
-          background: #c9a84c;
-          animation: pulse-gold 2s infinite;
+        .login-badge-dot {
+          width: 6px; height: 6px; border-radius: 50%; background: #b8912a;
+          animation: badgePulse 2s infinite;
         }
-        @keyframes pulse-gold {
-          0%, 100% { opacity: 1; transform: scale(1); }
-          50% { opacity: 0.5; transform: scale(0.85); }
+        @keyframes badgePulse {
+          0%,100%{ opacity:1; transform:scale(1); }
+          50%{ opacity:0.45; transform:scale(0.8); }
         }
-        .login-left-badge-text {
-          font-size: 11px;
-          letter-spacing: 0.14em;
-          text-transform: uppercase;
-          color: rgba(245,240,232,0.65);
+        .login-badge-text {
+          font-size: 9.5px; font-weight: 700;
+          letter-spacing: 0.22em; text-transform: uppercase;
+          color: rgba(184,145,42,0.75);
         }
 
-        /* DIVIDER LINE */
+        .login-left-footer {
+          font-size: 9px; font-weight: 700;
+          letter-spacing: 0.16em; text-transform: uppercase;
+          color: rgba(255,255,255,0.18);
+        }
+
+        /* ── DIVIDER ── */
         .login-divider {
           width: 1px;
-          background: linear-gradient(to bottom, transparent, rgba(201,168,76,0.25), transparent);
+          background: #e8e4dc;
           display: none;
         }
         @media (min-width: 1024px) { .login-divider { display: block; } }
 
-        /* RIGHT PANEL */
+        /* ── RIGHT PANEL ── */
         .login-right {
-          width: 100%;
-          max-width: 480px;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          padding: 48px 40px;
-          background: #0e0e0e;
+          width: 100%; max-width: 480px;
+          display: flex; flex-direction: column; justify-content: center;
+          padding: 52px 44px;
+          background: #fafaf8;
           position: relative;
         }
         @media (min-width: 1024px) { .login-right { width: 480px; flex-shrink: 0; } }
         @media (max-width: 1023px) { .login-right { max-width: 100%; margin: 0 auto; } }
 
-        /* Top mobile logo */
-        .login-mobile-logo {
-          font-family: 'Cormorant Garamond', serif;
-          font-size: 20px;
-          font-weight: 500;
-          letter-spacing: 0.18em;
-          color: #f5f0e8;
-          text-transform: uppercase;
-          margin-bottom: 40px;
-          display: block;
+        /* grid texture on right panel */
+        .login-right-grid {
+          position: absolute; inset: 0; opacity: 0.4;
+          background-image:
+            linear-gradient(#e8e4dc 1px, transparent 1px),
+            linear-gradient(90deg, #e8e4dc 1px, transparent 1px);
+          background-size: 72px 72px;
+          mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 100%);
+          -webkit-mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 100%);
+          pointer-events: none;
         }
-        .login-mobile-logo span { color: #c9a84c; }
+
+        /* mobile logo */
+        .login-mobile-logo {
+          display: flex; align-items: center; gap: 10px;
+          text-decoration: none; margin-bottom: 40px;
+        }
         @media (min-width: 1024px) { .login-mobile-logo { display: none; } }
+        .login-mobile-logo-icon {
+          width: 30px; height: 30px; background: #b8912a;
+          display: flex; align-items: center; justify-content: center;
+        }
+        .login-mobile-logo-text {
+          font-family: 'Cormorant Garamond', serif;
+          font-size: 18px; font-weight: 500;
+          letter-spacing: 0.18em; color: #1a1814; text-transform: uppercase;
+        }
+        .login-mobile-logo-text span { color: #b8912a; }
 
         .login-eyebrow {
-          font-size: 11px;
-          font-weight: 400;
-          letter-spacing: 0.2em;
-          text-transform: uppercase;
-          color: #c9a84c;
-          margin-bottom: 12px;
+          font-size: 9.5px; font-weight: 700;
+          letter-spacing: 0.28em; text-transform: uppercase;
+          color: #b8912a; margin-bottom: 12px;
         }
-
         .login-title {
           font-family: 'Cormorant Garamond', serif;
-          font-size: clamp(30px, 4vw, 40px);
-          font-weight: 300;
-          color: #f5f0e8;
-          line-height: 1.15;
-          margin-bottom: 8px;
+          font-size: clamp(32px, 4vw, 42px);
+          font-weight: 300; color: #1a1814;
+          line-height: 1.1; margin-bottom: 8px;
         }
-
         .login-subtitle {
-          font-size: 13px;
-          font-weight: 300;
-          color: rgba(245,240,232,0.4);
-          margin-bottom: 40px;
-          letter-spacing: 0.02em;
+          font-size: 13.5px; font-weight: 300;
+          color: #9c9890; margin-bottom: 36px; letter-spacing: 0.01em;
         }
 
-        .login-field {
-          margin-bottom: 20px;
-        }
-
+        /* form */
+        .login-field { margin-bottom: 18px; }
         .login-label {
-          display: block;
-          font-size: 11px;
-          letter-spacing: 0.15em;
-          text-transform: uppercase;
-          color: rgba(245,240,232,0.45);
-          margin-bottom: 8px;
+          display: block; font-size: 9.5px;
+          letter-spacing: 0.2em; text-transform: uppercase;
+          color: #9c9890; margin-bottom: 8px; font-weight: 600;
         }
-
         .login-input {
           width: 100%;
-          background: rgba(255,255,255,0.04);
-          border: 1px solid rgba(255,255,255,0.08);
-          border-radius: 2px;
+          background: white;
+          border: 1px solid #e8e4dc;
           padding: 14px 16px;
           font-family: 'DM Sans', sans-serif;
-          font-size: 14px;
-          font-weight: 300;
-          color: #f5f0e8;
-          outline: none;
-          transition: border-color 0.2s, background 0.2s;
-          -webkit-appearance: none;
+          font-size: 14px; font-weight: 300;
+          color: #1a1814; outline: none;
+          transition: border-color 0.2s, box-shadow 0.2s;
         }
-        .login-input::placeholder {
-          color: rgba(245,240,232,0.2);
-        }
+        .login-input::placeholder { color: #c8c4bc; }
         .login-input:focus {
-          border-color: rgba(201,168,76,0.5);
-          background: rgba(255,255,255,0.06);
-        }
-        .login-input:-webkit-autofill {
-          -webkit-box-shadow: 0 0 0 100px #111 inset;
-          -webkit-text-fill-color: #f5f0e8;
+          border-color: #b8912a;
+          box-shadow: 0 0 0 3px rgba(184,145,42,0.08);
         }
 
         .login-error {
-          display: flex;
-          align-items: center;
-          gap: 8px;
+          display: flex; align-items: center; gap: 8px;
           padding: 12px 16px;
-          background: rgba(220,50,50,0.08);
-          border: 1px solid rgba(220,50,50,0.2);
-          border-radius: 2px;
-          margin-bottom: 20px;
-          font-size: 12.5px;
-          color: #f87171;
-          font-weight: 300;
-          letter-spacing: 0.01em;
+          background: #fef2f2;
+          border: 1px solid #fecaca;
+          margin-bottom: 18px;
+          font-size: 12.5px; color: #dc2626; font-weight: 300;
         }
 
         .login-btn {
-          width: 100%;
-          padding: 15px 24px;
-          background: linear-gradient(135deg, #c9a84c 0%, #e2c06a 50%, #c9a84c 100%);
-          background-size: 200% auto;
+          width: 100%; padding: 15px 24px;
+          background: #b8912a;
           border: none;
-          border-radius: 2px;
           font-family: 'DM Sans', sans-serif;
-          font-size: 12px;
-          font-weight: 500;
-          letter-spacing: 0.2em;
-          text-transform: uppercase;
-          color: #0a0a0a;
-          cursor: pointer;
-          transition: background-position 0.4s, opacity 0.2s, transform 0.15s;
-          margin-top: 8px;
+          font-size: 11px; font-weight: 700;
+          letter-spacing: 0.22em; text-transform: uppercase;
+          color: white; cursor: pointer;
+          transition: background 0.2s, transform 0.15s;
+          margin-top: 6px;
+          display: flex; align-items: center; justify-content: center; gap: 8px;
         }
         .login-btn:hover:not(:disabled) {
-          background-position: right center;
-          transform: translateY(-1px);
+          background: #d4aa4a; transform: translateY(-1px);
         }
-        .login-btn:active:not(:disabled) {
-          transform: translateY(0);
-        }
-        .login-btn:disabled {
-          opacity: 0.55;
-          cursor: not-allowed;
-        }
+        .login-btn:active:not(:disabled) { transform: translateY(0); }
+        .login-btn:disabled { opacity: 0.55; cursor: not-allowed; }
 
-        .login-btn-loading {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-        }
         .login-spinner {
-          width: 14px; height: 14px;
-          border: 2px solid rgba(10,10,10,0.3);
-          border-top-color: #0a0a0a;
-          border-radius: 50%;
+          width: 13px; height: 13px;
+          border: 2px solid rgba(255,255,255,0.3);
+          border-top-color: white; border-radius: 50%;
           animation: spin 0.7s linear infinite;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
         .login-footer {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          margin-top: 28px;
-          padding-top: 24px;
-          border-top: 1px solid rgba(255,255,255,0.06);
+          display: flex; align-items: center; justify-content: space-between;
+          margin-top: 28px; padding-top: 24px;
+          border-top: 1px solid #e8e4dc;
         }
-
         .login-forgot {
-          font-size: 12px;
-          font-weight: 300;
-          color: rgba(245,240,232,0.35);
-          text-decoration: none;
-          letter-spacing: 0.04em;
-          transition: color 0.2s;
+          font-size: 12px; font-weight: 400;
+          color: #9c9890; text-decoration: none;
+          letter-spacing: 0.03em; transition: color 0.2s;
         }
-        .login-forgot:hover { color: #c9a84c; }
-
+        .login-forgot:hover { color: #b8912a; }
         .login-register {
-          font-size: 12px;
-          font-weight: 300;
-          color: rgba(245,240,232,0.35);
-          letter-spacing: 0.04em;
+          font-size: 12px; font-weight: 300; color: #9c9890;
         }
         .login-register a {
-          color: #c9a84c;
-          text-decoration: none;
-          font-weight: 400;
-          margin-left: 4px;
-          transition: opacity 0.2s;
+          color: #b8912a; text-decoration: none;
+          font-weight: 500; margin-left: 4px; transition: opacity 0.2s;
         }
         .login-register a:hover { opacity: 0.75; }
 
-        .login-right-decor {
-          position: absolute;
-          top: 0; right: 0;
-          width: 180px; height: 180px;
-          background: radial-gradient(circle at top right, rgba(201,168,76,0.06), transparent 70%);
-          pointer-events: none;
-        }
-        .login-right-decor-bottom {
-          position: absolute;
-          bottom: 0; left: 0;
-          width: 200px; height: 200px;
-          background: radial-gradient(circle at bottom left, rgba(201,168,76,0.04), transparent 70%);
-          pointer-events: none;
-        }
-
-        /* Fade in animation */
-        .login-right-inner {
-          opacity: 0;
-          transform: translateY(12px);
-          animation: fadeUp 0.6s ease forwards;
+        /* fade in */
+        .login-form-inner {
+          position: relative; z-index: 2;
+          opacity: 0; transform: translateY(12px);
+          animation: loginFadeUp 0.6s ease forwards;
           animation-delay: 0.1s;
         }
-        @keyframes fadeUp {
+        @keyframes loginFadeUp {
           to { opacity: 1; transform: translateY(0); }
         }
       `}</style>
 
       <div className="login-root">
-        {/* LEFT — branding panel */}
+
+        {/* ── LEFT — dark branding panel ── */}
         <div className="login-left">
-          <div className="login-left-bg" />
+          <div className="login-left-grid" />
+          <div className="login-left-glow" />
           <div className="login-left-content">
-            <div className="login-logo">Imob<span>Hub</span></div>
+
+            <a href="/" className="login-logo">
+              <div className="login-logo-icon">
+                <HomeIcon size={16} color="white" />
+              </div>
+              <span className="login-logo-text">Imob<span>Hub</span></span>
+            </a>
 
             <div>
               <p className="login-left-sub">Plataforma Premium</p>
@@ -379,27 +320,31 @@ const LoginPage = () => {
                 Bem-vindo de<br />volta ao seu<br /><em>escritório digital.</em>
               </h2>
               <div className="login-left-badge">
-                <div className="login-left-badge-dot" />
-                <span className="login-left-badge-text">Top 1% dos corretores</span>
+                <div className="login-badge-dot" />
+                <span className="login-badge-text">Top 1% dos corretores</span>
               </div>
             </div>
 
-            <div style={{ fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(245,240,232,0.25)' }}>
-              © 2026 IMOBHUB S.A.
-            </div>
+            <div className="login-left-footer">© 2026 IMOBHUB S.A.</div>
           </div>
         </div>
 
-        {/* DIVIDER */}
+        {/* ── DIVIDER ── */}
         <div className="login-divider" />
 
-        {/* RIGHT — form panel */}
+        {/* ── RIGHT — form panel ── */}
         <div className="login-right">
-          <div className="login-right-decor" />
-          <div className="login-right-decor-bottom" />
+          <div className="login-right-grid" />
 
-          <div className="login-right-inner">
-            <div className="login-mobile-logo">Imob<span>Hub</span></div>
+          <div className="login-form-inner">
+
+            {/* Mobile logo */}
+            <a href="/" className="login-mobile-logo">
+              <div className="login-mobile-logo-icon">
+                <HomeIcon size={14} color="white" />
+              </div>
+              <span className="login-mobile-logo-text">Imob<span>Hub</span></span>
+            </a>
 
             <p className="login-eyebrow">Acesso restrito</p>
             <h1 className="login-title">Acessar<br />sua Conta</h1>
@@ -409,11 +354,8 @@ const LoginPage = () => {
               <div className="login-field">
                 <label htmlFor="email" className="login-label">Email</label>
                 <input
-                  id="email"
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  id="email" type="email" required
+                  value={email} onChange={(e) => setEmail(e.target.value)}
                   placeholder="seu@email.com"
                   className="login-input"
                 />
@@ -422,11 +364,8 @@ const LoginPage = () => {
               <div className="login-field">
                 <label htmlFor="password" className="login-label">Senha</label>
                 <input
-                  id="password"
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  id="password" type="password" required
+                  value={password} onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••••"
                   className="login-input"
                 />
@@ -435,8 +374,8 @@ const LoginPage = () => {
               {error && (
                 <div className="login-error">
                   <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-                    <circle cx="8" cy="8" r="7" stroke="#f87171" strokeWidth="1.5"/>
-                    <path d="M8 5v3.5M8 11v.5" stroke="#f87171" strokeWidth="1.5" strokeLinecap="round"/>
+                    <circle cx="8" cy="8" r="7" stroke="#dc2626" strokeWidth="1.5"/>
+                    <path d="M8 5v3.5M8 11v.5" stroke="#dc2626" strokeWidth="1.5" strokeLinecap="round"/>
                   </svg>
                   {error}
                 </div>
@@ -444,13 +383,11 @@ const LoginPage = () => {
 
               <button type="submit" disabled={isLoading} className="login-btn">
                 {isLoading ? (
-                  <span className="login-btn-loading">
+                  <>
                     <span className="login-spinner" />
                     Entrando...
-                  </span>
-                ) : (
-                  "Entrar"
-                )}
+                  </>
+                ) : "Entrar"}
               </button>
             </form>
 
@@ -463,8 +400,10 @@ const LoginPage = () => {
                 <Link href="/register">Criar conta</Link>
               </p>
             </div>
+
           </div>
         </div>
+
       </div>
     </>
   );
