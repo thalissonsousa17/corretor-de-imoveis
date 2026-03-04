@@ -29,6 +29,9 @@ interface Resumo {
 interface ImovelOption {
   id: string;
   titulo: string;
+  preco: number | null;
+  finalidade: string;
+  cidade: string;
 }
 
 const formatCurrency = (v: number) =>
@@ -69,12 +72,12 @@ export default function FinanceiroPage() {
     try {
       const [comRes, imovRes] = await Promise.all([
         api.get(`/corretor/financeiro${filter !== "TODOS" ? `?status=${filter}` : ""}`),
-        api.get("/corretor/dashboard").catch(() => null),
+        api.get("/users/me/imoveis").catch(() => null),
       ]);
       setComissoes(comRes.data.comissoes);
       setResumo(comRes.data.resumo);
       if (imovRes) {
-        setImoveis(imovRes.data.recentes || []);
+        setImoveis(imovRes.data || []);
       }
     } catch {
       toast.error("Erro ao carregar dados financeiros.");
@@ -106,6 +109,16 @@ export default function FinanceiroPage() {
     setObservacoes("");
     setImovelId("");
     setEditingId(null);
+  };
+
+  const handleImovelChange = (id: string) => {
+    setImovelId(id);
+    if (!id) return;
+    const im = imoveis.find((i) => i.id === id);
+    if (!im) return;
+    if (im.preco) setValorImovel(im.preco.toString());
+    if (im.finalidade === "VENDA" || im.finalidade === "ALUGUEL") setTipo(im.finalidade);
+    if (!descricao) setDescricao(`Comissão ${im.finalidade === "ALUGUEL" ? "aluguel" : "venda"} - ${im.titulo}`);
   };
 
   const openEdit = (c: Comissao) => {
@@ -375,12 +388,14 @@ export default function FinanceiroPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">Imóvel</label>
                   <select
                     value={imovelId}
-                    onChange={(e) => setImovelId(e.target.value)}
+                    onChange={(e) => handleImovelChange(e.target.value)}
                     className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-[#1A2A4F]/20 focus:border-[#1A2A4F] outline-none"
                   >
                     <option value="">Nenhum (manual)</option>
                     {imoveis.map((im) => (
-                      <option key={im.id} value={im.id}>{im.titulo}</option>
+                      <option key={im.id} value={im.id}>
+                        {im.titulo}{im.cidade ? ` — ${im.cidade}` : ""}
+                      </option>
                     ))}
                   </select>
                 </div>
