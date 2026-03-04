@@ -55,7 +55,7 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse) => {
   if (typeof id !== "string") return res.status(400).json({ message: "ID inválido." });
 
   try {
-    const form = formidable({ multiples: true, keepExtensions: true });
+    const form = formidable({ uploadDir: "/tmp", multiples: true, keepExtensions: true, allowEmptyFiles: true });
 
     const { fields, files } = await new Promise<{
       fields: formidable.Fields;

@@ -38,6 +38,7 @@ const handleGet = async (req: AuthApiRequest, res: NextApiResponse) => {
 };
 
 const handlePost = async (req: AuthApiRequest, res: NextApiResponse) => {
+  try {
   const corretorId = req.user!.id;
 
   // ── Verificar limite do plano ──────────────────────────────────────────────
@@ -66,11 +67,12 @@ const handlePost = async (req: AuthApiRequest, res: NextApiResponse) => {
   // ──────────────────────────────────────────────────────────────────────────
 
   const form = formidable({
+    uploadDir: "/tmp",
     keepExtensions: true,
     maxFiles: 20,
     maxFileSize: 15 * 1024 * 1024,
     maxTotalFileSize: 200 * 1024 * 1024,
-    allowEmptyFiles: false,
+    allowEmptyFiles: true,
     multiples: true,
   });
 
@@ -156,9 +158,10 @@ const handlePost = async (req: AuthApiRequest, res: NextApiResponse) => {
     }
 
     return res.status(201).json({ message: "Imóvel cadastrado com sucesso!", imovel: novoImovel });
-  } catch (dbError) {
-    const errMsg = dbError instanceof Error ? dbError.message : String(dbError);
-    console.error("Erro ao salvar no BD:", errMsg);
+
+  } catch (err: unknown) {
+    const errMsg = err instanceof Error ? err.message : String(err);
+    console.error("Erro POST /api/imoveis:", errMsg);
     return res.status(500).json({ message: "Erro ao salvar o imóvel no banco de dados.", detail: errMsg });
   }
 };
