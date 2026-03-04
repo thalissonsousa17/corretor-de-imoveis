@@ -79,8 +79,11 @@ export default function TicketChat() {
     }
   };
 
-  // UTC-3 (Brasília) — subtrai 3h manualmente para não depender do timezone do ambiente
-  const toBRT = (d: string) => new Date(new Date(d).getTime() - 3 * 60 * 60 * 1000);
+  // Supabase retorna timestamps sem 'Z' — forçamos leitura UTC antes de converter para BRT (UTC-3)
+  const toBRT = (d: string) => {
+    const utc = d.endsWith("Z") || d.includes("+") ? d : d + "Z";
+    return new Date(new Date(utc).getTime() - 3 * 60 * 60 * 1000);
+  };
 
   const formatTime = (d: string) => toBRT(d).toISOString().slice(11, 16);
 
