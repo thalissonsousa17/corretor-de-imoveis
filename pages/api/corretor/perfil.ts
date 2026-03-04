@@ -135,10 +135,10 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
       if (body.logo === "null" || body.logo === "undefined") logoUrl = null;
 
       // ── Atualiza User ─────────────────────────────────────────────────────
-      const userUpdateData: Record<string, string> = {};
+      const userUpdateData: Record<string, string> = { updatedAt: new Date().toISOString() };
       if (name)  userUpdateData.name  = name;
       if (email) userUpdateData.email = email;
-      if (Object.keys(userUpdateData).length > 0) {
+      if (name || email) {
         await supabaseAdmin.from("User").update(userUpdateData).eq("id", userId);
       }
 
@@ -166,6 +166,7 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
         whatsapp, metaTitle, metaDescription,
         slogan: body.slogan, accentColor: body.accentColor,
         videoUrl: body.videoUrl, bioTitle: body.bioTitle,
+        updatedAt: new Date().toISOString(),
       };
       if (avatarUrl !== undefined) rawData.avatarUrl = avatarUrl;
       if (bannerUrl !== undefined) rawData.bannerUrl = bannerUrl;

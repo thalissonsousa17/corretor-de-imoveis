@@ -104,6 +104,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             status: novoStatus,
             verificadoEm: dnsCheck.ok ? agora : null,
             ultimaVerificacao: agora,
+            updatedAt: agora,
           })
           .eq("id", dominioExistente.id);
       } else {
