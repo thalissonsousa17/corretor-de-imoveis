@@ -157,8 +157,9 @@ const handlePost = async (req: AuthApiRequest, res: NextApiResponse) => {
 
     return res.status(201).json({ message: "Imóvel cadastrado com sucesso!", imovel: novoImovel });
   } catch (dbError) {
-    console.error("Erro ao salvar no BD:", dbError);
-    return res.status(500).json({ message: "Erro ao salvar o imóvel no banco de dados." });
+    const errMsg = dbError instanceof Error ? dbError.message : String(dbError);
+    console.error("Erro ao salvar no BD:", errMsg);
+    return res.status(500).json({ message: "Erro ao salvar o imóvel no banco de dados.", detail: errMsg });
   }
 };
 
