@@ -59,47 +59,60 @@ export default function LeadModal({ isOpen, onClose, corretorId, corretorName }:
     }
   };
 
+  const inputClass =
+    "w-full bg-[#fafaf8] border border-[#e8e4dc] px-4 py-3.5 text-[#1a1814] text-sm focus:bg-white focus:border-[#b8912a] focus:ring-1 focus:ring-[#b8912a] outline-none transition-all placeholder-[#9c9890]";
+
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-slate-950/80 backdrop-blur-md animate-fade-in"
+        className="absolute inset-0 bg-[#1a1814]/85 backdrop-blur-sm animate-fade-in"
         onClick={onClose}
       />
 
       {/* Modal Card */}
-      <div className="relative w-full max-w-lg bg-white rounded-[2.5rem] shadow-[0_32px_128px_rgba(0,0,0,0.4)] overflow-hidden animate-zoom-in">
-        {/* Header Decor */}
-        <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-600 via-indigo-600 to-emerald-500" />
+      <div className="relative w-full max-w-lg bg-white shadow-[0_32px_80px_rgba(0,0,0,0.35)] overflow-hidden animate-zoom-in">
+        {/* Gold top border */}
+        <div className="absolute top-0 left-0 w-full h-[3px] bg-[#b8912a]" />
 
         <button
           onClick={onClose}
-          className="absolute top-6 right-6 p-2 text-slate-400 hover:text-slate-900 transition-colors"
+          className="absolute top-5 right-5 p-2 text-[#9c9890] hover:text-[#1a1814] transition-colors cursor-pointer"
         >
-          <FiX size={24} />
+          <FiX size={20} />
         </button>
 
-        <div className="p-8 sm:p-12">
+        <div className="p-8 sm:p-10 pt-10">
           {success ? (
             <div className="text-center py-10 animate-fade-in">
-              <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                <FiCheckCircle size={40} />
+              <div className="w-16 h-16 bg-[#b8912a]/10 text-[#b8912a] flex items-center justify-center mx-auto mb-6">
+                <FiCheckCircle size={36} />
               </div>
-              <h3 className="text-2xl font-black text-slate-950 mb-2">Solicitação Enviada!</h3>
-              <p className="text-slate-500">
-                Obrigado pela confiança. {corretorName} entrará em contato em breve.
+              <h3
+                className="text-[#1a1814] mb-2"
+                style={{ fontFamily: "var(--font-serif)", fontSize: "28px", fontWeight: 400 }}
+              >
+                Solicitação Enviada!
+              </h3>
+              <p className="text-[#9c9890] text-sm leading-relaxed">
+                Obrigado pela confiança.{" "}
+                <span className="text-[#1a1814] font-semibold">{corretorName}</span> entrará em
+                contato em breve.
               </p>
             </div>
           ) : (
             <>
               <div className="mb-8">
-                <span className="text-blue-600 text-[10px] font-black uppercase tracking-[0.3em] mb-2 block">
+                <span className="text-[#b8912a] text-[10px] font-black uppercase tracking-[0.3em] mb-3 block">
                   Exclusividade & Estratégia
                 </span>
-                <h3 className="text-3xl font-black text-slate-950 tracking-tighter">
+                <h3
+                  className="text-[#1a1814] leading-[1.05] mb-3"
+                  style={{ fontFamily: "var(--font-serif)", fontSize: "clamp(28px, 4vw, 36px)", fontWeight: 400 }}
+                >
                   Venda seu Imóvel
                 </h3>
-                <p className="text-slate-500 mt-2 text-sm leading-relaxed">
+                <p className="text-[#9c9890] text-sm leading-relaxed">
                   Preencha os campos abaixo para iniciarmos uma jornada de valor para o seu
                   patrimônio.
                 </p>
@@ -107,28 +120,28 @@ export default function LeadModal({ isOpen, onClose, corretorId, corretorName }:
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-[#9c9890] uppercase tracking-widest block">
                       Seu Nome
                     </label>
                     <input
                       required
                       type="text"
                       placeholder="Ex: João Silva"
-                      className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3.5 text-slate-950 text-sm focus:bg-white focus:ring-2 focus:ring-blue-600 outline-none transition-all"
+                      className={inputClass}
                       value={form.nome}
                       onChange={(e) => setForm({ ...form, nome: e.target.value })}
                     />
                   </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-[#9c9890] uppercase tracking-widest block">
                       WhatsApp
                     </label>
                     <input
                       required
                       type="tel"
                       placeholder="(00) 00000-0000"
-                      className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3.5 text-slate-950 text-sm focus:bg-white focus:ring-2 focus:ring-blue-600 outline-none transition-all"
+                      className={inputClass}
                       value={form.whatsapp}
                       onChange={(e) => setForm({ ...form, whatsapp: e.target.value })}
                     />
@@ -136,14 +149,14 @@ export default function LeadModal({ isOpen, onClose, corretorId, corretorName }:
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-[#9c9890] uppercase tracking-widest block">
                       Tipo do Imóvel
                     </label>
                     <div className="relative">
-                      <FiTag className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                      <FiTag className="absolute left-4 top-1/2 -translate-y-1/2 text-[#9c9890]" size={14} />
                       <select
-                        className="w-full bg-slate-50 border border-slate-100 rounded-2xl pl-10 pr-4 py-3.5 text-slate-950 text-sm appearance-none focus:bg-white focus:ring-2 focus:ring-blue-600 outline-none transition-all"
+                        className={`${inputClass} pl-10 appearance-none`}
                         value={form.tipo}
                         onChange={(e) => setForm({ ...form, tipo: e.target.value })}
                       >
@@ -154,17 +167,17 @@ export default function LeadModal({ isOpen, onClose, corretorId, corretorName }:
                       </select>
                     </div>
                   </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-[#9c9890] uppercase tracking-widest block">
                       Localização
                     </label>
                     <div className="relative">
-                      <FiMapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                      <FiMapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-[#9c9890]" size={14} />
                       <input
                         required
                         type="text"
                         placeholder="Ex: Bairro, Cidade"
-                        className="w-full bg-slate-50 border border-slate-100 rounded-2xl pl-10 pr-4 py-3.5 text-slate-950 text-sm focus:bg-white focus:ring-2 focus:ring-blue-600 outline-none transition-all"
+                        className={`${inputClass} pl-10`}
                         value={form.localizacao}
                         onChange={(e) => setForm({ ...form, localizacao: e.target.value })}
                       />
@@ -173,7 +186,7 @@ export default function LeadModal({ isOpen, onClose, corretorId, corretorName }:
                 </div>
 
                 {error && (
-                  <p className="text-rose-600 text-[11px] font-bold text-center bg-rose-50 py-2 rounded-xl border border-rose-100 animate-shake">
+                  <p className="text-rose-600 text-[11px] font-bold text-center bg-rose-50 py-2 border border-rose-100 animate-shake">
                     {error}
                   </p>
                 )}
@@ -181,13 +194,13 @@ export default function LeadModal({ isOpen, onClose, corretorId, corretorName }:
                 <button
                   disabled={loading}
                   type="submit"
-                  className="w-full py-5 bg-slate-900 text-white rounded-[1.25rem] font-black text-xs uppercase tracking-[0.2em] hover:bg-blue-600 transition-all shadow-xl shadow-slate-900/20 active:scale-95 flex items-center justify-center gap-3 mt-4"
+                  className="w-full py-4 bg-[#1a1814] text-white font-black text-xs uppercase tracking-[0.2em] hover:bg-[#b8912a] transition-all flex items-center justify-center gap-3 mt-2 cursor-pointer"
                 >
                   {loading ? (
-                    <FiLoader className="animate-spin" size={18} />
+                    <FiLoader className="animate-spin" size={16} />
                   ) : (
                     <>
-                      Solicitar Avaliação <FiSend size={16} />
+                      Solicitar Avaliação <FiSend size={14} />
                     </>
                   )}
                 </button>
@@ -201,7 +214,7 @@ export default function LeadModal({ isOpen, onClose, corretorId, corretorName }:
         @keyframes zoom-in {
           from {
             opacity: 0;
-            transform: scale(0.9) translateY(20px);
+            transform: scale(0.95) translateY(16px);
           }
           to {
             opacity: 1;
@@ -209,30 +222,19 @@ export default function LeadModal({ isOpen, onClose, corretorId, corretorName }:
           }
         }
         .animate-zoom-in {
-          animation: zoom-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+          animation: zoom-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
         @keyframes fade-in {
-          from {
-            opacity: 0;
-          }
-          to {
-            opacity: 1;
-          }
+          from { opacity: 0; }
+          to { opacity: 1; }
         }
         .animate-fade-in {
-          animation: fade-in 0.4s ease-out forwards;
+          animation: fade-in 0.3s ease-out forwards;
         }
         @keyframes shake {
-          0%,
-          100% {
-            transform: translateX(0);
-          }
-          25% {
-            transform: translateX(-4px);
-          }
-          75% {
-            transform: translateX(4px);
-          }
+          0%, 100% { transform: translateX(0); }
+          25% { transform: translateX(-4px); }
+          75% { transform: translateX(4px); }
         }
         .animate-shake {
           animation: shake 0.3s ease-in-out;
