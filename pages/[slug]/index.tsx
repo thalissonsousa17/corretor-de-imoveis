@@ -121,7 +121,7 @@ useEffect(() => {
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16">
               <div className="max-w-xl">
                 <span
-                  className="inline-block px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.3em] mb-6 border"
+                  className="inline-block px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.3em] mb-6 border"
                   style={{
                     backgroundColor: `${corretor.accentColor || "#b8912a"}15`,
                     borderColor: `${corretor.accentColor || "#b8912a"}30`,
@@ -142,10 +142,10 @@ useEffect(() => {
               </div>
 
               {/* Filtros Pill-Style */}
-              <div className="flex bg-white dark:bg-[#231f18] p-1.5 rounded-2xl shadow-sm border border-[#e8e4dc] dark:border-white/5">
+              <div className="flex bg-white dark:bg-[#231f18] p-1 shadow-sm border border-[#e8e4dc] dark:border-white/5">
                 <button
                   onClick={() => setFiltro("VENDA")}
-                  className={`px-8 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
+                  className={`px-8 py-3 text-xs font-black uppercase tracking-widest transition-all ${
                     filtro === "VENDA"
                       ? "bg-[#1a1814] dark:bg-white dark:text-[#1a1814] text-white shadow-xl shadow-black/20"
                       : "text-[#9c9890] hover:text-[#1a1814] dark:hover:text-white"
@@ -155,7 +155,7 @@ useEffect(() => {
                 </button>
                 <button
                   onClick={() => setFiltro("ALUGUEL")}
-                  className={`px-8 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
+                  className={`px-8 py-3 text-xs font-black uppercase tracking-widest transition-all ${
                     filtro === "ALUGUEL"
                       ? "bg-[#1a1814] dark:bg-white dark:text-[#1a1814] text-white shadow-xl shadow-black/20"
                       : "text-[#9c9890] hover:text-[#1a1814] dark:hover:text-white"
@@ -168,7 +168,7 @@ useEffect(() => {
 
             {/* Grid de Imóveis Premium */}
             {imoveisFiltrados.length === 0 ? (
-              <div className="bg-white dark:bg-[#231f18] rounded-3xl p-20 text-center border-2 border-dashed border-[#e8e4dc] dark:border-white/5">
+              <div className="bg-white dark:bg-[#231f18] p-20 text-center border-2 border-dashed border-[#e8e4dc] dark:border-white/5">
                 <FiSearch className="mx-auto text-[#e8e4dc] dark:text-white/10 mb-6" size={64} />
                 <h3 className="text-xl font-bold text-[#1a1814] dark:text-white mb-2">
                   Sem resultados no momento
@@ -189,7 +189,7 @@ useEffect(() => {
               <div className="mt-16 text-center">
                 <Link
                   href={`/${corretor.slug}/${filtro === "VENDA" ? "vendas" : "aluguel"}`}
-                  className="inline-flex items-center gap-4 px-10 py-5 bg-[#1a1814] dark:bg-white dark:text-[#1a1814] text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-accent hover:text-white transition-all shadow-2xl shadow-black/20 hover:shadow-accent/30 group"
+                  className="inline-flex items-center gap-4 px-10 py-5 bg-[#1a1814] dark:bg-white dark:text-[#1a1814] text-white font-black text-xs uppercase tracking-[0.2em] hover:bg-accent hover:text-white transition-all shadow-2xl shadow-black/20 hover:shadow-accent/30 group"
                 >
                   Ver coleção completa
                   <FiArrowRight
@@ -205,7 +205,7 @@ useEffect(() => {
         {/* ══════ SEÇÃO DESEJA VENDER (CTA) ══════ */}
         <section className="py-24 bg-[#fafaf8] dark:bg-[#1a1814]">
           <div className="max-w-7xl mx-auto px-6">
-            <div className="bg-[#1a1814] rounded-[3rem] p-12 lg:p-20 relative overflow-hidden shadow-[0_48px_96px_rgba(0,0,0,0.25)] border border-white/5">
+            <div className="bg-[#1a1814] p-12 lg:p-20 relative overflow-hidden shadow-[0_48px_96px_rgba(0,0,0,0.25)] border border-white/5">
               {/* Decorative background */}
               <div className="absolute top-0 right-0 w-1/2 h-full bg-white/10 -skew-x-12 translate-x-1/4 pointer-events-none" />
 
@@ -231,10 +231,10 @@ useEffect(() => {
                 <div className="flex lg:justify-end">
                   <button
                     onClick={() => setIsLeadModalOpen(true)}
-                    className="group relative inline-flex items-center gap-6 px-12 py-7 bg-white text-[#1a1814] rounded-3xl font-black text-sm uppercase tracking-[0.2em] hover:bg-[#b8912a] hover:text-white cursor-pointer transition-all duration-300 shadow-2xl active:scale-95"
+                    className="group relative inline-flex items-center gap-6 px-12 py-7 bg-white text-[#1a1814] font-black text-sm uppercase tracking-[0.2em] hover:bg-[#b8912a] hover:text-white cursor-pointer transition-all duration-300 shadow-2xl active:scale-95"
                   >
                     Desejo Vender meu Imóvel
-                    <div className="w-10 h-10 rounded-full bg-[#f0ede6] group-hover:bg-white/20 flex items-center justify-center transition-colors">
+                    <div className="w-10 h-10 bg-[#f0ede6] group-hover:bg-white/20 flex items-center justify-center transition-colors">
                       <FiChevronRight size={20} />
                     </div>
                   </button>
@@ -251,7 +251,7 @@ useEffect(() => {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
               {/* Lado da Imagem Editorial */}
               <div className="lg:col-span-5 relative">
-                <div className="relative z-10 rounded-[2rem] overflow-hidden shadow-[0_48px_80px_rgba(0,0,0,0.15)] aspect-[4/5]">
+                <div className="relative z-10 overflow-hidden shadow-[0_48px_80px_rgba(0,0,0,0.15)] aspect-[4/5]">
                   <img
                     src={resolveFotoUrl(corretor.avatarUrl)}
                     alt={corretor.name}
@@ -271,7 +271,7 @@ useEffect(() => {
                   )}
                 </div>
                 {/* Badge de Autoridade */}
-                <div className="absolute -bottom-6 -right-6 bg-white dark:bg-[#231f18] p-8 rounded-[2rem] shadow-2xl hidden md:block z-20 border border-[#e8e4dc] dark:border-white/5">
+                <div className="absolute -bottom-6 -right-6 bg-white dark:bg-[#231f18] p-8 shadow-2xl hidden md:block z-20 border border-[#e8e4dc] dark:border-white/5">
                   <p className="text-[#1a1814] dark:text-white font-black text-3xl tracking-tighter italic">
                     {corretor.creci ? `CRECI ${corretor.creci}` : "Autoridade"}
                   </p>
@@ -309,7 +309,7 @@ useEffect(() => {
                     <a
                       href={`https://instagram.com/${corretor.instagram}`}
                       target="_blank"
-                      className="flex items-center gap-3 px-6 py-4 rounded-xl border border-[#e8e4dc] dark:border-white/5 text-[#9c9890] dark:text-[#9c9890] hover:bg-[#1a1814] dark:hover:bg-white hover:text-white dark:hover:text-[#1a1814] hover:border-[#1a1814] dark:hover:border-white transition-all font-bold text-xs uppercase tracking-widest"
+                      className="flex items-center gap-3 px-6 py-4 border border-[#e8e4dc] dark:border-white/5 text-[#9c9890] dark:text-[#9c9890] hover:bg-[#1a1814] dark:hover:bg-white hover:text-white dark:hover:text-[#1a1814] hover:border-[#1a1814] dark:hover:border-white transition-all font-bold text-xs uppercase tracking-widest"
                     >
                       <FaInstagram size={18} /> Instagram
                     </a>
@@ -318,7 +318,7 @@ useEffect(() => {
                     <a
                       href={`https://wa.me/${corretor.whatsapp.replace(/\D/g, "")}`}
                       target="_blank"
-                      className="flex items-center gap-3 px-6 py-4 rounded-xl border border-[#e8e4dc] dark:border-white/5 text-[#9c9890] dark:text-[#9c9890] hover:bg-[#1a1814] dark:hover:bg-white hover:text-white dark:hover:text-[#1a1814] hover:border-[#1a1814] dark:hover:border-white transition-all font-bold text-xs uppercase tracking-widest"
+                      className="flex items-center gap-3 px-6 py-4 border border-[#e8e4dc] dark:border-white/5 text-[#9c9890] dark:text-[#9c9890] hover:bg-[#1a1814] dark:hover:bg-white hover:text-white dark:hover:text-[#1a1814] hover:border-[#1a1814] dark:hover:border-white transition-all font-bold text-xs uppercase tracking-widest"
                     >
                       <FaWhatsapp size={18} /> WhatsApp
                     </a>
@@ -327,7 +327,7 @@ useEffect(() => {
                     <a
                       href={`https://facebook.com/${corretor.facebook}`}
                       target="_blank"
-                      className="flex items-center gap-3 px-6 py-4 rounded-xl border border-[#e8e4dc] dark:border-white/5 text-[#9c9890] dark:text-[#9c9890] hover:bg-[#1a1814] dark:hover:bg-white hover:text-white dark:hover:text-[#1a1814] hover:border-[#1a1814] dark:hover:border-white transition-all font-bold text-xs uppercase tracking-widest"
+                      className="flex items-center gap-3 px-6 py-4 border border-[#e8e4dc] dark:border-white/5 text-[#9c9890] dark:text-[#9c9890] hover:bg-[#1a1814] dark:hover:bg-white hover:text-white dark:hover:text-[#1a1814] hover:border-[#1a1814] dark:hover:border-white transition-all font-bold text-xs uppercase tracking-widest"
                     >
                       <FaFacebook size={18} /> Facebook
                     </a>
@@ -336,7 +336,7 @@ useEffect(() => {
                     <a
                       href={`https://linkedin.com/in/${corretor.linkedin}`}
                       target="_blank"
-                      className="flex items-center gap-3 px-6 py-4 rounded-xl border border-[#e8e4dc] dark:border-white/5 text-[#9c9890] dark:text-[#9c9890] hover:bg-[#1a1814] dark:hover:bg-white hover:text-white dark:hover:text-[#1a1814] hover:border-[#1a1814] dark:hover:border-white transition-all font-bold text-xs uppercase tracking-widest"
+                      className="flex items-center gap-3 px-6 py-4 border border-[#e8e4dc] dark:border-white/5 text-[#9c9890] dark:text-[#9c9890] hover:bg-[#1a1814] dark:hover:bg-white hover:text-white dark:hover:text-[#1a1814] hover:border-[#1a1814] dark:hover:border-white transition-all font-bold text-xs uppercase tracking-widest"
                     >
                       <FaLinkedin size={18} /> LinkedIn
                     </a>

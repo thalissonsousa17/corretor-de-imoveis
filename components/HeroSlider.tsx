@@ -69,7 +69,7 @@ export default function HeroSlider({
               transition={{ duration: 0.8 }}
             >
               <span
-                className="inline-block px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.3em] mb-6 border"
+                className="inline-block px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.3em] mb-6 border"
                 style={{
                   backgroundColor: `${bgBase}20`,
                   borderColor: `${bgBase}40`,
@@ -101,7 +101,7 @@ export default function HeroSlider({
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.4 }}
-              className="bg-white/70 dark:bg-white/5 backdrop-blur-2xl border border-[#e8e4dc] dark:border-white/10 rounded-2xl p-2 shadow-2xl flex flex-col sm:flex-row items-center gap-2 max-w-xl"
+              className="bg-white/70 dark:bg-white/5 backdrop-blur-2xl border border-[#e8e4dc] dark:border-white/10 p-2 shadow-2xl flex flex-col sm:flex-row items-center gap-2 max-w-xl"
             >
               <div className="flex-1 w-full flex items-center px-4 gap-3">
                 <FiSearch className="text-slate-400 dark:text-white/40" size={20} />
@@ -116,7 +116,7 @@ export default function HeroSlider({
               </div>
               <button
                 onClick={() => onSearch(busca)}
-                className="w-full sm:w-auto px-8 py-4 bg-[#1a1814] text-white font-black text-xs uppercase tracking-widest rounded-xl hover:bg-[var(--accent-color)] hover:text-white transition-all duration-300 active:scale-95 shadow-xl"
+                className="w-full sm:w-auto px-8 py-4 bg-[#1a1814] text-white font-black text-xs uppercase tracking-widest hover:bg-[var(--accent-color)] hover:text-white transition-all duration-300 active:scale-95 shadow-xl"
               >
                 Explorar
               </button>

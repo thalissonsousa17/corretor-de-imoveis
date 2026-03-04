@@ -71,7 +71,7 @@ export default function Footer({
                   key={i}
                   href={social.href}
                   target="_blank"
-                  className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 border border-white/10 text-slate-300 hover:bg-accent hover:text-white hover:border-accent transition-all duration-300"
+                  className="w-10 h-10 flex items-center justify-center bg-white/5 border border-white/10 text-slate-300 hover:bg-accent hover:text-white hover:border-accent transition-all duration-300"
                 >
                   {social.icon}
                 </a>
@@ -100,7 +100,7 @@ export default function Footer({
             <div className="space-y-5">
               {whatsapp && (
                 <div className="flex items-center gap-4 group">
-                  <div className="w-10 h-10 flex items-center justify-center rounded-xl bg-[#b8912a]/10 text-[#b8912a] border border-[#b8912a]/20 group-hover:bg-[#b8912a] group-hover:text-white transition-all">
+                  <div className="w-10 h-10 flex items-center justify-center rounded-none bg-[#b8912a]/10 text-[#b8912a] border border-[#b8912a]/20 group-hover:bg-[#b8912a] group-hover:text-white transition-all">
                     <FiPhone size={18} />
                   </div>
                   <div>
@@ -111,7 +111,7 @@ export default function Footer({
               )}
               {email && (
                 <div className="flex items-center gap-4 group">
-                  <div className="w-10 h-10 flex items-center justify-center rounded-xl bg-accent/10 text-accent border border-accent/20 group-hover:bg-accent group-hover:text-white transition-all">
+                  <div className="w-10 h-10 flex items-center justify-center rounded-none bg-accent/10 text-accent border border-accent/20 group-hover:bg-accent group-hover:text-white transition-all">
                     <FiMail size={18} />
                   </div>
                   <div>
@@ -122,7 +122,7 @@ export default function Footer({
               )}
                {creci && (
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 text-[#9c9890] border border-white/5">
+                  <div className="w-10 h-10 flex items-center justify-center rounded-none bg-white/5 text-[#9c9890] border border-white/5">
                     <FaShieldAlt size={18} />
                   </div>
                   <div>
@@ -135,14 +135,14 @@ export default function Footer({
           </div>
 
           {/* Col 4: Trust & QR */}
-          <div className="bg-white/5 border border-white/10 rounded-3xl p-8 flex flex-col items-center text-center space-y-6">
+          <div className="bg-white/5 border border-white/10 p-8 flex flex-col items-center text-center space-y-6">
             <h4 className="text-white font-bold text-sm">Escaneie & Chame</h4>
             {wa ? (
-              <div className="p-4 bg-white rounded-2xl shadow-xl flex items-center justify-center border border-slate-100">
+              <div className="p-4 bg-white shadow-xl flex items-center justify-center border border-slate-100">
                 <QRCode value={wa} size={100} fgColor="#0A0F1D" />
               </div>
             ) : (
-              <div className="w-[132px] h-[132px] bg-white/5 rounded-2xl flex items-center justify-center text-[#9c9890] italic text-xs p-4">
+              <div className="w-[132px] h-[132px] bg-white/5 flex items-center justify-center text-[#9c9890] italic text-xs p-4">
                 WhatsApp Indisponível
               </div>
             )}
@@ -166,7 +166,7 @@ export default function Footer({
             className="group flex items-center gap-3 text-slate-400 hover:text-white transition-colors cursor-pointer"
           >
             <span className="text-[10px] font-black uppercase tracking-widest group-hover:tracking-[0.3em] transition-all">Voltar ao topo</span>
-            <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center group-hover:bg-accent group-hover:border-accent group-hover:text-white transition-all">
+            <div className="w-10 h-10 bg-white/5 border border-white/10 flex items-center justify-center group-hover:bg-accent group-hover:border-accent group-hover:text-white transition-all">
               <FiArrowUp size={18} />
             </div>
           </button>

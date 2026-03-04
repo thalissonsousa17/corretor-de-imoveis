@@ -42,7 +42,7 @@ export default function CarrosselDestaques({ imoveis }: { imoveis: Imovel[] }) {
       <div className="max-w-7xl mx-auto px-6 mb-16">
         <div className="flex items-end justify-between">
           <div>
-            <span className="inline-block px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.3em] mb-5 border border-[#e8e4dc] dark:border-white/5 bg-white dark:bg-[#231f18] text-[#b8912a]">
+            <span className="inline-block px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.3em] mb-5 border border-[#e8e4dc] dark:border-white/5 bg-white dark:bg-[#231f18] text-[#b8912a]">
               Seleção Premium
             </span>
             <h2
