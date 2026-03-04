@@ -1,5 +1,5 @@
 import { NextApiRequest } from "next";
-import { prisma } from "@/lib/prisma";
+import { supabaseAdmin } from "@/lib/supabase";
 
 export async function getSession(req: NextApiRequest) {
   const sessionToken =
@@ -10,16 +10,18 @@ export async function getSession(req: NextApiRequest) {
   if (!sessionToken) return null;
 
   try {
-    const session = await prisma.session.findUnique({
-      where: { id: sessionToken },
-      include: { user: true },
-    });
+    const { data: session } = await supabaseAdmin
+      .from("Session")
+      .select("*, user:User(*)")
+      .eq("id", sessionToken)
+      .maybeSingle();
 
-    if (!session || session.expiresAt < new Date()) {
+    if (!session || new Date(session.expiresAt) < new Date()) {
       return null;
     }
 
-    return session;
+    const user = Array.isArray(session.user) ? session.user[0] : session.user;
+    return { ...session, user };
   } catch (error) {
     console.error("Erro na validação da sessão:", error);
     return null;

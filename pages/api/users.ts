@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { prisma } from "@/lib/prisma";
+import { supabaseAdmin } from "@/lib/supabase";
 
 export default async function handle(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "GET") {
@@ -7,17 +7,11 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
   }
 
   try {
-    const users = await prisma.user.findMany({
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        role: true,
-        createdAt: true,
-      },
-    });
+    const { data: users } = await supabaseAdmin
+      .from("User")
+      .select("id,email,name,role,createdAt");
 
-    return res.status(200).json(users);
+    return res.status(200).json(users ?? []);
   } catch (error) {
     console.error("Erro ao buscar usuários:", error);
     return res.status(500).json({ message: "Erro interno do servidor" });

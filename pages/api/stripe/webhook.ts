@@ -1,14 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import Stripe from "stripe";
-import { prisma } from "@/lib/prisma";
+import { supabaseAdmin } from "@/lib/supabase";
 import { resend } from "@/lib/resend";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
+import { randomUUID } from "node:crypto";
 import { mapPriceToPlano } from "@/lib/stripe";
 
-// const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-//   apiVersion: "2025-11-17.clover",
-// });
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
 export const config = {
   api: { bodyParser: false },
@@ -74,9 +72,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.json({ received: true });
       }
 
-      const profile = await prisma.corretorProfile.findUnique({
-        where: { userId },
-      });
+      const { data: profile } = await supabaseAdmin
+        .from("CorretorProfile")
+        .select("stripeCustomerId")
+        .eq("userId", userId)
+        .maybeSingle();
 
       if (!profile || !profile.stripeCustomerId) {
         return res.json({ received: true });
@@ -110,20 +110,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (!email) return res.json({ received: true });
 
-    let user = await prisma.user.findUnique({ where: { email } });
+    let { data: user } = await supabaseAdmin
+      .from("User")
+      .select("*")
+      .eq("email", email)
+      .maybeSingle();
+
     let senhaGerada: string | null = null;
 
     if (!user) {
       senhaGerada = crypto.randomBytes(5).toString("hex");
 
-      user = await prisma.user.create({
-        data: {
+      const { data: newUser } = await supabaseAdmin
+        .from("User")
+        .insert({
+          id: randomUUID(),
           email,
           name,
           password: await bcrypt.hash(senhaGerada, 10),
           stripeCustomerId,
-        },
-      });
+        })
+        .select("*")
+        .single();
+
+      user = newUser;
 
       await resend.emails.send({
         from: "ImobHub <noreply@contato.automatech.app.br>",
@@ -142,6 +152,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
+    if (!user) return res.json({ received: true });
+
     const lineItems = await stripe.checkout.sessions.listLineItems(session.id);
     const priceId = lineItems.data[0]?.price?.id;
 
@@ -152,29 +164,34 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const plano = mapPriceToPlano(priceId);
 
-    const profile = await prisma.corretorProfile.upsert({
-      where: { userId: user.id },
-      update: {
-        stripeCustomerId,
-        plano,
-        planoStatus: "ATIVO",
-      },
-      create: {
+    // Upsert: find → update | insert
+    const { data: existingProfile } = await supabaseAdmin
+      .from("CorretorProfile")
+      .select("id")
+      .eq("userId", user.id)
+      .maybeSingle();
+
+    if (existingProfile) {
+      await supabaseAdmin
+        .from("CorretorProfile")
+        .update({ stripeCustomerId, plano, planoStatus: "ATIVO" })
+        .eq("userId", user.id);
+    } else {
+      await supabaseAdmin.from("CorretorProfile").insert({
+        id: randomUUID(),
         userId: user.id,
         stripeCustomerId,
         slug: `${name.toLowerCase().replace(/\s+/g, "-")}-${crypto.randomBytes(2).toString("hex")}`,
         plano,
         planoStatus: "ATIVO",
-      },
-    });
+      });
+    }
 
     if (session.subscription) {
-      await prisma.corretorProfile.update({
-        where: { userId: user.id },
-        data: {
-          stripeSubscriptionId: session.subscription as string,
-        },
-      });
+      await supabaseAdmin
+        .from("CorretorProfile")
+        .update({ stripeSubscriptionId: session.subscription as string })
+        .eq("userId", user.id);
     }
 
     return res.json({ received: true });
@@ -186,9 +203,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (!email) return res.json({ received: true });
 
-    const perfil = await prisma.corretorProfile.findFirst({
-      where: { user: { email } },
-    });
+    // Find user by email, then find their profile
+    const { data: userRow } = await supabaseAdmin
+      .from("User")
+      .select("id")
+      .eq("email", email)
+      .maybeSingle();
+
+    if (!userRow) return res.json({ received: true });
+
+    const { data: perfil } = await supabaseAdmin
+      .from("CorretorProfile")
+      .select("*")
+      .eq("userId", userRow.id)
+      .maybeSingle();
 
     if (!perfil) return res.json({ received: true });
 
@@ -241,23 +269,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.json({ received: true });
     }
 
-    await prisma.corretorProfile.updateMany({
-      where: {
-        OR: [
-          { stripeSubscriptionId: subscription.id },
-          { stripeCustomerId: subscription.customer as string },
-        ],
-      },
-
-      data: {
+    await supabaseAdmin
+      .from("CorretorProfile")
+      .update({
         planoStatus: "ATIVO",
         stripeSubscriptionId: subscription.id,
         ultimos4,
-        stripeCurrentPeriodEnd: new Date(subscription.current_period_end * 1000),
-        assinaturaCriadaEm: new Date(subscription.start_date * 1000),
-        ultimoPagamentoEm: new Date(),
-      },
-    });
+        stripeCurrentPeriodEnd: new Date(subscription.current_period_end * 1000).toISOString(),
+        assinaturaCriadaEm: new Date(subscription.start_date * 1000).toISOString(),
+        ultimoPagamentoEm: new Date().toISOString(),
+      })
+      .or(`stripeSubscriptionId.eq.${subscription.id},stripeCustomerId.eq.${subscription.customer as string}`);
 
     return res.json({ received: true });
   }
@@ -272,11 +294,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const stripeCustomerId =
       typeof subscription.customer === "string" ? subscription.customer : subscription.customer.id;
 
-    const perfil = await prisma.corretorProfile.findFirst({
-      where: {
-        OR: [{ stripeSubscriptionId: subscription.id }, { stripeCustomerId }],
-      },
-    });
+    const { data: perfil } = await supabaseAdmin
+      .from("CorretorProfile")
+      .select("id")
+      .or(`stripeSubscriptionId.eq.${subscription.id},stripeCustomerId.eq.${stripeCustomerId}`)
+      .maybeSingle();
 
     if (!perfil) {
       console.error("Perfil não encontrado para subscription", subscription.id);
@@ -303,19 +325,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const plano = mapPriceToPlano(priceId);
 
-    await prisma.corretorProfile.update({
-      where: {
-        id: perfil.id,
-      },
-      data: {
+    await supabaseAdmin
+      .from("CorretorProfile")
+      .update({
         plano,
         planoStatus: "ATIVO",
         stripeSubscriptionId: subscription.id,
-        stripeCurrentPeriodEnd: currentPeriodEnd ? new Date(currentPeriodEnd * 1000) : null,
-        assinaturaCriadaEm: startDate ? new Date(startDate * 1000) : new Date(),
-        ultimoPagamentoEm: new Date(),
-      },
-    });
+        stripeCurrentPeriodEnd: currentPeriodEnd ? new Date(currentPeriodEnd * 1000).toISOString() : null,
+        assinaturaCriadaEm: startDate ? new Date(startDate * 1000).toISOString() : new Date().toISOString(),
+        ultimoPagamentoEm: new Date().toISOString(),
+      })
+      .eq("id", perfil.id);
   }
 
   return res.json({ received: true });

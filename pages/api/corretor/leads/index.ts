@@ -1,6 +1,7 @@
 import type { NextApiResponse } from "next";
-import { prisma } from "@/lib/prisma";
+import { supabaseAdmin } from "@/lib/supabase";
 import { AuthApiRequest, authorize } from "@/lib/authMiddleware";
+import { randomUUID } from "node:crypto";
 
 async function handler(req: AuthApiRequest, res: NextApiResponse) {
   const corretorId = req.user!.id;
@@ -8,12 +9,14 @@ async function handler(req: AuthApiRequest, res: NextApiResponse) {
   // GET — listar leads do corretor
   if (req.method === "GET") {
     try {
-      const leads = await prisma.lead.findMany({
-        where: { corretorId },
-        orderBy: { createdAt: "desc" },
-      });
+      const { data: leads, error } = await supabaseAdmin
+        .from("Lead")
+        .select("*")
+        .eq("corretorId", corretorId)
+        .order("createdAt", { ascending: false });
 
-      return res.status(200).json(leads);
+      if (error) throw new Error(error.message);
+      return res.status(200).json(leads ?? []);
     } catch (error) {
       console.error("Erro ao listar leads:", error);
       return res.status(500).json({ message: "Erro interno." });
@@ -29,8 +32,10 @@ async function handler(req: AuthApiRequest, res: NextApiResponse) {
         return res.status(400).json({ message: "Nome é obrigatório." });
       }
 
-      const lead = await prisma.lead.create({
-        data: {
+      const { data: lead, error } = await supabaseAdmin
+        .from("Lead")
+        .insert({
+          id: randomUUID(),
           nome: nome.trim(),
           email: email?.trim() || "",
           whatsapp: whatsapp?.trim() || null,
@@ -40,9 +45,11 @@ async function handler(req: AuthApiRequest, res: NextApiResponse) {
           imovelInteresse: imovelInteresse?.trim() || null,
           origem: origem || "MANUAL",
           corretorId,
-        },
-      });
+        })
+        .select("*")
+        .single();
 
+      if (error) throw new Error(error.message);
       return res.status(201).json(lead);
     } catch (error) {
       console.error("Erro ao criar lead:", error);

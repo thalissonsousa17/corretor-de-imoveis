@@ -1,13 +1,17 @@
 import type { NextApiResponse } from "next";
-import { prisma } from "@/lib/prisma";
+import { supabaseAdmin } from "@/lib/supabase";
 import { AuthApiRequest, authorize } from "@/lib/authMiddleware";
 
 async function handler(req: AuthApiRequest, res: NextApiResponse) {
   const corretorId = req.user!.id;
   const leadId = req.query.id as string;
 
-  // Verificar se o lead pertence ao corretor
-  const lead = await prisma.lead.findUnique({ where: { id: leadId } });
+  const { data: lead } = await supabaseAdmin
+    .from("Lead")
+    .select("*")
+    .eq("id", leadId)
+    .maybeSingle();
+
   if (!lead || lead.corretorId !== corretorId) {
     return res.status(404).json({ message: "Lead não encontrado." });
   }
@@ -17,20 +21,24 @@ async function handler(req: AuthApiRequest, res: NextApiResponse) {
     try {
       const { nome, email, whatsapp, telefone, mensagem, observacoes, imovelInteresse, status } = req.body;
 
-      const updated = await prisma.lead.update({
-        where: { id: leadId },
-        data: {
-          ...(nome !== undefined && { nome: nome.trim() }),
-          ...(email !== undefined && { email: email.trim() }),
-          ...(whatsapp !== undefined && { whatsapp: whatsapp?.trim() || null }),
-          ...(telefone !== undefined && { telefone: telefone?.trim() || null }),
-          ...(mensagem !== undefined && { mensagem: mensagem?.trim() || null }),
-          ...(observacoes !== undefined && { observacoes: observacoes?.trim() || null }),
-          ...(imovelInteresse !== undefined && { imovelInteresse: imovelInteresse?.trim() || null }),
-          ...(status !== undefined && { status }),
-        },
-      });
+      const dataToUpdate: Record<string, unknown> = {};
+      if (nome !== undefined) dataToUpdate.nome = nome.trim();
+      if (email !== undefined) dataToUpdate.email = email.trim();
+      if (whatsapp !== undefined) dataToUpdate.whatsapp = whatsapp?.trim() || null;
+      if (telefone !== undefined) dataToUpdate.telefone = telefone?.trim() || null;
+      if (mensagem !== undefined) dataToUpdate.mensagem = mensagem?.trim() || null;
+      if (observacoes !== undefined) dataToUpdate.observacoes = observacoes?.trim() || null;
+      if (imovelInteresse !== undefined) dataToUpdate.imovelInteresse = imovelInteresse?.trim() || null;
+      if (status !== undefined) dataToUpdate.status = status;
 
+      const { data: updated, error } = await supabaseAdmin
+        .from("Lead")
+        .update(dataToUpdate)
+        .eq("id", leadId)
+        .select("*")
+        .single();
+
+      if (error) throw new Error(error.message);
       return res.status(200).json(updated);
     } catch (error) {
       console.error("Erro ao atualizar lead:", error);
@@ -41,7 +49,7 @@ async function handler(req: AuthApiRequest, res: NextApiResponse) {
   // DELETE — remover lead
   if (req.method === "DELETE") {
     try {
-      await prisma.lead.delete({ where: { id: leadId } });
+      await supabaseAdmin.from("Lead").delete().eq("id", leadId);
       return res.status(200).json({ message: "Lead removido." });
     } catch (error) {
       console.error("Erro ao remover lead:", error);

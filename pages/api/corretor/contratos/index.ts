@@ -1,6 +1,7 @@
 import type { NextApiResponse } from "next";
 import { authorize, AuthApiRequest } from "@/lib/authMiddleware";
-import { prisma } from "@/lib/prisma";
+import { supabaseAdmin } from "@/lib/supabase";
+import { randomUUID } from "node:crypto";
 import { CONTRATOS_TEMPLATES } from "@/lib/contratos-templates";
 
 export default authorize(async function handler(req: AuthApiRequest, res: NextApiResponse) {
@@ -9,14 +10,17 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
 
   if (req.method === "GET") {
     try {
-      const salvos = await prisma.contrato.findMany({
-        where: { corretorId: userId },
-        orderBy: { updatedAt: "desc" },
-      });
+      const { data: salvos, error } = await supabaseAdmin
+        .from("Contrato")
+        .select("*")
+        .eq("corretorId", userId)
+        .order("updatedAt", { ascending: false });
+
+      if (error) throw new Error(error.message);
 
       return res.status(200).json({
         templates: CONTRATOS_TEMPLATES,
-        salvos,
+        salvos: salvos ?? [],
       });
     } catch (error) {
       console.error(error);
@@ -32,14 +36,20 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
     }
 
     try {
-      const contrato = await prisma.contrato.create({
-        data: {
+      const { data: contrato, error } = await supabaseAdmin
+        .from("Contrato")
+        .insert({
+          id: randomUUID(),
           titulo,
           conteudo,
           tipo: tipo ?? "PERSONALIZADO",
           corretorId: userId,
-        },
-      });
+        })
+        .select("*")
+        .single();
+
+      if (error) throw new Error(error.message);
+
       return res.status(201).json(contrato);
     } catch (error) {
       console.error(error);

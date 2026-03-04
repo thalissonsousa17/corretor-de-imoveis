@@ -1,5 +1,5 @@
 import type { NextApiResponse } from "next";
-import { prisma } from "@/lib/prisma";
+import { supabaseAdmin } from "@/lib/supabase";
 import { AuthApiRequest, authorize } from "@/lib/authMiddleware";
 
 async function handler(req: AuthApiRequest, res: NextApiResponse) {
@@ -8,49 +8,43 @@ async function handler(req: AuthApiRequest, res: NextApiResponse) {
   }
 
   try {
-    const totalCorretores = await prisma.user.count({
-      where: { role: "CORRETOR" },
-    });
-
-    const planosAtivos = await prisma.corretorProfile.count({
-      where: { planoStatus: "ATIVO" },
-    });
-
-    const proPlans = await prisma.corretorProfile.count({ where: { plano: "PRO", planoStatus: "ATIVO" } });
-    const startPlans = await prisma.corretorProfile.count({ where: { plano: "START", planoStatus: "ATIVO" } });
-    const expertPlans = await prisma.corretorProfile.count({ where: { plano: "EXPERT", planoStatus: "ATIVO" } });
+    const [
+      { count: totalCorretores },
+      { count: planosAtivos },
+      { count: proPlans },
+      { count: startPlans },
+      { count: expertPlans },
+      { count: totalImoveis },
+      { data: recentesRaw },
+    ] = await Promise.all([
+      supabaseAdmin.from("User").select("*", { count: "exact", head: true }).eq("role", "CORRETOR"),
+      supabaseAdmin.from("CorretorProfile").select("*", { count: "exact", head: true }).eq("planoStatus", "ATIVO"),
+      supabaseAdmin.from("CorretorProfile").select("*", { count: "exact", head: true }).eq("plano", "PRO").eq("planoStatus", "ATIVO"),
+      supabaseAdmin.from("CorretorProfile").select("*", { count: "exact", head: true }).eq("plano", "START").eq("planoStatus", "ATIVO"),
+      supabaseAdmin.from("CorretorProfile").select("*", { count: "exact", head: true }).eq("plano", "EXPERT").eq("planoStatus", "ATIVO"),
+      supabaseAdmin.from("Imovel").select("*", { count: "exact", head: true }),
+      supabaseAdmin
+        .from("User")
+        .select("id,name,email,createdAt,profile:CorretorProfile(plano,planoStatus)")
+        .eq("role", "CORRETOR")
+        .order("createdAt", { ascending: false })
+        .limit(5),
+    ]);
 
     // Receita estimada (valores fictícios — ajuste conforme seus planos reais)
-    const receita = (proPlans * 99) + (startPlans * 49) + (expertPlans * 149);
-
-    const totalImoveis = await prisma.imovel.count();
-
-    const recentes = await prisma.user.findMany({
-      where: { role: "CORRETOR" },
-      orderBy: { createdAt: "desc" },
-      take: 5,
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        createdAt: true,
-        profile: {
-          select: { plano: true, planoStatus: true },
-        },
-      },
-    });
+    const receita = ((proPlans ?? 0) * 99) + ((startPlans ?? 0) * 49) + ((expertPlans ?? 0) * 149);
 
     return res.status(200).json({
-      totalCorretores,
-      planosAtivos,
+      totalCorretores: totalCorretores ?? 0,
+      planosAtivos: planosAtivos ?? 0,
       receita,
-      totalImoveis,
+      totalImoveis: totalImoveis ?? 0,
       breakdown: {
-        pro: proPlans,
-        start: startPlans,
-        expert: expertPlans,
+        pro: proPlans ?? 0,
+        start: startPlans ?? 0,
+        expert: expertPlans ?? 0,
       },
-      recentes,
+      recentes: recentesRaw ?? [],
     });
   } catch (error) {
     console.error("Erro ao buscar estatísticas:", error);

@@ -1,5 +1,5 @@
-import { NextApiRequest, NextApiResponse } from "next";
-import { prisma } from "@/lib/prisma";
+import { NextApiResponse } from "next";
+import { supabaseAdmin } from "@/lib/supabase";
 import { AuthApiRequest, authorize } from "@/lib/authMiddleware";
 
 async function handler(req: AuthApiRequest, res: NextApiResponse) {
@@ -9,11 +9,14 @@ async function handler(req: AuthApiRequest, res: NextApiResponse) {
     try {
       const { status } = req.body;
 
-      const lead = await prisma.lead.update({
-        where: { id: String(id) },
-        data: { status },
-      });
+      const { data: lead, error } = await supabaseAdmin
+        .from("Lead")
+        .update({ status })
+        .eq("id", String(id))
+        .select("*")
+        .single();
 
+      if (error) throw new Error(error.message);
       return res.status(200).json(lead);
     } catch (error) {
       console.error("Erro ao atualizar lead:", error);

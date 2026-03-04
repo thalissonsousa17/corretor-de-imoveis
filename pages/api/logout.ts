@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import * as cookie from "cookie";
-import { prisma } from "../../lib/prisma";
+import { supabaseAdmin } from "@/lib/supabase";
 import { serialize } from "cookie";
 import { cookieOptions } from "@/lib/cookies";
 
@@ -14,9 +14,7 @@ export default async function handleLougout(req: NextApiRequest, res: NextApiRes
 
   if (sessionId) {
     try {
-      await prisma.session.delete({
-        where: { id: sessionId },
-      });
+      await supabaseAdmin.from("Session").delete().eq("id", sessionId);
     } catch (error) {
       return res.status(500).json({ message: "Erro ao encerrar a sessão", error });
     }

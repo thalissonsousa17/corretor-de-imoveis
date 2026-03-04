@@ -1,5 +1,6 @@
 import type { NextApiResponse } from "next";
-import { prisma } from "@/lib/prisma";
+import { supabaseAdmin } from "@/lib/supabase";
+import { randomUUID } from "node:crypto";
 import { AuthApiRequest, authorize } from "@/lib/authMiddleware";
 
 async function handler(req: AuthApiRequest, res: NextApiResponse) {
@@ -9,32 +10,24 @@ async function handler(req: AuthApiRequest, res: NextApiResponse) {
   // GET — listar tickets
   if (req.method === "GET") {
     try {
-      const where: { userId?: string } = userRole === "ADMIN" ? {} : { userId };
+      let query = supabaseAdmin
+        .from("TicketSuporte")
+        .select("*, user:User(name,email), mensagens:MensagemSuporte(conteudo,createdAt,lida,autorId)")
+        .order("updatedAt", { ascending: false });
 
-      const tickets = await prisma.ticketSuporte.findMany({
-        where,
-        include: {
-          user: { select: { name: true, email: true } },
-          mensagens: {
-            select: { conteudo: true, createdAt: true, lida: true, autorId: true },
-          },
-        },
-        orderBy: { updatedAt: "desc" as const },
+      if (userRole !== "ADMIN") {
+        query = query.eq("userId", userId);
+      }
+
+      const { data: tickets } = await query;
+
+      // Contar mensagens não lidas para cada ticket em JS
+      const ticketsComNaoLidas = (tickets ?? []).map((ticket: any) => {
+        const naoLidas = (ticket.mensagens ?? []).filter(
+          (m: any) => !m.lida && m.autorId !== userId
+        ).length;
+        return { ...ticket, naoLidas };
       });
-
-      // Contar mensagens não lidas para cada ticket
-      const ticketsComNaoLidas = await Promise.all(
-        tickets.map(async (ticket) => {
-          const naoLidas = await prisma.mensagemSuporte.count({
-            where: {
-              ticketId: ticket.id,
-              lida: false,
-              autorId: { not: userId },
-            },
-          });
-          return { ...ticket, naoLidas };
-        })
-      );
 
       return res.status(200).json(ticketsComNaoLidas);
     } catch (error) {
@@ -52,22 +45,27 @@ async function handler(req: AuthApiRequest, res: NextApiResponse) {
     }
 
     try {
-      const ticket = await prisma.ticketSuporte.create({
-        data: {
+      const ticketId = randomUUID();
+      const { data: ticket, error } = await supabaseAdmin
+        .from("TicketSuporte")
+        .insert({
+          id: ticketId,
           assunto,
           descricao,
           prioridade: prioridade || "MEDIA",
           userId,
-        },
-      });
+        })
+        .select("*")
+        .single();
+
+      if (error) throw new Error(error.message);
 
       // Cria mensagem inicial automaticamente
-      await prisma.mensagemSuporte.create({
-        data: {
-          conteudo: descricao,
-          autorId: userId,
-          ticketId: ticket.id,
-        },
+      await supabaseAdmin.from("MensagemSuporte").insert({
+        id: randomUUID(),
+        conteudo: descricao,
+        autorId: userId,
+        ticketId,
       });
 
       return res.status(201).json(ticket);

@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { supabaseAdmin } from "@/lib/supabase";
 import { NextApiResponse } from "next";
 import { AuthApiRequest, authorize } from "@/lib/authMiddleware";
 
@@ -31,26 +31,18 @@ async function handle(req: AuthApiRequest, res: NextApiResponse) {
 
   const primeiraFoto = fotosValidas[0];
 
-  const updates = [
-    prisma.foto.updateMany({
-      where: { imovelId },
-      data: { principal: false },
-    }),
+  // Reset principal em todas as fotos do imóvel
+  await supabaseAdmin.from("Foto").update({ principal: false }).eq("imovelId", imovelId);
 
-    ...fotosValidas.map((item) =>
-      prisma.foto.update({
-        where: { id: item.id },
-        data: { ordem: item.ordem },
-      })
-    ),
+  // Atualizar ordem de cada foto
+  await Promise.all(
+    fotosValidas.map((item) =>
+      supabaseAdmin.from("Foto").update({ ordem: item.ordem }).eq("id", item.id)
+    )
+  );
 
-    prisma.foto.update({
-      where: { id: primeiraFoto.id },
-      data: { principal: true },
-    }),
-  ];
-
-  await prisma.$transaction(updates);
+  // Marcar primeira foto como principal
+  await supabaseAdmin.from("Foto").update({ principal: true }).eq("id", primeiraFoto.id);
 
   return res.status(200).json({ message: "Ordem (e foto principal) atualizada com sucesso!" });
 }

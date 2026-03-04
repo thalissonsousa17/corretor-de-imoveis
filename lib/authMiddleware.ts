@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { prisma } from "@/lib/prisma";
+import { supabaseAdmin } from "@/lib/supabase";
 import * as cookie from "cookie";
+import { randomUUID } from "node:crypto";
 
 export interface AuthPayload {
   id: string;
@@ -28,50 +29,76 @@ export const authorize =
         return res.status(401).json({ error: "Sessão não iniciada." });
       }
 
-      const session = await prisma.session.findUnique({
-        where: { id: sessionId },
-        include: { user: true },
-      });
+      // Query 1: busca a sessão
+      const { data: session } = await supabaseAdmin
+        .from("Session")
+        .select("id, userId, expiresAt")
+        .eq("id", sessionId)
+        .maybeSingle();
 
       if (!session) {
         return res.status(401).json({ error: "Sessão inválida." });
       }
 
       if (new Date(session.expiresAt) < new Date()) {
-        await prisma.session.delete({ where: { id: sessionId } });
-        res.setHeader("Set-Cookie", cookie.serialize("sessionId", "", { maxAge: 0, path: "/" }));
+        await supabaseAdmin.from("Session").delete().eq("id", sessionId);
+        res.setHeader(
+          "Set-Cookie",
+          cookie.serialize("sessionId", "", { maxAge: 0, path: "/" })
+        );
         return res.status(401).json({ error: "Sessão expirada." });
       }
 
+      // Query 2: busca o usuário pelo userId da sessão
+      const { data: u } = await supabaseAdmin
+        .from("User")
+        .select("id, email, name, role")
+        .eq("id", session.userId)
+        .maybeSingle();
+
+      if (!u) {
+        return res.status(401).json({ error: "Usuário não encontrado." });
+      }
+
       req.user = {
-        id: session.user.id,
-        email: session.user.email,
-        role: session.user.role as "CORRETOR" | "CLIENTE" | "ADMIN",
+        id: u.id,
+        email: u.email,
+        role: u.role as "CORRETOR" | "CLIENTE" | "ADMIN",
       };
 
-      // ADMIN tem acesso total — pode acessar rotas de CORRETOR também
+      // ADMIN tem acesso total
       if (requiredRole && req.user.role !== requiredRole && req.user.role !== "ADMIN") {
         return res.status(403).json({ error: "Acesso negado." });
       }
 
-      // GARANTE QUE CORRETOR tenha um corretorProfile (ADMIN não precisa de perfil público)
+      // Garante que CORRETOR tenha um CorretorProfile
       if (req.user.role === "CORRETOR") {
-        const perfil = await prisma.corretorProfile.findUnique({
-          where: { userId: req.user.id },
-        });
+        const { data: perfil } = await supabaseAdmin
+          .from("CorretorProfile")
+          .select("id")
+          .eq("userId", req.user.id)
+          .maybeSingle();
 
         if (!perfil) {
-          const baseSlug = req.user.email.split("@")[0].toLowerCase().replace(/[^a-z0-9]/g, "");
-          const slugExists = await prisma.corretorProfile.findUnique({ where: { slug: baseSlug } });
+          const baseSlug = req.user.email
+            .split("@")[0]
+            .toLowerCase()
+            .replace(/[^a-z0-9]/g, "");
+
+          const { data: slugExists } = await supabaseAdmin
+            .from("CorretorProfile")
+            .select("id")
+            .eq("slug", baseSlug)
+            .maybeSingle();
+
           const slug = slugExists ? `${baseSlug}-${req.user.id.slice(0, 6)}` : baseSlug;
 
-          await prisma.corretorProfile.create({
-            data: {
-              userId: req.user.id,
-              slug,
-              plano: "GRATUITO",
-              planoStatus: "INATIVO",
-            },
+          await supabaseAdmin.from("CorretorProfile").insert({
+            id: randomUUID(),
+            userId: req.user.id,
+            slug,
+            plano: "GRATUITO",
+            planoStatus: "INATIVO",
           });
         }
       }

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { supabaseAdmin } from "@/lib/supabase";
 import { normalizarDominio } from "@/lib/dominio";
 
 export async function middlewareDominio(req: NextRequest) {
@@ -25,26 +25,25 @@ export async function middlewareDominio(req: NextRequest) {
     return null;
   }
 
-  const dominioAtivo = await prisma.dominio.findFirst({
-    where: {
-      dominio,
-      status: "ATIVO",
-    },
-    select: {
-      pagina: {
-        select: {
-          slug: true,
-        },
-      },
-    },
-  });
+  const { data: dominioAtivo } = await supabaseAdmin
+    .from("Dominio")
+    .select("pagina:Pagina(slug)")
+    .eq("dominio", dominio)
+    .eq("status", "ATIVO")
+    .maybeSingle();
 
-  if (!dominioAtivo?.pagina) {
+  const pagina = dominioAtivo?.pagina
+    ? Array.isArray(dominioAtivo.pagina)
+      ? dominioAtivo.pagina[0]
+      : dominioAtivo.pagina
+    : null;
+
+  if (!pagina) {
     return NextResponse.rewrite(new URL("/dominio-nao-encontrado", req.url));
   }
 
   const url = req.nextUrl.clone();
-  url.pathname = `/corretor/${dominioAtivo.pagina.slug}${pathname === "/" ? "" : pathname}`;
+  url.pathname = `/corretor/${pagina.slug}${pathname === "/" ? "" : pathname}`;
 
   return NextResponse.rewrite(url);
 }

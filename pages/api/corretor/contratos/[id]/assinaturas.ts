@@ -1,13 +1,19 @@
 import type { NextApiResponse } from "next";
-import { prisma } from "@/lib/prisma";
+import { supabaseAdmin } from "@/lib/supabase";
 import { AuthApiRequest, authorize } from "@/lib/authMiddleware";
+import { randomUUID } from "node:crypto";
 
 async function handler(req: AuthApiRequest, res: NextApiResponse) {
   const corretorId = req.user!.id;
   const contratoId = req.query.id as string;
 
   // Verificar ownership do contrato
-  const contrato = await prisma.contrato.findUnique({ where: { id: contratoId } });
+  const { data: contrato } = await supabaseAdmin
+    .from("Contrato")
+    .select("id,corretorId")
+    .eq("id", contratoId)
+    .maybeSingle();
+
   if (!contrato || contrato.corretorId !== corretorId) {
     return res.status(404).json({ message: "Contrato não encontrado." });
   }
@@ -15,11 +21,14 @@ async function handler(req: AuthApiRequest, res: NextApiResponse) {
   // GET — listar assinaturas do contrato
   if (req.method === "GET") {
     try {
-      const assinaturas = await prisma.assinatura.findMany({
-        where: { contratoId },
-        orderBy: { assinadoEm: "desc" },
-      });
-      return res.status(200).json(assinaturas);
+      const { data: assinaturas, error } = await supabaseAdmin
+        .from("Assinatura")
+        .select("*")
+        .eq("contratoId", contratoId)
+        .order("assinadoEm", { ascending: false });
+
+      if (error) throw new Error(error.message);
+      return res.status(200).json(assinaturas ?? []);
     } catch (error) {
       console.error("Erro ao listar assinaturas:", error);
       return res.status(500).json({ message: "Erro interno." });
@@ -40,16 +49,21 @@ async function handler(req: AuthApiRequest, res: NextApiResponse) {
         req.socket?.remoteAddress ||
         null;
 
-      const novaAssinatura = await prisma.assinatura.create({
-        data: {
+      const { data: novaAssinatura, error } = await supabaseAdmin
+        .from("Assinatura")
+        .insert({
+          id: randomUUID(),
           contratoId,
           nome: nome.trim(),
           email: email.trim(),
           documento: documento?.trim() || null,
           assinatura: assinaturaData,
           ip,
-        },
-      });
+        })
+        .select("*")
+        .single();
+
+      if (error) throw new Error(error.message);
 
       return res.status(201).json(novaAssinatura);
     } catch (error) {

@@ -1,9 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { prisma } from "@/lib/prisma";
-import path from "path";
+import { supabaseAdmin } from "@/lib/supabase";
 import { resolveFotoUrl } from "@/lib/imageUtils";
-
-
 
 export default async function handle(req: NextApiRequest, res: NextApiResponse) {
   const { slug, filtro } = req.query;
@@ -11,48 +8,44 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
   if (typeof slug !== "string") return res.status(400).json({ message: "Slug inválido." });
 
   try {
-    const profile = await prisma.corretorProfile.findUnique({
-      where: { slug },
-      include: { user: true },
-    });
+    const { data: profile } = await supabaseAdmin
+      .from("CorretorProfile")
+      .select("*, user:User(name,email)")
+      .eq("slug", slug)
+      .maybeSingle();
 
     if (!profile) return res.status(404).json({ message: "Corretor não encontrado." });
 
-    const where: any = {
-      corretorId: profile.userId,
-    };
+    let query = supabaseAdmin
+      .from("Imovel")
+      .select("*, fotos:Foto(*)")
+      .eq("corretorId", profile.userId)
+      .order("createdAt", { ascending: false })
+      .limit(50);
 
     if (typeof filtro === "string") {
       switch (filtro.toUpperCase()) {
         case "VENDA":
-          where.finalidade = "VENDA";
-          where.status = "DISPONIVEL";
+          query = query.eq("finalidade", "VENDA").eq("status", "DISPONIVEL");
           break;
         case "ALUGUEL":
-          where.finalidade = "ALUGUEL";
-          where.status = "DISPONIVEL";
+          query = query.eq("finalidade", "ALUGUEL").eq("status", "DISPONIVEL");
           break;
         case "VENDIDO":
-          where.status = "VENDIDO";
+          query = query.eq("status", "VENDIDO");
           break;
         case "ALUGADO":
-          where.status = "ALUGADO";
+          query = query.eq("status", "ALUGADO");
           break;
         case "INATIVO":
-          where.status = "INATIVO";
+          query = query.eq("status", "INATIVO");
           break;
       }
     }
 
-    const imoveisRaw = await prisma.imovel.findMany({
-      where,
-      orderBy: { createdAt: "desc" },
-      include: { fotos: true },
-      take: 50,
-    });
+    const { data: imoveisRaw } = await query;
 
-    const imoveis = (imoveisRaw as any[]).map((imovel: any) => {
-      // Supabase adapter não suporta orderBy em include aninhado — ordenar client-side
+    const imoveis = (imoveisRaw ?? []).map((imovel: any) => {
       const fotosOrdenadas: any[] = (imovel.fotos ?? []).sort(
         (a: any, b: any) => (a.ordem ?? 0) - (b.ordem ?? 0)
       );
@@ -65,17 +58,17 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
       };
     });
 
+    const user = Array.isArray(profile.user) ? profile.user[0] : profile.user;
+
     res.json({
       corretor: {
         id: profile.userId,
-        name: profile.user.name,
-        email: profile.user.email,
+        name: user?.name,
+        email: user?.email,
         creci: profile.creci,
-
         avatarUrl: resolveFotoUrl(profile.avatarUrl),
         bannerUrl: resolveFotoUrl(profile.bannerUrl),
         logoUrl: resolveFotoUrl(profile.logoUrl),
-
         biografia: profile.biografia,
         instagram: profile.instagram,
         facebook: profile.facebook,

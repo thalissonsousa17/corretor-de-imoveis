@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { prisma } from "@/lib/prisma";
+import { supabaseAdmin } from "@/lib/supabase";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "GET") {
@@ -7,7 +7,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const adminExists = await prisma.user.findFirst({ where: { role: "ADMIN" } });
+    const { data: adminExists } = await supabaseAdmin
+      .from("User")
+      .select("id")
+      .eq("role", "ADMIN")
+      .limit(1)
+      .maybeSingle();
     return res.status(200).json({ adminExists: !!adminExists });
   } catch (error) {
     console.error("Erro ao verificar admin:", error);

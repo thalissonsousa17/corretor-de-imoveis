@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { supabaseAdmin } from "@/lib/supabase";
 import { NextApiRequest, NextApiResponse } from "next";
 import { resolveFotoUrl } from "@/lib/imageUtils";
 
@@ -7,35 +7,36 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (typeof id !== "string") return res.status(400).json({ message: "ID inválido" });
 
   try {
-    const imovel = await prisma.imovel.findUnique({
-      where: { id },
-      include: {
-        fotos: {
-          orderBy: {
-            ordem: "asc",
-          },
-        },
-        corretor: {
-          include: {
-            profile: true,
-          },
-        },
-      },
-    });
+    const { data: imovel } = await supabaseAdmin
+      .from("Imovel")
+      .select("*, fotos:Foto(*), corretor:User(name, profile:CorretorProfile(*))")
+      .eq("id", id)
+      .maybeSingle();
+
     if (!imovel) return res.status(404).json({ message: "Imóvel não encontrado" });
 
-    const profile = imovel.corretor.profile;
+    const fotosOrdenadas = (imovel.fotos ?? []).sort(
+      (a: any, b: any) => (a.ordem ?? 0) - (b.ordem ?? 0)
+    );
+
+    const corretor = Array.isArray(imovel.corretor) ? imovel.corretor[0] : imovel.corretor;
+    const profile = corretor
+      ? Array.isArray(corretor.profile)
+        ? corretor.profile[0]
+        : corretor.profile
+      : null;
+
     res.json({
       imovel: {
         ...imovel,
-        fotos: (imovel.fotos || []).map((f: { url: string | null; [key: string]: unknown }) => ({
+        fotos: fotosOrdenadas.map((f: any) => ({
           ...f,
           url: resolveFotoUrl(f.url),
         })),
       },
       corretor: profile
         ? {
-            name: imovel.corretor.name,
+            name: corretor?.name,
             creci: profile.creci,
             slug: profile.slug,
             avatarUrl: resolveFotoUrl(profile.avatarUrl),

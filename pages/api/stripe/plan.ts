@@ -1,11 +1,8 @@
 import type { NextApiResponse } from "next";
 import Stripe from "stripe";
-import { prisma } from "@/lib/prisma";
+import { supabaseAdmin } from "@/lib/supabase";
 import { AuthApiRequest, authorize } from "@/lib/authMiddleware";
 
-// const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-//   apiVersion: "2025-11-17.clover",
-// });
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
 
 type BillingAction = "SUBSCRIBE" | "UPGRADE_KEEP" | "UPGRADE_CHANGE";
@@ -54,17 +51,11 @@ export default authorize(
         return res.status(500).json({ ok: false, error: "NEXT_PUBLIC_BASE_URL não configurada" });
       }
 
-      /**
-       * Busca perfil do corretor
-       */
-      const profile = await prisma.corretorProfile.findUnique({
-        where: { userId: req.user.id },
-        select: {
-          userId: true,
-          stripeCustomerId: true,
-          stripeSubscriptionId: true,
-        },
-      });
+      const { data: profile } = await supabaseAdmin
+        .from("CorretorProfile")
+        .select("userId,stripeCustomerId,stripeSubscriptionId")
+        .eq("userId", req.user.id)
+        .maybeSingle();
 
       if (!profile) {
         return res.status(404).json({ ok: false, error: "Perfil não encontrado" });
@@ -99,10 +90,10 @@ export default authorize(
 
         customerId = customer.id;
 
-        await prisma.corretorProfile.update({
-          where: { userId: req.user.id },
-          data: { stripeCustomerId: customerId },
-        });
+        await supabaseAdmin
+          .from("CorretorProfile")
+          .update({ stripeCustomerId: customerId })
+          .eq("userId", req.user.id);
       }
 
       if (billingAction === "SUBSCRIBE") {

@@ -1,5 +1,5 @@
 import type { NextApiResponse } from "next";
-import { prisma } from "@/lib/prisma";
+import { supabaseAdmin } from "@/lib/supabase";
 import { authorize, AuthApiRequest } from "@/lib/authMiddleware";
 
 export default authorize(async function handler(req: AuthApiRequest, res: NextApiResponse) {
@@ -12,90 +12,87 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
   if (req.method === "GET") {
     try {
       const agora = new Date();
-      const inicioMes = new Date(agora.getFullYear(), agora.getMonth(), 1);
-      const fim7dias = new Date(agora.getTime() + 7 * 24 * 60 * 60 * 1000);
+      const inicioMes = new Date(agora.getFullYear(), agora.getMonth(), 1).toISOString();
+      const fim7dias = new Date(agora.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString();
+      const hoje = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate()).toISOString();
+      const amanha = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate() + 1).toISOString();
 
       // ── Imóveis ──────────────────────────────────────────────────
-      const [totalImoveis, imovelDisponiveis, imovelVendido, imovelAlugado, imovelInativo] =
-        await Promise.all([
-          prisma.imovel.count({ where: { corretorId: userId } }),
-          prisma.imovel.count({ where: { corretorId: userId, status: "DISPONIVEL" } }),
-          prisma.imovel.count({ where: { corretorId: userId, status: "VENDIDO" } }),
-          prisma.imovel.count({ where: { corretorId: userId, status: "ALUGADO" } }),
-          prisma.imovel.count({ where: { corretorId: userId, status: "INATIVO" } }),
-        ]);
+      const { data: todosImoveis } = await supabaseAdmin
+        .from("Imovel")
+        .select("id,titulo,tipo,preco,status,createdAt")
+        .eq("corretorId", userId)
+        .order("createdAt", { ascending: false });
 
-      const tipoImoveis = await prisma.imovel.groupBy({
-        by: ["tipo"],
-        _count: { tipo: true },
-        where: { corretorId: userId },
-      });
-      const graficoTipos = tipoImoveis.map((item) => ({
-        tipo: item.tipo,
-        quantidade: item._count.tipo,
-      }));
+      const imovelList = todosImoveis ?? [];
+      const totalImoveis = imovelList.length;
+      const imovelDisponiveis = imovelList.filter((i) => i.status === "DISPONIVEL").length;
+      const imovelVendido = imovelList.filter((i) => i.status === "VENDIDO").length;
+      const imovelAlugado = imovelList.filter((i) => i.status === "ALUGADO").length;
+      const imovelInativo = imovelList.filter((i) => i.status === "INATIVO").length;
 
-      const imoveisRecentes = await prisma.imovel.findMany({
-        where: { corretorId: userId },
-        orderBy: { createdAt: "desc" },
-        take: 5,
-        select: { id: true, titulo: true, tipo: true, preco: true, status: true, createdAt: true },
-      });
+      // Agrupa por tipo em JS
+      const tiposMap: Record<string, number> = {};
+      for (const im of imovelList) {
+        if (im.tipo) tiposMap[im.tipo] = (tiposMap[im.tipo] ?? 0) + 1;
+      }
+      const graficoTipos = Object.entries(tiposMap).map(([tipo, quantidade]) => ({ tipo, quantidade }));
+      const imoveisRecentes = imovelList.slice(0, 5);
 
       // ── Leads ────────────────────────────────────────────────────
-      const leadsNovos = await prisma.lead.count({
-        where: { corretorId: userId, status: "NOVO" },
-      });
+      const { count: leadsNovos } = await supabaseAdmin
+        .from("Lead")
+        .select("*", { count: "exact", head: true })
+        .eq("corretorId", userId)
+        .eq("status", "NOVO");
 
-      const leadsRecentes = await prisma.lead.findMany({
-        where: { corretorId: userId, status: "NOVO" },
-        orderBy: { createdAt: "desc" },
-        take: 5,
-        select: { id: true, nome: true, email: true, whatsapp: true, imovelInteresse: true, createdAt: true },
-      });
+      const { data: leadsRecentes } = await supabaseAdmin
+        .from("Lead")
+        .select("id,nome,email,whatsapp,imovelInteresse,createdAt")
+        .eq("corretorId", userId)
+        .eq("status", "NOVO")
+        .order("createdAt", { ascending: false })
+        .limit(5);
 
       // ── Visitas ──────────────────────────────────────────────────
-      const visitasHoje = await prisma.visita.count({
-        where: {
-          corretorId: userId,
-          status: { in: ["AGENDADA", "CONFIRMADA"] },
-          dataHora: {
-            gte: new Date(agora.getFullYear(), agora.getMonth(), agora.getDate()),
-            lt: new Date(agora.getFullYear(), agora.getMonth(), agora.getDate() + 1),
-          },
-        },
-      });
+      const { count: visitasHoje } = await supabaseAdmin
+        .from("Visita")
+        .select("*", { count: "exact", head: true })
+        .eq("corretorId", userId)
+        .in("status", ["AGENDADA", "CONFIRMADA"])
+        .gte("dataHora", hoje)
+        .lt("dataHora", amanha);
 
-      const visitas7dias = await prisma.visita.count({
-        where: {
-          corretorId: userId,
-          status: { in: ["AGENDADA", "CONFIRMADA"] },
-          dataHora: { gte: agora, lte: fim7dias },
-        },
-      });
+      const { count: visitas7dias } = await supabaseAdmin
+        .from("Visita")
+        .select("*", { count: "exact", head: true })
+        .eq("corretorId", userId)
+        .in("status", ["AGENDADA", "CONFIRMADA"])
+        .gte("dataHora", agora.toISOString())
+        .lte("dataHora", fim7dias);
 
-      const proximasVisitas = await prisma.visita.findMany({
-        where: {
-          corretorId: userId,
-          status: { in: ["AGENDADA", "CONFIRMADA"] },
-          dataHora: { gte: agora },
-        },
-        orderBy: { dataHora: "asc" },
-        take: 5,
-        include: {
-          imovel: { select: { id: true, titulo: true } },
-        },
-      });
+      const { data: proximasVisitas } = await supabaseAdmin
+        .from("Visita")
+        .select("*, imovel:Imovel(id,titulo)")
+        .eq("corretorId", userId)
+        .in("status", ["AGENDADA", "CONFIRMADA"])
+        .gte("dataHora", agora.toISOString())
+        .order("dataHora", { ascending: true })
+        .limit(5);
 
       // ── Contratos ────────────────────────────────────────────────
-      const contratosMes = await prisma.contrato.count({
-        where: { corretorId: userId, createdAt: { gte: inicioMes } },
-      });
+      const { count: contratosMes } = await supabaseAdmin
+        .from("Contrato")
+        .select("*", { count: "exact", head: true })
+        .eq("corretorId", userId)
+        .gte("createdAt", inicioMes);
 
       // ── Tickets ──────────────────────────────────────────────────
-      const ticketsAbertos = await prisma.ticketSuporte.count({
-        where: { userId, status: { in: ["ABERTO", "EM_ANDAMENTO"] } },
-      });
+      const { count: ticketsAbertos } = await supabaseAdmin
+        .from("TicketSuporte")
+        .select("*", { count: "exact", head: true })
+        .eq("userId", userId)
+        .in("status", ["ABERTO", "EM_ANDAMENTO"]);
 
       return res.status(200).json({
         stats: {
@@ -108,14 +105,14 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
         recentes: imoveisRecentes,
         graficoTipos,
         atividade: {
-          leadsNovos,
-          visitasHoje,
-          visitas7dias,
-          contratosMes,
-          ticketsAbertos,
+          leadsNovos: leadsNovos ?? 0,
+          visitasHoje: visitasHoje ?? 0,
+          visitas7dias: visitas7dias ?? 0,
+          contratosMes: contratosMes ?? 0,
+          ticketsAbertos: ticketsAbertos ?? 0,
         },
-        proximasVisitas,
-        leadsRecentes,
+        proximasVisitas: proximasVisitas ?? [],
+        leadsRecentes: leadsRecentes ?? [],
       });
     } catch (error) {
       console.error("Erro ao carregar dados do dashboard:", error);

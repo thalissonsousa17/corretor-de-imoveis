@@ -1,5 +1,6 @@
 import type { NextApiResponse } from "next";
-import { prisma } from "@/lib/prisma";
+import { supabaseAdmin } from "@/lib/supabase";
+import { randomUUID } from "node:crypto";
 import { AuthApiRequest, authorize } from "@/lib/authMiddleware";
 
 async function handler(req: AuthApiRequest, res: NextApiResponse) {
@@ -12,10 +13,11 @@ async function handler(req: AuthApiRequest, res: NextApiResponse) {
   }
 
   // Busca o ticket
-  const ticket = await prisma.ticketSuporte.findUnique({
-    where: { id },
-    include: { user: { select: { name: true, email: true } } },
-  });
+  const { data: ticket } = await supabaseAdmin
+    .from("TicketSuporte")
+    .select("*, user:User(name,email)")
+    .eq("id", id)
+    .maybeSingle();
 
   if (!ticket) {
     return res.status(404).json({ message: "Ticket não encontrado." });
@@ -29,23 +31,19 @@ async function handler(req: AuthApiRequest, res: NextApiResponse) {
   // GET — buscar mensagens do ticket
   if (req.method === "GET") {
     try {
-      const mensagens = await prisma.mensagemSuporte.findMany({
-        where: { ticketId: id },
-        include: {
-          autor: { select: { name: true, role: true } },
-        },
-        orderBy: { createdAt: "asc" as const },
-      });
+      const { data: mensagens } = await supabaseAdmin
+        .from("MensagemSuporte")
+        .select("*, autor:User(name,role)")
+        .eq("ticketId", id)
+        .order("createdAt", { ascending: true });
 
-      // Marca como lidas as mensagens que não são do usuario atual
-      await prisma.mensagemSuporte.updateMany({
-        where: {
-          ticketId: id,
-          autorId: { not: userId },
-          lida: false,
-        },
-        data: { lida: true },
-      });
+      // Marca como lidas as mensagens que não são do usuário atual
+      await supabaseAdmin
+        .from("MensagemSuporte")
+        .update({ lida: true })
+        .eq("ticketId", id)
+        .neq("autorId", userId)
+        .eq("lida", false);
 
       return res.status(200).json({
         ticket: {
@@ -57,7 +55,7 @@ async function handler(req: AuthApiRequest, res: NextApiResponse) {
           createdAt: ticket.createdAt,
           user: ticket.user,
         },
-        mensagens,
+        mensagens: mensagens ?? [],
       });
     } catch (error) {
       console.error("Erro ao buscar mensagens:", error);
@@ -74,28 +72,30 @@ async function handler(req: AuthApiRequest, res: NextApiResponse) {
     }
 
     try {
-      const mensagem = await prisma.mensagemSuporte.create({
-        data: {
+      const { data: mensagem, error } = await supabaseAdmin
+        .from("MensagemSuporte")
+        .insert({
+          id: randomUUID(),
           conteudo,
           autorId: userId,
           ticketId: id,
-        },
-        include: {
-          autor: { select: { name: true, role: true } },
-        },
-      });
+        })
+        .select("*, autor:User(name,role)")
+        .single();
 
-      // Atualiza status e updatedAt do ticket em uma única chamada
+      if (error) throw new Error(error.message);
+
+      // Atualiza status e updatedAt do ticket
       const shouldUpdateStatus =
         ticket.status === "RESOLVIDO" || (ticket.status === "ABERTO" && userRole === "ADMIN");
 
-      await prisma.ticketSuporte.update({
-        where: { id },
-        data: {
-          ...(shouldUpdateStatus && { status: "EM_ANDAMENTO" as const }),
-          updatedAt: new Date(),
-        },
-      });
+      await supabaseAdmin
+        .from("TicketSuporte")
+        .update({
+          ...(shouldUpdateStatus && { status: "EM_ANDAMENTO" }),
+          updatedAt: new Date().toISOString(),
+        })
+        .eq("id", id);
 
       return res.status(201).json(mensagem);
     } catch (error) {
@@ -105,7 +105,6 @@ async function handler(req: AuthApiRequest, res: NextApiResponse) {
   }
 
   // PATCH — atualizar status do ticket
-  // Admin pode qualquer status; corretor só pode reabrir ticket FECHADO
   if (req.method === "PATCH") {
     const { status } = req.body;
     const validStatus = ["ABERTO", "EM_ANDAMENTO", "RESOLVIDO", "FECHADO"];
@@ -121,11 +120,14 @@ async function handler(req: AuthApiRequest, res: NextApiResponse) {
     }
 
     try {
-      const updated = await prisma.ticketSuporte.update({
-        where: { id },
-        data: { status },
-      });
+      const { data: updated, error } = await supabaseAdmin
+        .from("TicketSuporte")
+        .update({ status })
+        .eq("id", id)
+        .select("*")
+        .single();
 
+      if (error) throw new Error(error.message);
       return res.status(200).json(updated);
     } catch (error) {
       console.error("Erro ao atualizar ticket:", error);

@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { prisma } from "@/lib/prisma";
+import { supabaseAdmin } from "@/lib/supabase";
+import { randomUUID } from "node:crypto";
 import { LIMITE_IMOVEIS_POR_PLANO } from "@/lib/planos";
 import { getSession } from "@/lib/auth";
 
@@ -14,45 +15,52 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(401).json({ error: "Não autenticado" });
     }
 
-    const profile = await prisma.corretorProfile.findUnique({
-      where: { userId: session.userId },
-    });
+    const { data: profile } = await supabaseAdmin
+      .from("CorretorProfile")
+      .select("*")
+      .eq("userId", session.userId)
+      .maybeSingle();
 
     if (!profile) {
       return res.status(403).json({ error: "Perfil não encontrado" });
     }
 
     if (profile.planoStatus === "EXPIRADO") {
-      await prisma.corretorProfile.update({
-        where: { id: profile.id },
-        data: {
+      await supabaseAdmin
+        .from("CorretorProfile")
+        .update({
           plano: "GRATUITO",
           planoStatus: "ATIVO",
-          planoCanceladoEm: new Date(),
-        },
-      });
+          planoCanceladoEm: new Date().toISOString(),
+        })
+        .eq("id", profile.id);
     }
 
-    const totalImoveis = await prisma.imovel.count({
-      where: { corretorId: session.userId },
-    });
+    const { count: totalImoveis } = await supabaseAdmin
+      .from("Imovel")
+      .select("*", { count: "exact", head: true })
+      .eq("corretorId", session.userId);
 
     const limite = LIMITE_IMOVEIS_POR_PLANO[profile.plano];
 
-    if (limite !== Infinity && totalImoveis >= limite) {
+    if (limite !== Infinity && (totalImoveis ?? 0) >= limite) {
       return res.status(403).json({
         error: "Limite do plano atingido. Faça upgrade para continuar.",
         code: "PLANO_LIMITE_ATINGIDO",
       });
     }
 
-    const imovel = await prisma.imovel.create({
-      data: {
+    const { data: imovel, error } = await supabaseAdmin
+      .from("Imovel")
+      .insert({
+        id: randomUUID(),
         ...req.body,
         corretorId: session.userId,
-      },
-    });
+      })
+      .select("*")
+      .single();
 
+    if (error) throw new Error(error.message);
     return res.status(201).json(imovel);
   } catch (error) {
     console.error("Erro ao criar imóvel:", error);

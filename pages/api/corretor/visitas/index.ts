@@ -1,6 +1,7 @@
 import type { NextApiResponse } from "next";
-import { prisma } from "@/lib/prisma";
+import { supabaseAdmin } from "@/lib/supabase";
 import { AuthApiRequest, authorize } from "@/lib/authMiddleware";
+import { randomUUID } from "node:crypto";
 
 async function handler(req: AuthApiRequest, res: NextApiResponse) {
   const corretorId = req.user!.id;
@@ -10,25 +11,23 @@ async function handler(req: AuthApiRequest, res: NextApiResponse) {
     try {
       const { mes, ano } = req.query;
 
-      const where: { corretorId: string; dataHora?: { gte: Date; lt: Date } } = { corretorId };
+      let query = supabaseAdmin
+        .from("Visita")
+        .select("*, imovel:Imovel(id,titulo,localizacao,cidade)")
+        .eq("corretorId", corretorId)
+        .order("dataHora", { ascending: true });
 
       if (mes && ano) {
         const m = parseInt(mes as string, 10) - 1;
         const a = parseInt(ano as string, 10);
-        const inicio = new Date(a, m, 1);
-        const fim = new Date(a, m + 1, 1);
-        where.dataHora = { gte: inicio, lt: fim };
+        const inicio = new Date(a, m, 1).toISOString();
+        const fim = new Date(a, m + 1, 1).toISOString();
+        query = query.gte("dataHora", inicio).lt("dataHora", fim);
       }
 
-      const visitas = await prisma.visita.findMany({
-        where,
-        include: {
-          imovel: { select: { id: true, titulo: true, localizacao: true, cidade: true } },
-        },
-        orderBy: { dataHora: "asc" },
-      });
-
-      return res.status(200).json(visitas);
+      const { data: visitas, error } = await query;
+      if (error) throw new Error(error.message);
+      return res.status(200).json(visitas ?? []);
     } catch (error) {
       console.error("Erro ao listar visitas:", error);
       return res.status(500).json({ message: "Erro interno." });
@@ -44,29 +43,33 @@ async function handler(req: AuthApiRequest, res: NextApiResponse) {
         return res.status(400).json({ message: "Data/hora e nome do visitante sao obrigatorios." });
       }
 
-      // Verificar se o imovel pertence ao corretor (se informado)
       if (imovelId) {
-        const imovel = await prisma.imovel.findUnique({ where: { id: imovelId } });
+        const { data: imovel } = await supabaseAdmin
+          .from("Imovel")
+          .select("id,corretorId")
+          .eq("id", imovelId)
+          .maybeSingle();
         if (!imovel || imovel.corretorId !== corretorId) {
           return res.status(400).json({ message: "Imovel nao encontrado." });
         }
       }
 
-      const visita = await prisma.visita.create({
-        data: {
-          dataHora: new Date(dataHora),
+      const { data: visita, error } = await supabaseAdmin
+        .from("Visita")
+        .insert({
+          id: randomUUID(),
+          dataHora: new Date(dataHora).toISOString(),
           nomeVisitante: nomeVisitante.trim(),
           telefoneVisitante: telefoneVisitante?.trim() || null,
           emailVisitante: emailVisitante?.trim() || null,
           observacoes: observacoes?.trim() || null,
           imovelId: imovelId || null,
           corretorId,
-        },
-        include: {
-          imovel: { select: { id: true, titulo: true, localizacao: true, cidade: true } },
-        },
-      });
+        })
+        .select("*, imovel:Imovel(id,titulo,localizacao,cidade)")
+        .single();
 
+      if (error) throw new Error(error.message);
       return res.status(201).json(visita);
     } catch (error) {
       console.error("Erro ao agendar visita:", error);

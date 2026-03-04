@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getUserFromRequest } from "@/lib/auth-server";
-import { prisma } from "@/lib/prisma";
+import { supabaseAdmin } from "@/lib/supabase";
 
 export async function middleware(req: NextRequest) {
   const pathname = req.nextUrl.pathname;
@@ -19,9 +19,11 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL("/login", req.url));
   }
 
-  const profile = await prisma.corretorProfile.findUnique({
-    where: { userId: user.id },
-  });
+  const { data: profile } = await supabaseAdmin
+    .from("CorretorProfile")
+    .select("plano")
+    .eq("userId", user.id)
+    .maybeSingle();
 
   if (!profile || profile.plano === "GRATUITO") {
     return NextResponse.redirect(new URL("/upgrade", req.url));

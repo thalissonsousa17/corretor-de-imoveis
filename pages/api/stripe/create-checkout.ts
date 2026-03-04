@@ -1,6 +1,6 @@
 import type { NextApiResponse } from "next";
 import Stripe from "stripe";
-import { prisma } from "@/lib/prisma";
+import { supabaseAdmin } from "@/lib/supabase";
 import { AuthApiRequest, authorize } from "@/lib/authMiddleware";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
@@ -34,9 +34,11 @@ export default authorize(async (req: AuthApiRequest, res: NextApiResponse) => {
     if (req.user) {
       userId = req.user.id;
 
-      const profile = await prisma.corretorProfile.findUnique({
-        where: { userId },
-      });
+      const { data: profile } = await supabaseAdmin
+        .from("CorretorProfile")
+        .select("stripeCustomerId")
+        .eq("userId", userId)
+        .maybeSingle();
 
       if (profile?.stripeCustomerId) {
         stripeCustomerId = profile.stripeCustomerId;
@@ -48,15 +50,15 @@ export default authorize(async (req: AuthApiRequest, res: NextApiResponse) => {
 
         stripeCustomerId = customer.id;
 
-        await prisma.user.update({
-          where: { id: userId },
-          data: { stripeCustomerId },
-        });
+        await supabaseAdmin
+          .from("User")
+          .update({ stripeCustomerId })
+          .eq("id", userId);
 
-        await prisma.corretorProfile.update({
-          where: { userId },
-          data: { stripeCustomerId },
-        });
+        await supabaseAdmin
+          .from("CorretorProfile")
+          .update({ stripeCustomerId })
+          .eq("userId", userId);
       }
     }
 

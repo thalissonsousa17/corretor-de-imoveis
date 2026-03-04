@@ -1,20 +1,18 @@
 import { NextRequest } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { supabaseAdmin } from "@/lib/supabase";
 
 export async function getUserFromRequest(req: NextRequest) {
   const sessionToken = req.cookies.get("session")?.value;
   if (!sessionToken) return null;
 
-  const session = await prisma.session.findUnique({
-    where: { id: sessionToken },
-    include: {
-      user: {
-        include: { profile: true },
-      },
-    },
-  });
+  const { data: session } = await supabaseAdmin
+    .from("Session")
+    .select("*, user:User(*, profile:CorretorProfile(*))")
+    .eq("id", sessionToken)
+    .maybeSingle();
 
-  if (!session || session.expiresAt < new Date()) return null;
+  if (!session || new Date(session.expiresAt) < new Date()) return null;
 
-  return session.user;
+  const user = Array.isArray(session.user) ? session.user[0] : session.user;
+  return user ?? null;
 }

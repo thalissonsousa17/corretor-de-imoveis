@@ -1,5 +1,6 @@
 import type { NextApiResponse } from "next";
-import { prisma } from "@/lib/prisma";
+import { supabaseAdmin } from "@/lib/supabase";
+import { randomUUID } from "node:crypto";
 import { AuthApiRequest, authorize } from "@/lib/authMiddleware";
 
 async function handler(req: AuthApiRequest, res: NextApiResponse) {
@@ -24,62 +25,66 @@ async function handler(req: AuthApiRequest, res: NextApiResponse) {
         return res.status(400).json({ message: "userId é obrigatório para mensagem individual." });
       }
 
-      const target = await prisma.user.findUnique({ where: { id: userId } });
+      const { data: target } = await supabaseAdmin
+        .from("User")
+        .select("id,role")
+        .eq("id", userId)
+        .maybeSingle();
+
       if (!target || target.role !== "CORRETOR") {
         return res.status(404).json({ message: "Corretor não encontrado." });
       }
 
-      const ticket = await prisma.ticketSuporte.create({
-        data: {
-          assunto,
-          descricao: mensagem,
-          status: "EM_ANDAMENTO",
-          prioridade: "MEDIA",
-          userId,
-          mensagens: {
-            create: {
-              conteudo: mensagem,
-              autorId: req.user!.id,
-              lida: false,
-            },
-          },
-        },
+      const ticketId = randomUUID();
+      await supabaseAdmin.from("TicketSuporte").insert({
+        id: ticketId,
+        assunto,
+        descricao: mensagem,
+        status: "EM_ANDAMENTO",
+        prioridade: "MEDIA",
+        userId,
       });
 
-      return res.status(201).json({ message: "Mensagem enviada com sucesso.", ticketId: ticket.id });
+      await supabaseAdmin.from("MensagemSuporte").insert({
+        id: randomUUID(),
+        conteudo: mensagem,
+        autorId: req.user!.id,
+        lida: false,
+        ticketId,
+      });
+
+      return res.status(201).json({ message: "Mensagem enviada com sucesso.", ticketId });
     }
 
     // Broadcast para todos os corretores
     if (tipo === "broadcast") {
-      const corretores = await prisma.user.findMany({
-        where: { role: "CORRETOR" },
-        select: { id: true },
-      });
+      const { data: corretores } = await supabaseAdmin
+        .from("User")
+        .select("id")
+        .eq("role", "CORRETOR");
 
-      if (corretores.length === 0) {
+      if (!corretores || corretores.length === 0) {
         return res.status(400).json({ message: "Nenhum corretor cadastrado." });
       }
 
-      await prisma.$transaction(
-        corretores.map((c) =>
-          prisma.ticketSuporte.create({
-            data: {
-              assunto,
-              descricao: mensagem,
-              status: "EM_ANDAMENTO",
-              prioridade: "MEDIA",
-              userId: c.id,
-              mensagens: {
-                create: {
-                  conteudo: mensagem,
-                  autorId: req.user!.id,
-                  lida: false,
-                },
-              },
-            },
-          })
-        )
-      );
+      for (const corretor of corretores) {
+        const ticketId = randomUUID();
+        await supabaseAdmin.from("TicketSuporte").insert({
+          id: ticketId,
+          assunto,
+          descricao: mensagem,
+          status: "EM_ANDAMENTO",
+          prioridade: "MEDIA",
+          userId: corretor.id,
+        });
+        await supabaseAdmin.from("MensagemSuporte").insert({
+          id: randomUUID(),
+          conteudo: mensagem,
+          autorId: req.user!.id,
+          lida: false,
+          ticketId,
+        });
+      }
 
       return res.status(201).json({
         message: `Notificação enviada para ${corretores.length} corretor(es).`,

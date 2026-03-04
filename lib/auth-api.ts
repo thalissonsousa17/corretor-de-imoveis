@@ -1,5 +1,5 @@
 import type { NextApiRequest } from "next";
-import { prisma } from "@/lib/prisma";
+import { supabaseAdmin } from "@/lib/supabase";
 import { parse } from "cookie";
 
 export async function getUserFromApiRequest(req: NextApiRequest) {
@@ -7,21 +7,19 @@ export async function getUserFromApiRequest(req: NextApiRequest) {
   if (!cookies) return null;
 
   const parsed = parse(cookies);
-  const sessionToken = parsed["sessionId"]; // ← MUDANÇA AQUI!
+  const sessionToken = parsed["sessionId"];
 
   if (!sessionToken) return null;
 
-  const session = await prisma.session.findFirst({
-    where: {
-      id: sessionToken,
-      expiresAt: {
-        gt: new Date(),
-      },
-    },
-    include: {
-      user: true,
-    },
-  });
+  const { data: session } = await supabaseAdmin
+    .from("Session")
+    .select("*, user:User(*)")
+    .eq("id", sessionToken)
+    .gt("expiresAt", new Date().toISOString())
+    .maybeSingle();
 
-  return session?.user ?? null;
+  if (!session) return null;
+
+  const u = Array.isArray(session.user) ? session.user[0] : session.user;
+  return u ?? null;
 }

@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { prisma } from "@/lib/prisma";
+import { supabaseAdmin } from "@/lib/supabase";
+import { randomUUID } from "node:crypto";
 import * as cookie from "cookie";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -12,15 +13,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(400).json({ message: "Nome e Email são obrigatórios." });
       }
 
-      const lead = await prisma.lead.create({
-        data: {
-          nome,
-          email,
-          whatsapp,
-          mensagem,
-        },
-      });
+      const { data: lead, error } = await supabaseAdmin
+        .from("Lead")
+        .insert({ id: randomUUID(), nome, email, whatsapp, mensagem })
+        .select("*")
+        .single();
 
+      if (error) throw new Error(error.message);
       return res.status(201).json(lead);
     } catch (error) {
       console.error("Erro ao criar lead:", error);
@@ -38,22 +37,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(401).json({ message: "Não autorizado." });
       }
 
-      const session = await prisma.session.findUnique({
-        where: { id: sessionId },
-        include: { user: true },
-      });
+      const { data: session } = await supabaseAdmin
+        .from("Session")
+        .select("*, user:User(id,email,role)")
+        .eq("id", sessionId)
+        .maybeSingle();
 
-      if (!session || new Date((session as any).expiresAt) < new Date()) {
+      if (!session || new Date(session.expiresAt) < new Date()) {
         return res.status(401).json({ message: "Sessão inválida ou expirada." });
       }
 
-      // Check for Admin role if necessary
-      // if (session.user.role !== "ADMIN") return res.status(403).json({ message: "Acesso negado." });
+      const { data: leads } = await supabaseAdmin
+        .from("Lead")
+        .select("*")
+        .order("createdAt", { ascending: false });
 
-      const leads = await prisma.lead.findMany({
-        orderBy: { createdAt: "desc" },
-      });
-      return res.status(200).json(leads);
+      return res.status(200).json(leads ?? []);
     } catch (error) {
       console.error("Erro ao buscar leads:", error);
       return res.status(500).json({ message: "Erro ao buscar leads.", error: String(error) });

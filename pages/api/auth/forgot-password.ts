@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { randomBytes } from "node:crypto";
-import { prisma } from "@/lib/prisma";
+import { randomBytes, randomUUID } from "node:crypto";
+import { supabaseAdmin } from "@/lib/supabase";
 import { Resend } from "resend";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -15,18 +15,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const user = await prisma.user.findUnique({ where: { email } });
+    const { data: user } = await supabaseAdmin
+      .from("User")
+      .select("id,email,name")
+      .eq("email", email)
+      .maybeSingle();
 
     if (user) {
       // Remove tokens antigos deste usuário
-      await prisma.passwordResetToken.deleteMany({ where: { userId: user.id } });
+      await supabaseAdmin.from("PasswordResetToken").delete().eq("userId", user.id);
 
       // Gera token seguro
       const token = randomBytes(32).toString("hex");
-      const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hora
+      const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString(); // 1 hora
 
-      await prisma.passwordResetToken.create({
-        data: { token, userId: user.id, expiresAt },
+      await supabaseAdmin.from("PasswordResetToken").insert({
+        id: randomUUID(),
+        token,
+        userId: user.id,
+        expiresAt,
       });
 
       const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? "https://corretor-de-imoveis-mu.vercel.app";

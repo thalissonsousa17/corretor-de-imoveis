@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { supabaseAdmin } from "@/lib/supabase";
 import { NextApiRequest, NextApiResponse } from "next";
 import { resolveFotoUrl } from "@/lib/imageUtils";
 
@@ -7,33 +7,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (typeof slug !== "string") return res.status(400).json({ message: "Slug inválido" });
 
   try {
-    const profile = await prisma.corretorProfile.findUnique({
-      where: { slug },
-      include: { user: true },
-    });
+    const { data: profile } = await supabaseAdmin
+      .from("CorretorProfile")
+      .select("*, user:User(name)")
+      .eq("slug", slug)
+      .maybeSingle();
+
     if (!profile) return res.status(404).json({ message: "Corretor não encontrado" });
 
-    const imoveis = await prisma.imovel.findMany({
-      where: {
-        corretorId: profile.userId,
-        finalidade: "VENDA",
-        status: "DISPONIVEL",
-      },
-      orderBy: { createdAt: "desc" },
-      take: 20,
-      include: {
-        fotos: {
-          orderBy: {
-            ordem: "asc",
-          },
-          take: 1,
-        },
-      },
-    });
+    const { data: imoveisRaw } = await supabaseAdmin
+      .from("Imovel")
+      .select("*, fotos:Foto(*)")
+      .eq("corretorId", profile.userId)
+      .eq("finalidade", "VENDA")
+      .eq("status", "DISPONIVEL")
+      .order("createdAt", { ascending: false })
+      .limit(20);
+
+    const user = Array.isArray(profile.user) ? profile.user[0] : profile.user;
+
     res.json({
       corretor: {
         id: profile.userId,
-        name: profile.user.name,
+        name: user?.name,
         creci: profile.creci,
         slug: profile.slug,
         avatarUrl: resolveFotoUrl(profile.avatarUrl),
@@ -44,13 +40,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         linkedin: profile.linkedin,
         logoUrl: resolveFotoUrl(profile.logoUrl),
       },
-      imoveis: (imoveis || []).map((im) => ({
-        ...im,
-        fotos: (im.fotos || []).map((f: { url: string | null; [key: string]: unknown }) => ({
-          ...f,
-          url: resolveFotoUrl(f.url),
-        })),
-      })),
+      imoveis: (imoveisRaw ?? []).map((im: any) => {
+        const fotosOrdenadas = (im.fotos ?? []).sort(
+          (a: any, b: any) => (a.ordem ?? 0) - (b.ordem ?? 0)
+        );
+        return {
+          ...im,
+          fotos: fotosOrdenadas.map((f: any) => ({
+            ...f,
+            url: resolveFotoUrl(f.url),
+          })),
+        };
+      }),
     });
   } catch (e) {
     console.error(e);

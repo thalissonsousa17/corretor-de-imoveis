@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { prisma } from "@/lib/prisma";
+import { supabaseAdmin } from "@/lib/supabase";
 import { getUserFromApiRequest } from "@/lib/auth-api";
 import { verificarCnameDominio } from "@/lib/dns";
 
@@ -13,41 +13,42 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ error: "Não autenticado" });
   }
 
-  // 🔹 Verifica plano
-  const profile = await prisma.corretorProfile.findUnique({
-    where: { userId: user.id },
-    select: { plano: true },
-  });
+  // Verifica plano
+  const { data: profile } = await supabaseAdmin
+    .from("CorretorProfile")
+    .select("plano")
+    .eq("userId", user.id)
+    .maybeSingle();
 
   if (!profile || (profile.plano !== "EXPERT" && profile.plano !== "GRATUITO")) {
     return res.status(403).json({ error: "Plano necessário" });
   }
 
-  // 🔹 Busca domínio do usuário
-  const dominio = await prisma.dominio.findFirst({
-    where: {
-      userId: user.id,
-    },
-  });
+  // Busca domínio do usuário
+  const { data: dominio } = await supabaseAdmin
+    .from("Dominio")
+    .select("*")
+    .eq("userId", user.id)
+    .maybeSingle();
 
   if (!dominio) {
     return res.status(400).json({ error: "Nenhum domínio para verificar" });
   }
 
-  // 🔹 Verifica DNS
+  // Verifica DNS
   const resultado = await verificarCnameDominio(dominio.dominio);
-  const agora = new Date();
+  const agora = new Date().toISOString();
 
   const novoStatus = resultado.ok ? "ATIVO" : "PENDENTE";
 
-  await prisma.dominio.update({
-    where: { id: dominio.id },
-    data: {
+  await supabaseAdmin
+    .from("Dominio")
+    .update({
       status: novoStatus,
       verificadoEm: resultado.ok ? agora : null,
       ultimaVerificacao: agora,
-    },
-  });
+    })
+    .eq("id", dominio.id);
 
   return res.status(200).json({
     ok: resultado.ok,

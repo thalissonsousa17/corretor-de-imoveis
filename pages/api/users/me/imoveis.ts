@@ -1,22 +1,22 @@
 import { NextApiResponse } from "next";
 import { resolveFotoUrl } from "../../../../lib/imageUtils";
-import { prisma } from "../../../../lib/prisma";
+import { supabaseAdmin } from "../../../../lib/supabase";
 import { AuthApiRequest, authorize } from "../../../../lib/authMiddleware";
 
 const handleGetCorretorImoveis = async (req: AuthApiRequest, res: NextApiResponse) => {
   const corretorId = req.user!.id;
 
   try {
-    const imoveis = await prisma.imovel.findMany({
-      where: { corretorId: corretorId },
-      include: { fotos: true }, // Inclua as fotos para exibir no painel de gerenciamento
-      orderBy: { createdAt: "desc" },
-    });
+    const { data: imoveis } = await supabaseAdmin
+      .from("Imovel")
+      .select("*, fotos:Foto(*)")
+      .eq("corretorId", corretorId)
+      .order("createdAt", { ascending: false });
 
     return res.status(200).json(
-      (imoveis || []).map((im) => ({
+      (imoveis ?? []).map((im: any) => ({
         ...im,
-        fotos: (im.fotos || []).map((f: { url: string | null; [key: string]: unknown }) => ({
+        fotos: (im.fotos ?? []).map((f: any) => ({
           ...f,
           url: resolveFotoUrl(f.url),
         })),

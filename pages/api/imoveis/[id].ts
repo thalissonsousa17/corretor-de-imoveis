@@ -1,12 +1,12 @@
 import type { NextApiResponse } from "next";
-import { prisma } from "../../../lib/prisma";
+import { supabaseAdmin } from "../../../lib/supabase";
+import { uploadFotoToStorage, deleteFotoFromStorage } from "../../../lib/storageUtils";
 import { AuthApiRequest, authorize } from "../../../lib/authMiddleware";
-import fs from "fs/promises";
-import path from "path";
-import type { Imovel, Foto, ImovelStatus } from "@/lib/types";
-import formidable from "formidable";
-import crypto from "crypto";
+import type { Imovel, ImovelStatus } from "@/lib/types";
 import { resolveFotoUrl } from "../../../lib/imageUtils";
+import { randomUUID } from "node:crypto";
+import formidable from "formidable";
+import fs from "fs/promises";
 
 export const config = {
   api: {
@@ -14,17 +14,10 @@ export const config = {
   },
 };
 
-const getUploadDir = () => process.env.UPLOAD_DIR || path.join(process.cwd(), "public", "uploads");
-const UPLOAD_DIR_ABSOLUTE = getUploadDir();
-
 type UploadedFile = formidable.File & {
   filepath?: string;
   path?: string;
 };
-
-async function filtrarFotosValidas(fotos: Foto[]): Promise<Foto[]> {
-  return fotos;
-}
 
 /* --- DELETE --- */
 const handleDelete = async (req: AuthApiRequest, res: NextApiResponse) => {
@@ -32,28 +25,22 @@ const handleDelete = async (req: AuthApiRequest, res: NextApiResponse) => {
   if (typeof id !== "string") return res.status(400).json({ message: "ID inválido." });
 
   try {
-    const imovel = await prisma.imovel.findUnique({
-      where: { id },
-      include: { fotos: true },
-    });
+    const { data: imovel } = await supabaseAdmin
+      .from("Imovel")
+      .select("*, fotos:Foto(*)")
+      .eq("id", id)
+      .maybeSingle();
 
     if (!imovel) return res.status(404).json({ message: "Imóvel não encontrado." });
     if (imovel.corretorId !== req.user!.id)
       return res.status(403).json({ message: "Acesso negado." });
 
     await Promise.all(
-      imovel.fotos.map(async (foto) => {
-        try {
-          const fileName = path.basename(foto.url);
-          await fs.unlink(path.join(UPLOAD_DIR_ABSOLUTE, fileName));
-        } catch (error) {
-          console.error(`Erro ao deletar arquivo de foto:`, error);
-        }
-      })
+      (imovel.fotos ?? []).map((foto: any) => deleteFotoFromStorage(foto.url))
     );
 
-    await prisma.foto.deleteMany({ where: { imovelId: id } });
-    await prisma.imovel.delete({ where: { id } });
+    await supabaseAdmin.from("Foto").delete().eq("imovelId", id);
+    await supabaseAdmin.from("Imovel").delete().eq("id", id);
 
     res.status(204).end();
   } catch (error) {
@@ -80,10 +67,11 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse) => {
       });
     });
 
-    const imovelExistente = await prisma.imovel.findUnique({
-      where: { id },
-      include: { fotos: true },
-    });
+    const { data: imovelExistente } = await supabaseAdmin
+      .from("Imovel")
+      .select("*, fotos:Foto(*)")
+      .eq("id", id)
+      .maybeSingle();
 
     if (!imovelExistente) {
       res.status(404).json({ message: "Imóvel não encontrado." });
@@ -110,7 +98,6 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse) => {
       const preco = parseFloat(String(fields.preco));
       if (!isNaN(preco)) data.preco = preco;
     }
-    // Características do imóvel
     const extraData: Record<string, number | null> = {};
     if (fields.quartos !== undefined) extraData.quartos = fields.quartos ? parseInt(String(fields.quartos)) || null : null;
     if (fields.banheiros !== undefined) extraData.banheiros = fields.banheiros ? parseInt(String(fields.banheiros)) || null : null;
@@ -131,23 +118,12 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse) => {
       } catch {}
     }
 
-    try {
-      await fs.mkdir(UPLOAD_DIR_ABSOLUTE, { recursive: true });
-    } catch {}
-
     if (fotosRemoverIds.length > 0) {
-      const fotosParaExcluir = imovelExistente.fotos.filter((f) => fotosRemoverIds.includes(f.id));
-      await Promise.all(
-        fotosParaExcluir.map(async (foto) => {
-          try {
-            const fileName = path.basename(foto.url);
-            await fs.unlink(path.join(UPLOAD_DIR_ABSOLUTE, fileName));
-          } catch (e) {
-            console.error(`Aviso: Arquivo já não existia: ${foto.url}`);
-          }
-        })
+      const fotosParaExcluir = (imovelExistente.fotos ?? []).filter((f: any) =>
+        fotosRemoverIds.includes(f.id)
       );
-      await prisma.foto.deleteMany({ where: { id: { in: fotosRemoverIds } } });
+      await Promise.all(fotosParaExcluir.map((foto: any) => deleteFotoFromStorage(foto.url)));
+      await supabaseAdmin.from("Foto").delete().in("id", fotosRemoverIds);
     }
 
     /* ===== ADICIONAR FOTOS ===== */
@@ -158,62 +134,63 @@ const handlePut = async (req: AuthApiRequest, res: NextApiResponse) => {
         : [];
 
     if (fotosFiles.length > 0) {
-      const ultimaFoto = await prisma.foto.findFirst({
-        where: { imovelId: id },
-        orderBy: { ordem: "desc" },
-        select: { ordem: true },
-      });
+      const { data: ultimaFoto } = await supabaseAdmin
+        .from("Foto")
+        .select("ordem")
+        .eq("imovelId", id)
+        .order("ordem", { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
       const ordemBase = ultimaFoto?.ordem ?? 0;
       const fotosData = [];
 
       for (let index = 0; index < fotosFiles.length; index++) {
         const file = fotosFiles[index];
-        const tempPath = file.filepath ?? file.path;
+        const tempPath = file.filepath ?? (file as any).path;
         if (!tempPath) continue;
 
-        const originalExt = path.extname(file.originalFilename || "").toLowerCase() || ".jpg";
-        const fileName = `${Date.now()}-${crypto.randomBytes(4).toString("hex")}${originalExt}`;
-        const finalPath = path.join(UPLOAD_DIR_ABSOLUTE, fileName);
-
         try {
-          await fs.rename(tempPath, finalPath);
+          const buffer = await fs.readFile(tempPath);
+          const url = await uploadFotoToStorage(buffer, file.originalFilename ?? "foto.jpg");
+          await fs.unlink(tempPath).catch(() => {});
           fotosData.push({
-            url: `/uploads/${fileName}`,
+            id: randomUUID(),
+            url,
             ordem: ordemBase + index + 1,
             imovelId: id,
             principal: false,
           });
         } catch (moveError) {
-          console.error("Erro ao mover arquivo:", moveError);
+          console.error("Erro ao enviar foto:", moveError);
         }
       }
 
       if (fotosData.length > 0) {
-        await prisma.foto.createMany({ data: fotosData });
+        await supabaseAdmin.from("Foto").insert(fotosData);
       }
     }
 
-    await prisma.imovel.update({ where: { id }, data });
+    if (Object.keys(data).length > 0) {
+      await supabaseAdmin.from("Imovel").update(data).eq("id", id);
+    }
 
-    const imovelAtualizado = await prisma.imovel.findUnique({
-      where: { id },
-      include: { fotos: true },
-    });
+    const { data: imovelAtualizado } = await supabaseAdmin
+      .from("Imovel")
+      .select("*, fotos:Foto(*)")
+      .eq("id", id)
+      .maybeSingle();
 
     if (!imovelAtualizado) return res.status(404).json({ message: "Erro ao recuperar imóvel." });
 
     (imovelAtualizado as any).fotos?.sort((a: any, b: any) => (a.ordem ?? 0) - (b.ordem ?? 0));
 
-    const fotosFormatadas = (imovelAtualizado as any).fotos.map((f: any) => ({
+    const fotosFormatadas = ((imovelAtualizado as any).fotos ?? []).map((f: any) => ({
       ...f,
       url: resolveFotoUrl(f.url),
     }));
 
-    res.status(200).json({
-      ...imovelAtualizado,
-      fotos: fotosFormatadas,
-    });
+    res.status(200).json({ ...imovelAtualizado, fotos: fotosFormatadas });
   } catch (error) {
     console.error("Erro PUT:", error);
     res.status(500).json({ message: "Erro ao atualizar imóvel." });
@@ -225,24 +202,22 @@ const handleGetById = async (req: AuthApiRequest, res: NextApiResponse) => {
   const { id } = req.query;
   if (typeof id !== "string") return res.status(400).json({ message: "ID inválido." });
 
-  const imovel = await prisma.imovel.findUnique({
-    where: { id },
-    include: { fotos: true },
-  });
+  const { data: imovel } = await supabaseAdmin
+    .from("Imovel")
+    .select("*, fotos:Foto(*)")
+    .eq("id", id)
+    .maybeSingle();
 
   if (!imovel) return res.status(404).json({ message: "Imóvel não encontrado." });
 
   (imovel as any).fotos?.sort((a: any, b: any) => (a.ordem ?? 0) - (b.ordem ?? 0));
 
-  const fotosFormatadas = (imovel as any).fotos.map((f: any) => ({
+  const fotosFormatadas = ((imovel as any).fotos ?? []).map((f: any) => ({
     ...f,
     url: resolveFotoUrl(f.url),
   }));
 
-  return res.status(200).json({
-    ...imovel,
-    fotos: fotosFormatadas,
-  });
+  return res.status(200).json({ ...imovel, fotos: fotosFormatadas });
 };
 
 /* --- PATCH --- */
@@ -252,21 +227,25 @@ const handlePatch = async (req: AuthApiRequest, res: NextApiResponse) => {
 
   if (!id || !status) return res.status(400).json({ message: "Dados inválidos." });
 
-  const updated = await prisma.imovel.update({
-    where: { id: String(id) },
-    data: { status: status as ImovelStatus },
-    include: { fotos: true },
-  });
+  await supabaseAdmin
+    .from("Imovel")
+    .update({ status: status as ImovelStatus })
+    .eq("id", String(id));
 
-  const fotosFormatadas = updated.fotos.map((f) => ({
+  const { data: updated } = await supabaseAdmin
+    .from("Imovel")
+    .select("*, fotos:Foto(*)")
+    .eq("id", String(id))
+    .maybeSingle();
+
+  if (!updated) return res.status(404).json({ message: "Imóvel não encontrado." });
+
+  const fotosFormatadas = ((updated as any).fotos ?? []).map((f: any) => ({
     ...f,
     url: resolveFotoUrl(f.url),
   }));
 
-  return res.status(200).json({
-    ...updated,
-    fotos: fotosFormatadas,
-  });
+  return res.status(200).json({ ...updated, fotos: fotosFormatadas });
 };
 
 /* --- HANDLER --- */

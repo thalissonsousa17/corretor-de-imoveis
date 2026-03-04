@@ -1,7 +1,7 @@
 import type { NextApiResponse } from "next";
 import type { AuthApiRequest } from "../../../lib/authMiddleware";
 import bcrypt from "bcryptjs";
-import { prisma } from "../../../lib/prisma";
+import { supabaseAdmin } from "../../../lib/supabase";
 import { authorize } from "../../../lib/authMiddleware";
 
 export const config = {
@@ -9,23 +9,24 @@ export const config = {
 };
 
 async function handler(req: AuthApiRequest, res: NextApiResponse) {
-  const user = req.user!;
-  const userId = user.id;
+  const userId = req.user!.id;
 
   if (req.method !== "PUT") {
     return res.status(405).json({ error: `Método ${req.method} não permitido.` });
   }
 
   try {
-    const { emailAtual, emailNovo, senhaAtual, senhaNova } = req.body;
+    const { emailNovo, senhaAtual, senhaNova } = req.body;
 
     if (!senhaAtual || !senhaNova) {
       return res.status(400).json({ error: "Senha atual e nova são obrigatórias." });
     }
 
-    const existingUser = await prisma.user.findUnique({
-      where: { id: userId },
-    });
+    const { data: existingUser } = await supabaseAdmin
+      .from("User")
+      .select("id,email,password")
+      .eq("id", userId)
+      .maybeSingle();
 
     if (!existingUser) {
       return res.status(404).json({ error: "Usuário não encontrado." });
@@ -41,17 +42,18 @@ async function handler(req: AuthApiRequest, res: NextApiResponse) {
     };
 
     if (emailNovo && emailNovo !== existingUser.email) {
-      const emailExistente = await prisma.user.findUnique({ where: { email: emailNovo } });
+      const { data: emailExistente } = await supabaseAdmin
+        .from("User")
+        .select("id")
+        .eq("email", emailNovo)
+        .maybeSingle();
       if (emailExistente) {
         return res.status(400).json({ error: "Este e-mail já está em uso." });
       }
       updateData.email = emailNovo;
     }
 
-    await prisma.user.update({
-      where: { id: userId },
-      data: updateData,
-    });
+    await supabaseAdmin.from("User").update(updateData).eq("id", userId);
 
     return res.status(200).json({ message: "Credenciais atualizadas com sucesso." });
   } catch (error) {

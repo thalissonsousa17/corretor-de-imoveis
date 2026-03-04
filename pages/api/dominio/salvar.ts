@@ -1,7 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { prisma } from "@/lib/prisma";
+import { supabaseAdmin } from "@/lib/supabase";
+import { randomUUID } from "node:crypto";
 import { getUserFromApiRequest } from "@/lib/auth-api";
-import { verificarCnameDominio } from "@/lib/dns"; // ← ADICIONAR
+import { verificarCnameDominio } from "@/lib/dns";
 
 function normalizarDominio(dominio: string) {
   return dominio
@@ -41,45 +42,46 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ error: "Este domínio não pode ser utilizado" });
   }
 
-  // 🔹 Verifica se domínio já está em uso
-  const dominioEmUso = await prisma.dominio.findFirst({
-    where: {
-      dominio: dominioNormalizado,
-      NOT: { userId: user.id },
-    },
-  });
+  // Verifica se domínio já está em uso por outro usuário
+  const { data: dominioEmUso } = await supabaseAdmin
+    .from("Dominio")
+    .select("id")
+    .eq("dominio", dominioNormalizado)
+    .neq("userId", user.id)
+    .maybeSingle();
 
   if (dominioEmUso) {
     return res.status(409).json({ error: "Domínio já está em uso por outro corretor" });
   }
 
   const dnsCheck = await verificarCnameDominio(dominioNormalizado);
-  const agora = new Date();
+  const agora = new Date().toISOString();
   const novoStatus = dnsCheck.ok ? "ATIVO" : "PENDENTE";
 
-  const dominioExistente = await prisma.dominio.findFirst({
-    where: { userId: user.id },
-  });
+  const { data: dominioExistente } = await supabaseAdmin
+    .from("Dominio")
+    .select("id")
+    .eq("userId", user.id)
+    .maybeSingle();
 
   if (dominioExistente) {
-    await prisma.dominio.update({
-      where: { id: dominioExistente.id },
-      data: {
+    await supabaseAdmin
+      .from("Dominio")
+      .update({
         dominio: dominioNormalizado,
         status: novoStatus,
         verificadoEm: dnsCheck.ok ? agora : null,
         ultimaVerificacao: agora,
-      },
-    });
+      })
+      .eq("id", dominioExistente.id);
   } else {
-    await prisma.dominio.create({
-      data: {
-        dominio: dominioNormalizado,
-        status: novoStatus,
-        userId: user.id,
-        verificadoEm: dnsCheck.ok ? agora : null,
-        ultimaVerificacao: agora,
-      },
+    await supabaseAdmin.from("Dominio").insert({
+      id: randomUUID(),
+      dominio: dominioNormalizado,
+      status: novoStatus,
+      userId: user.id,
+      verificadoEm: dnsCheck.ok ? agora : null,
+      ultimaVerificacao: agora,
     });
   }
 

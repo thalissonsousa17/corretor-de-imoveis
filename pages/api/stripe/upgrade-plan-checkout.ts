@@ -1,12 +1,10 @@
 import type { NextApiResponse } from "next";
 import Stripe from "stripe";
-import { prisma } from "@/lib/prisma";
+import { supabaseAdmin } from "@/lib/supabase";
 import { AuthApiRequest, authorize } from "@/lib/authMiddleware";
 
-// const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-//   apiVersion: "2025-11-17.clover",
-// });
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
+
 type Body = {
   priceId?: string;
 };
@@ -42,13 +40,11 @@ export default authorize(async (req: AuthApiRequest, res: NextApiResponse<Ok | E
       return res.status(500).json({ ok: false, error: "NEXT_PUBLIC_BASE_URL não configurada" });
     }
 
-    const profile = await prisma.corretorProfile.findUnique({
-      where: { userId: req.user.id },
-      select: {
-        stripeCustomerId: true,
-        stripeSubscriptionId: true,
-      },
-    });
+    const { data: profile } = await supabaseAdmin
+      .from("CorretorProfile")
+      .select("stripeCustomerId,stripeSubscriptionId")
+      .eq("userId", req.user.id)
+      .maybeSingle();
 
     if (!profile?.stripeCustomerId || !profile.stripeSubscriptionId) {
       return res.status(400).json({

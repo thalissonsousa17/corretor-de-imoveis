@@ -1,7 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { prisma } from "@/lib/prisma";
+import { supabaseAdmin } from "@/lib/supabase";
+import { randomUUID } from "node:crypto";
 import { getUserFromApiRequest } from "@/lib/auth-api";
-import { verificarCnameDominio } from "@/lib/dns"; // ← IMPORTAR
+import { verificarCnameDominio } from "@/lib/dns";
 
 interface DominioRequestBody {
   dominio?: string;
@@ -47,21 +48,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .json({ error: "Sessão não encontrada. Por favor, faça login novamente." });
     }
 
-    // 🔹 GET — carregar domínio do usuário
+    // GET — carregar domínio do usuário
     if (req.method === "GET") {
-      const dominio = await prisma.dominio.findFirst({
-        where: { userId: user.id },
-        select: {
-          dominio: true,
-          status: true,
-          verificadoEm: true,
-          ultimaVerificacao: true,
-        },
-      });
+      const { data: dominio } = await supabaseAdmin
+        .from("Dominio")
+        .select("dominio,status,verificadoEm,ultimaVerificacao")
+        .eq("userId", user.id)
+        .maybeSingle();
+
       return res.status(200).json(dominio);
     }
 
-    // 🔹 POST — salvar / atualizar domínio
+    // POST — salvar / atualizar domínio
     if (req.method === "POST") {
       const { dominio } = req.body as DominioRequestBody;
 
@@ -71,13 +69,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       const dominioNormalizado = normalizarDominio(dominio);
 
-      // 🔒 Verificar se o domínio já está em uso por outro usuário
-      const dominioEmUso = await prisma.dominio.findFirst({
-        where: {
-          dominio: dominioNormalizado,
-          NOT: { userId: user.id },
-        },
-      });
+      // Verificar se o domínio já está em uso por outro usuário
+      const { data: dominioEmUso } = await supabaseAdmin
+        .from("Dominio")
+        .select("id")
+        .eq("dominio", dominioNormalizado)
+        .neq("userId", user.id)
+        .maybeSingle();
 
       if (dominioEmUso) {
         return res
@@ -85,40 +83,40 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           .json({ error: "Este domínio já está sendo utilizado por outro corretor." });
       }
 
-      // ✅ VERIFICAR DNS AUTOMATICAMENTE
+      // Verificar DNS automaticamente
       const dnsCheck = await verificarCnameDominio(dominioNormalizado);
 
       const novoStatus = dnsCheck.ok ? "ATIVO" : "PENDENTE";
-      const agora = new Date();
+      const agora = new Date().toISOString();
 
-      // 🔍 Upsert manual para garantir integridade
-      const dominioExistente = await prisma.dominio.findFirst({
-        where: { userId: user.id },
-      });
+      // Upsert manual para garantir integridade
+      const { data: dominioExistente } = await supabaseAdmin
+        .from("Dominio")
+        .select("id")
+        .eq("userId", user.id)
+        .maybeSingle();
 
       if (dominioExistente) {
-        await prisma.dominio.update({
-          where: { id: dominioExistente.id },
-          data: {
+        await supabaseAdmin
+          .from("Dominio")
+          .update({
             dominio: dominioNormalizado,
             status: novoStatus,
             verificadoEm: dnsCheck.ok ? agora : null,
             ultimaVerificacao: agora,
-          },
-        });
+          })
+          .eq("id", dominioExistente.id);
       } else {
-        await prisma.dominio.create({
-          data: {
-            dominio: dominioNormalizado,
-            userId: user.id,
-            status: novoStatus,
-            verificadoEm: dnsCheck.ok ? agora : null,
-            ultimaVerificacao: agora,
-          },
+        await supabaseAdmin.from("Dominio").insert({
+          id: randomUUID(),
+          dominio: dominioNormalizado,
+          userId: user.id,
+          status: novoStatus,
+          verificadoEm: dnsCheck.ok ? agora : null,
+          ultimaVerificacao: agora,
         });
       }
 
-      // ✅ Retornar mensagem apropriada baseada no resultado
       if (dnsCheck.ok) {
         return res.status(200).json({
           mensagem: "Domínio salvo e verificado com sucesso! Já está ativo.",

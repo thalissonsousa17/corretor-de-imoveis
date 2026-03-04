@@ -1,5 +1,5 @@
 import type { NextApiResponse } from "next";
-import { prisma } from "@/lib/prisma";
+import { supabaseAdmin } from "@/lib/supabase";
 import { AuthApiRequest, authorize } from "@/lib/authMiddleware";
 
 async function handler(req: AuthApiRequest, res: NextApiResponse) {
@@ -11,15 +11,15 @@ async function handler(req: AuthApiRequest, res: NextApiResponse) {
 
   try {
     const agora = new Date();
-    const inicioMes = new Date(agora.getFullYear(), agora.getMonth(), 1);
-    const inicio30d = new Date(agora.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const inicioMes = new Date(agora.getFullYear(), agora.getMonth(), 1).toISOString();
+    const inicio30d = new Date(agora.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
 
-    // IDs dos imoveis do corretor
-    const imoveisDoCorretor = await prisma.imovel.findMany({
-      where: { corretorId },
-      select: { id: true, titulo: true },
-    });
-    const imovelIds = imoveisDoCorretor.map((i) => i.id);
+    const { data: imoveisDoCorretor } = await supabaseAdmin
+      .from("Imovel")
+      .select("id,titulo")
+      .eq("corretorId", corretorId);
+
+    const imovelIds = (imoveisDoCorretor ?? []).map((i) => i.id);
 
     if (imovelIds.length === 0) {
       return res.status(200).json({
@@ -30,37 +30,32 @@ async function handler(req: AuthApiRequest, res: NextApiResponse) {
       });
     }
 
-    // Views este mes
-    const viewsMes = await prisma.imovelView.count({
-      where: {
-        imovelId: { in: imovelIds },
-        createdAt: { gte: inicioMes },
-      },
-    });
+    const { count: viewsMes } = await supabaseAdmin
+      .from("ImovelView")
+      .select("*", { count: "exact", head: true })
+      .in("imovelId", imovelIds)
+      .gte("createdAt", inicioMes);
 
-    // Views total
-    const viewsTotal = await prisma.imovelView.count({
-      where: { imovelId: { in: imovelIds } },
-    });
+    const { count: viewsTotal } = await supabaseAdmin
+      .from("ImovelView")
+      .select("*", { count: "exact", head: true })
+      .in("imovelId", imovelIds);
 
-    // Views diarias (ultimos 30 dias)
-    const viewsRaw = await prisma.imovelView.findMany({
-      where: {
-        imovelId: { in: imovelIds },
-        createdAt: { gte: inicio30d },
-      },
-      select: { createdAt: true },
-      orderBy: { createdAt: "asc" },
-    });
+    const { data: viewsRaw } = await supabaseAdmin
+      .from("ImovelView")
+      .select("createdAt")
+      .in("imovelId", imovelIds)
+      .gte("createdAt", inicio30d)
+      .order("createdAt", { ascending: true });
 
     // Agrupar por dia
     const viewsPorDia: Record<string, number> = {};
     for (let d = 0; d < 30; d++) {
-      const date = new Date(inicio30d.getTime() + d * 24 * 60 * 60 * 1000);
+      const date = new Date(new Date(inicio30d).getTime() + d * 24 * 60 * 60 * 1000);
       const key = date.toISOString().slice(0, 10);
       viewsPorDia[key] = 0;
     }
-    for (const v of viewsRaw) {
+    for (const v of viewsRaw ?? []) {
       const key = (v.createdAt as string).slice(0, 10);
       if (viewsPorDia[key] !== undefined) {
         viewsPorDia[key]++;
@@ -71,28 +66,31 @@ async function handler(req: AuthApiRequest, res: NextApiResponse) {
       views: count,
     }));
 
-    // Top 5 imoveis por views (este mes)
-    const topImoveisRaw = await prisma.imovelView.groupBy({
-      by: ["imovelId"],
-      where: {
-        imovelId: { in: imovelIds },
-        createdAt: { gte: inicioMes },
-      },
-      _count: { id: true },
-      orderBy: { _count: { id: "desc" } },
-      take: 5,
-    });
+    // Top 5 imoveis por views (este mes) — agrupar em JS
+    const { data: viewsMesRaw } = await supabaseAdmin
+      .from("ImovelView")
+      .select("imovelId")
+      .in("imovelId", imovelIds)
+      .gte("createdAt", inicioMes);
 
-    const titulosMap = new Map(imoveisDoCorretor.map((i) => [i.id, i.titulo]));
-    const topImoveis = topImoveisRaw.map((t) => ({
-      imovelId: t.imovelId,
-      titulo: titulosMap.get(t.imovelId) || "Imovel",
-      views: t._count.id,
-    }));
+    const countPerImovel: Record<string, number> = {};
+    for (const v of viewsMesRaw ?? []) {
+      countPerImovel[v.imovelId] = (countPerImovel[v.imovelId] ?? 0) + 1;
+    }
+
+    const titulosMap = new Map((imoveisDoCorretor ?? []).map((i) => [i.id, i.titulo]));
+    const topImoveis = Object.entries(countPerImovel)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([imovelId, views]) => ({
+        imovelId,
+        titulo: titulosMap.get(imovelId) || "Imovel",
+        views,
+      }));
 
     return res.status(200).json({
-      viewsMes,
-      viewsTotal,
+      viewsMes: viewsMes ?? 0,
+      viewsTotal: viewsTotal ?? 0,
       viewsDiarias,
       topImoveis,
     });

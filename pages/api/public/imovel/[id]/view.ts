@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { prisma } from "@/lib/prisma";
+import { supabaseAdmin } from "@/lib/supabase";
+import { randomUUID } from "node:crypto";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
@@ -10,14 +11,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     // Verificar se o imovel existe
-    const imovel = await prisma.imovel.findUnique({ where: { id: imovelId }, select: { id: true } });
+    const { data: imovel } = await supabaseAdmin
+      .from("Imovel")
+      .select("id")
+      .eq("id", imovelId)
+      .maybeSingle();
+
     if (!imovel) {
       return res.status(404).json({ message: "Imovel nao encontrado." });
     }
 
-    await prisma.imovelView.create({
-      data: { imovelId },
-    });
+    await supabaseAdmin.from("ImovelView").insert({ id: randomUUID(), imovelId });
 
     return res.status(201).json({ ok: true });
   } catch (error) {

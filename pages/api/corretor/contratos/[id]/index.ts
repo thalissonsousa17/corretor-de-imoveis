@@ -1,6 +1,6 @@
 import type { NextApiResponse } from "next";
 import { authorize, AuthApiRequest } from "@/lib/authMiddleware";
-import { prisma } from "@/lib/prisma";
+import { supabaseAdmin } from "@/lib/supabase";
 
 export default authorize(async function handler(req: AuthApiRequest, res: NextApiResponse) {
   const userId = req.user?.id;
@@ -16,18 +16,25 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
     }
 
     try {
-      const contrato = await prisma.contrato.findFirst({
-        where: { id, corretorId: userId },
-      });
+      const { data: contrato } = await supabaseAdmin
+        .from("Contrato")
+        .select("id")
+        .eq("id", id)
+        .eq("corretorId", userId)
+        .maybeSingle();
 
       if (!contrato) {
         return res.status(404).json({ error: "Contrato não encontrado" });
       }
 
-      const atualizado = await prisma.contrato.update({
-        where: { id },
-        data: { titulo, conteudo },
-      });
+      const { data: atualizado, error } = await supabaseAdmin
+        .from("Contrato")
+        .update({ titulo, conteudo })
+        .eq("id", id)
+        .select("*")
+        .single();
+
+      if (error) throw new Error(error.message);
 
       return res.status(200).json(atualizado);
     } catch (error) {
@@ -38,15 +45,18 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
 
   if (req.method === "DELETE") {
     try {
-      const contrato = await prisma.contrato.findFirst({
-        where: { id, corretorId: userId },
-      });
+      const { data: contrato } = await supabaseAdmin
+        .from("Contrato")
+        .select("id")
+        .eq("id", id)
+        .eq("corretorId", userId)
+        .maybeSingle();
 
       if (!contrato) {
         return res.status(404).json({ error: "Contrato não encontrado" });
       }
 
-      await prisma.contrato.delete({ where: { id } });
+      await supabaseAdmin.from("Contrato").delete().eq("id", id);
       return res.status(200).json({ ok: true });
     } catch (error) {
       console.error(error);

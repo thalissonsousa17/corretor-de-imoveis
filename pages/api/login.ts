@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { prisma } from "../../lib/prisma";
+import { supabaseAdmin } from "@/lib/supabase";
 import bcrypt from "bcryptjs";
-import { v4 as uuidv4 } from "uuid";
+import { randomUUID } from "node:crypto";
 import * as cookie from "cookie";
 import { cookieOptions } from "@/lib/cookies";
 import { serialize } from "cookie";
@@ -14,7 +14,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { email, password } = req.body;
 
   try {
-    const user = await prisma.user.findUnique({ where: { email } });
+    const { data: user } = await supabaseAdmin
+      .from("User")
+      .select("*")
+      .eq("email", email)
+      .maybeSingle();
 
     if (!user) return res.status(401).json({ message: "Usuário não encontrado" });
 
@@ -22,12 +26,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (!senhaValida) return res.status(401).json({ message: "Credenciais inválidas" });
 
-    const sessionId = uuidv4();
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    const sessionId = randomUUID();
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
 
-    await prisma.session.create({
-      data: { id: sessionId, userId: user.id, expiresAt },
-    });
+    await supabaseAdmin.from("Session").insert({ id: sessionId, userId: user.id, expiresAt });
 
     res.setHeader(
       "Set-Cookie",

@@ -1,6 +1,6 @@
 import type { NextApiResponse } from "next";
 import Stripe from "stripe";
-import { prisma } from "@/lib/prisma";
+import { supabaseAdmin } from "@/lib/supabase";
 import { AuthApiRequest, authorize } from "@/lib/authMiddleware";
 
 type PaymentChoice = "KEEP_CARD" | "CHANGE_CARD";
@@ -58,14 +58,11 @@ export default authorize(
       const userId = req.user.id;
       const choice: PaymentChoice = paymentChoice ?? "KEEP_CARD";
 
-      const profile = await prisma.corretorProfile.findUnique({
-        where: { userId },
-        select: {
-          userId: true,
-          stripeCustomerId: true,
-          stripeSubscriptionId: true,
-        },
-      });
+      const { data: profile } = await supabaseAdmin
+        .from("CorretorProfile")
+        .select("userId,stripeCustomerId,stripeSubscriptionId")
+        .eq("userId", userId)
+        .maybeSingle();
 
       if (!profile) {
         res.status(404).json({ ok: false, error: "Perfil de corretor não encontrado" });
@@ -94,15 +91,8 @@ export default authorize(
 
         customerId = customer.id;
 
-        await prisma.user.update({
-          where: { id: userId },
-          data: { stripeCustomerId: customerId },
-        });
-
-        await prisma.corretorProfile.update({
-          where: { userId },
-          data: { stripeCustomerId: customerId },
-        });
+        await supabaseAdmin.from("User").update({ stripeCustomerId: customerId }).eq("id", userId);
+        await supabaseAdmin.from("CorretorProfile").update({ stripeCustomerId: customerId }).eq("userId", userId);
       }
 
       // Verificar assinatura existente
@@ -129,8 +119,6 @@ export default authorize(
         res.status(200).json({ ok: true, flow: "CHECKOUT", url: session.url });
         return;
       }
-
-      // =========================
 
       if (choice === "KEEP_CARD") {
         const subscription = await stripe.subscriptions.retrieve(subscriptionId, {
@@ -167,8 +155,6 @@ export default authorize(
           subscriptionId: updated.id,
         });
       }
-
-      // =========================
 
       const setupSession = await stripe.checkout.sessions.create({
         mode: "setup",

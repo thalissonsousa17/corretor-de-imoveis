@@ -1,7 +1,7 @@
 import type { NextApiResponse } from "next";
 import type { AuthApiRequest } from "../../../lib/authMiddleware";
 import { authorize } from "../../../lib/authMiddleware";
-import { prisma } from "../../../lib/prisma";
+import { supabaseAdmin } from "../../../lib/supabase";
 import bcrypt from "bcryptjs";
 
 export default authorize(async function handler(req: AuthApiRequest, res: NextApiResponse) {
@@ -21,7 +21,12 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
       return res.status(400).json({ error: "Preencha todos os campos." });
     }
 
-    const user = await prisma.user.findUnique({ where: { id: userId } });
+    const { data: user } = await supabaseAdmin
+      .from("User")
+      .select("id,password")
+      .eq("id", userId)
+      .maybeSingle();
+
     if (!user) {
       return res.status(404).json({ error: "Usuário não encontrado." });
     }
@@ -33,10 +38,7 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
 
     const novaSenhaHash = await bcrypt.hash(novaSenha, 10);
 
-    await prisma.user.update({
-      where: { id: userId },
-      data: { password: novaSenhaHash },
-    });
+    await supabaseAdmin.from("User").update({ password: novaSenhaHash }).eq("id", userId);
 
     return res.status(200).json({ message: "Senha atualizada com sucesso!" });
   } catch (error) {

@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { prisma } from "../../../lib/prisma";
+import { supabaseAdmin } from "../../../lib/supabase";
 import { authorize } from "../../../lib/authMiddleware";
+import { randomUUID } from "node:crypto";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
@@ -54,24 +55,18 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
 
   if (req.method === "GET") {
     try {
-      const perfil = await prisma.corretorProfile.findUnique({
-        where: { userId },
-        include: {
-          user: {
-            select: {
-              name: true,
-              email: true,
-              stripeCustomerId: true,
-            },
-          },
-        },
-      });
+      const { data: perfil } = await supabaseAdmin
+        .from("CorretorProfile")
+        .select("*, user:User(name,email,stripeCustomerId)")
+        .eq("userId", userId)
+        .maybeSingle();
 
       if (!perfil) {
-        const user = await prisma.user.findUnique({
-          where: { id: userId },
-          select: { name: true, email: true },
-        });
+        const { data: user } = await supabaseAdmin
+          .from("User")
+          .select("name,email")
+          .eq("id", userId)
+          .maybeSingle();
 
         return res.status(200).json({
           plano: "GRATUITO",
@@ -84,24 +79,17 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
         });
       }
 
-      // PostgREST pode retornar user como objeto (many-to-one) ou array — tratar ambos
       const perfilAny = perfil as any;
       const u = Array.isArray(perfilAny.user) ? perfilAny.user[0] : perfilAny.user;
-
       const assinaturaManual = perfilAny.plano !== "GRATUITO" && !perfilAny.stripeSubscriptionId;
 
       return res.status(200).json({
         plano: perfilAny.plano,
         planoStatus: assinaturaManual ? "ATIVO" : perfilAny.planoStatus,
-
         stripeCurrentPeriodEnd: assinaturaManual ? null : perfilAny.stripeCurrentPeriodEnd,
-
         assinaturaCriadaEm: assinaturaManual ? perfilAny.createdAt : perfilAny.assinaturaCriadaEm,
-
         ultimoPagamentoEm: assinaturaManual ? perfilAny.createdAt : perfilAny.ultimoPagamentoEm,
-
         stripeCustomerId: assinaturaManual ? null : (u?.stripeCustomerId ?? null),
-
         creci: perfilAny.creci,
         slug: perfilAny.slug,
         biografia: perfilAny.biografia,
@@ -114,12 +102,10 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
         avatarUrl: perfilAny.avatarUrl,
         bannerUrl: perfilAny.bannerUrl,
         logoUrl: perfilAny.logoUrl,
-
         slogan: perfilAny.slogan,
         accentColor: perfilAny.accentColor,
         videoUrl: perfilAny.videoUrl,
         bioTitle: perfilAny.bioTitle,
-
         name: u?.name ?? "",
         email: u?.email ?? "",
       });
@@ -186,24 +172,34 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
       if (email) userUpdateData.email = email;
 
       if (Object.keys(userUpdateData).length > 0) {
-        await prisma.user.update({
-          where: { id: userId },
-          data: userUpdateData,
-        });
+        await supabaseAdmin.from("User").update(userUpdateData).eq("id", userId);
       }
 
       // ── Slug deduplication ────────────────────────────────────────────────
       let finalSlug = slug ? normalizeSlug(slug) : undefined;
 
       if (finalSlug) {
-        let existing = await prisma.corretorProfile.findUnique({ where: { slug: finalSlug } });
-        let suffix = 1;
+        const { data: existing } = await supabaseAdmin
+          .from("CorretorProfile")
+          .select("userId")
+          .eq("slug", finalSlug)
+          .maybeSingle();
 
-        while (existing && (existing as any).userId !== userId) {
-          finalSlug = normalizeSlug(slug + suffix.toString());
-          existing = await prisma.corretorProfile.findUnique({ where: { slug: finalSlug } });
+        let suffix = 1;
+        let currentExisting = existing;
+        let currentSlug = finalSlug;
+
+        while (currentExisting && (currentExisting as any).userId !== userId) {
+          currentSlug = normalizeSlug(slug + suffix.toString());
+          const { data: next } = await supabaseAdmin
+            .from("CorretorProfile")
+            .select("userId")
+            .eq("slug", currentSlug)
+            .maybeSingle();
+          currentExisting = next;
           suffix++;
         }
+        finalSlug = currentSlug;
       }
 
       // ── Build update payload – strip undefined so Supabase ignores them ───
@@ -227,24 +223,24 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
       if (bannerUrl !== undefined) rawData.bannerUrl = bannerUrl;
       if (logoUrl !== undefined) rawData.logoUrl = logoUrl;
 
-      // Remove keys whose value is undefined so we never send {} to Supabase
       const dataToSave = Object.fromEntries(
         Object.entries(rawData).filter(([, v]) => v !== undefined)
       );
 
       // ── Upsert profile ────────────────────────────────────────────────────
-      const existingPerfil = await prisma.corretorProfile.findUnique({ where: { userId } });
+      const { data: existingPerfil } = await supabaseAdmin
+        .from("CorretorProfile")
+        .select("id")
+        .eq("userId", userId)
+        .maybeSingle();
 
       if (existingPerfil) {
         if (Object.keys(dataToSave).length > 0) {
-          // Use updateMany – no .single() constraint, simpler REST call
-          await prisma.corretorProfile.updateMany({
-            where: { userId },
-            data: dataToSave,
-          });
+          await supabaseAdmin.from("CorretorProfile").update(dataToSave).eq("userId", userId);
         }
       } else {
-        const createData: any = {
+        await supabaseAdmin.from("CorretorProfile").insert({
+          id: randomUUID(),
           userId,
           creci: creci || undefined,
           slug: finalSlug || `corretor-${userId.slice(0, 6)}`,
@@ -260,16 +256,15 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
           ...(avatarUrl !== undefined && { avatarUrl }),
           ...(bannerUrl !== undefined && { bannerUrl }),
           ...(logoUrl !== undefined && { logoUrl }),
-        };
-
-        await prisma.corretorProfile.create({ data: createData });
+        });
       }
 
       // ── Fetch updated profile with user ───────────────────────────────────
-      const perfil = await prisma.corretorProfile.findUnique({
-        where: { userId },
-        include: { user: true },
-      });
+      const { data: perfil } = await supabaseAdmin
+        .from("CorretorProfile")
+        .select("*, user:User(name,email)")
+        .eq("userId", userId)
+        .maybeSingle();
 
       const perfilUser = Array.isArray((perfil as any)?.user)
         ? (perfil as any).user[0]

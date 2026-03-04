@@ -1,5 +1,5 @@
 import { NextApiResponse } from "next";
-import { prisma } from "@/lib/prisma";
+import { supabaseAdmin } from "@/lib/supabase";
 import { AuthApiRequest, authorize } from "@/lib/authMiddleware";
 import { ImovelStatus } from "@/lib/types";
 
@@ -24,23 +24,18 @@ export default authorize(async (req: AuthApiRequest, res: NextApiResponse) => {
       return res.status(400).json({ message: "Status inválido" });
     }
 
-    const imovel = await prisma.imovel.findFirst({
-      where: {
-        id,
-        corretorId: req.user.id,
-      },
-    });
+    const { data: imovel } = await supabaseAdmin
+      .from("Imovel")
+      .select("id")
+      .eq("id", id)
+      .eq("corretorId", req.user.id)
+      .maybeSingle();
 
     if (!imovel) {
       return res.status(404).json({ message: "Imóvel não encontrado" });
     }
 
-    await prisma.imovel.update({
-      where: { id },
-      data: {
-        status: status as ImovelStatus,
-      },
-    });
+    await supabaseAdmin.from("Imovel").update({ status }).eq("id", id);
 
     return res.status(200).json({ ok: true });
   } catch (error) {

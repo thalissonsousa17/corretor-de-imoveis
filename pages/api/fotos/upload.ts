@@ -1,7 +1,7 @@
 import type { NextApiResponse } from "next";
 import { AuthApiRequest, authorize } from "@/lib/authMiddleware";
-import { prisma } from "@/lib/prisma";
 import { supabaseAdmin, STORAGE_BUCKET } from "@/lib/supabase";
+import { randomUUID } from "node:crypto";
 import formidable from "formidable";
 import path from "path";
 import fs from "fs";
@@ -16,7 +16,7 @@ const handlePost = async (req: AuthApiRequest, res: NextApiResponse) => {
   const form = formidable({
     keepExtensions: true,
     maxFiles: 10,
-    maxFileSize: 10 * 1024 * 1024, // 10 MB
+    maxFileSize: 10 * 1024 * 1024,
   });
 
   const { fields, files } = await new Promise<{
@@ -66,10 +66,10 @@ const handlePost = async (req: AuthApiRequest, res: NextApiResponse) => {
           .from(STORAGE_BUCKET)
           .getPublicUrl(storagePath);
 
-        // Limpa o arquivo temporário do disco
         fs.unlinkSync(filePath);
 
         return {
+          id: randomUUID(),
           url: urlData.publicUrl,
           ordem: index + 1,
           imovelId: String(imovelId),
@@ -78,7 +78,7 @@ const handlePost = async (req: AuthApiRequest, res: NextApiResponse) => {
       })
     );
 
-    await prisma.foto.createMany({ data: fotosData });
+    await supabaseAdmin.from("Foto").insert(fotosData);
 
     return res.status(200).json({ message: "Fotos enviadas com sucesso!" });
   } catch (error) {

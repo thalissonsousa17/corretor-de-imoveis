@@ -1,11 +1,8 @@
 import type { NextApiResponse } from "next";
 import { AuthApiRequest, authorize } from "@/lib/authMiddleware";
-import { prisma } from "@/lib/prisma";
+import { supabaseAdmin } from "@/lib/supabase";
 import Stripe from "stripe";
 
-// const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-//   apiVersion: "2025-11-17.clover",
-// });
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
 
 export default authorize(async (req: AuthApiRequest, res: NextApiResponse) => {
@@ -20,12 +17,11 @@ export default authorize(async (req: AuthApiRequest, res: NextApiResponse) => {
       return res.status(401).json({ error: "Usuário não autenticado." });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        stripeCustomerId: true,
-      },
-    });
+    const { data: user } = await supabaseAdmin
+      .from("User")
+      .select("stripeCustomerId")
+      .eq("id", userId)
+      .maybeSingle();
 
     if (!user) {
       return res.status(404).json({ error: "Usuário não encontrado." });

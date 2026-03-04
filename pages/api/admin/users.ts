@@ -1,5 +1,5 @@
 import type { NextApiResponse } from "next";
-import { prisma } from "@/lib/prisma";
+import { supabaseAdmin } from "@/lib/supabase";
 import { AuthApiRequest, authorize } from "@/lib/authMiddleware";
 
 async function handler(req: AuthApiRequest, res: NextApiResponse) {
@@ -8,34 +8,23 @@ async function handler(req: AuthApiRequest, res: NextApiResponse) {
   }
 
   try {
-    const users = await prisma.user.findMany({
-      where: { role: "CORRETOR" },
-      include: {
-        profile: {
-          select: {
-            plano: true,
-            planoStatus: true,
-            creci: true,
-            whatsapp: true,
-            slug: true,
-          },
-        },
-      },
-      orderBy: { createdAt: "desc" },
-    });
+    const { data: users } = await supabaseAdmin
+      .from("User")
+      .select("*, profile:CorretorProfile(plano,planoStatus,creci,whatsapp,slug)")
+      .eq("role", "CORRETOR")
+      .order("createdAt", { ascending: false });
 
-    // Contar imóveis por corretor separadamente (_count não é suportado no adapter Supabase)
-    const userIds = (users as any[]).map((u: any) => u.id);
-    const imoveis = userIds.length
-      ? await prisma.imovel.findMany({ where: { corretorId: { in: userIds } }, select: { corretorId: true } })
-      : [];
+    const userIds = (users ?? []).map((u: any) => u.id);
+    const { data: imoveis } = userIds.length
+      ? await supabaseAdmin.from("Imovel").select("corretorId").in("corretorId", userIds)
+      : { data: [] };
+
     const imovelCountMap: Record<string, number> = {};
-    for (const im of imoveis as any[]) {
+    for (const im of imoveis ?? []) {
       imovelCountMap[im.corretorId] = (imovelCountMap[im.corretorId] || 0) + 1;
     }
 
-    const formattedUsers = (users as any[]).map((user: any) => {
-      // PostgREST pode retornar o perfil como objeto ou array (depende do FK único)
+    const formattedUsers = (users ?? []).map((user: any) => {
       const profile = Array.isArray(user.profile) ? user.profile[0] : user.profile;
       return {
         id: user.id,
