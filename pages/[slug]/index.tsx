@@ -9,7 +9,6 @@ import type { ImovelCardData } from "@/components/ImovelCard";
 import { FaWhatsapp, FaInstagram, FaFacebook, FaLinkedin, FaQuoteLeft } from "react-icons/fa";
 import { MdEmail, MdPlayCircleOutline } from "react-icons/md";
 import { FiArrowRight, FiSearch, FiChevronRight } from "react-icons/fi";
-import { GetBaseUrl } from "@/lib/getBaseUrl";
 import CarrosselDestaques from "@/components/CarrosselDestaques";
 import HeroSlider from "@/components/HeroSlider";
 import LeadModal from "@/components/LeadModal";
