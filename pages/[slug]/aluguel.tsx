@@ -55,48 +55,56 @@ export default function Aluguel({ slug, imoveis, corretor, todos }: Props) {
         <title>{`${corretor?.name ?? "Corretor"} • Imóveis para Alugar`}</title>
       </Head>
 
-      <div className="bg-gray-50 dark:bg-slate-950 min-h-screen transition-colors duration-500">
-        {/* Header */}
-        <div className="bg-white dark:bg-slate-900 border-b border-gray-100 dark:border-white/5">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+      <div className="bg-[#fafaf8] dark:bg-[#1a1814] min-h-screen transition-colors duration-500">
+
+        {/* Page Hero */}
+        <div className="bg-[#1a1814] pt-32 pb-16 border-b border-white/5">
+          <div className="max-w-7xl mx-auto px-6">
             <button
               onClick={() => router.back()}
-              className="flex items-center gap-2 text-gray-600 dark:text-slate-400 hover:text-accent transition text-sm font-medium cursor-pointer"
+              className="flex items-center gap-2 text-white/40 hover:text-white transition text-xs font-bold uppercase tracking-widest mb-8 cursor-pointer"
             >
-              <FiArrowLeft size={18} />
+              <FiArrowLeft size={14} />
               Voltar
             </button>
+            <span className="text-[#b8912a] text-[10px] font-black uppercase tracking-[0.3em] mb-4 block">
+              Curadoria Exclusiva
+            </span>
+            <h1
+              className="text-white leading-[1.0] mb-4"
+              style={{ fontFamily: "var(--font-serif)", fontSize: "clamp(40px, 6vw, 72px)", fontWeight: 400 }}
+            >
+              Imóveis para{" "}
+              <span className="text-[#9c9890]">Alugar.</span>
+            </h1>
+            <p className="text-white/40 text-sm font-medium">
+              {imoveis.length} {imoveis.length === 1 ? "imóvel disponível" : "imóveis disponíveis"}
+            </p>
           </div>
         </div>
 
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
-          {/* Titulo + busca */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-accent">Imóveis para Alugar</h1>
-              <p className="text-gray-500 dark:text-slate-400 text-sm mt-1">{imoveis.length} {imoveis.length === 1 ? "imóvel encontrado" : "imóveis encontrados"}</p>
-            </div>
-            <div className="flex items-center bg-white dark:bg-slate-900 border border-gray-200 dark:border-white/5 rounded-xl px-3 py-2 gap-2 w-full sm:w-72">
-              <FiSearch size={16} className="text-gray-400 dark:text-slate-500" />
-              <input
-                type="text"
-                value={busca}
-                onChange={(e) => setBusca(e.target.value)}
-                placeholder="Buscar imóvel..."
-                className="flex-1 bg-transparent text-sm text-gray-700 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none"
-              />
-            </div>
+        <main className="max-w-7xl mx-auto px-6 py-16">
+          {/* Search bar */}
+          <div className="flex items-center bg-white dark:bg-[#231f18] border border-[#e8e4dc] dark:border-white/5 px-4 py-3 gap-3 mb-12 max-w-md">
+            <FiSearch size={16} className="text-[#9c9890]" />
+            <input
+              type="text"
+              value={busca}
+              onChange={(e) => setBusca(e.target.value)}
+              placeholder="Buscar por localização ou título..."
+              className="flex-1 bg-transparent text-sm text-[#1a1814] dark:text-white placeholder-[#9c9890] focus:outline-none"
+            />
           </div>
 
           {/* Grid */}
           {filtrados.length === 0 ? (
-            <div className="text-center py-20 text-gray-400">
-              <FiSearch size={48} className="mx-auto mb-4 opacity-50" />
-              <p className="text-lg font-medium">Nenhum imóvel encontrado</p>
-              <p className="text-sm mt-1">Tente buscar com outros termos</p>
+            <div className="text-center py-24 border border-dashed border-[#e8e4dc] dark:border-white/5">
+              <FiSearch size={48} className="mx-auto mb-4 text-[#e8e4dc] dark:text-white/10" />
+              <p className="text-[#1a1814] dark:text-white font-bold">Nenhum imóvel encontrado</p>
+              <p className="text-[#9c9890] text-sm mt-1">Tente buscar com outros termos</p>
             </div>
           ) : (
-            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               {filtrados.map((i) => (
                 <ImovelCard key={i.id} imovel={i} slug={slug} />
               ))}
@@ -104,9 +112,7 @@ export default function Aluguel({ slug, imoveis, corretor, todos }: Props) {
           )}
         </main>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <CarrosselDestaques imoveis={todos} />
-        </div>
+        <CarrosselDestaques imoveis={todos} />
       </div>
     </LayoutCorretor>
   );

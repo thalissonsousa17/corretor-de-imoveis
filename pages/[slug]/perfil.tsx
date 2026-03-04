@@ -2,16 +2,10 @@ import LayoutCorretor from "@/components/LayoutCorretor";
 import type { GetServerSideProps } from "next";
 import Head from "next/head";
 import { getCorretorPublicData, getImoveisPublicData } from "@/lib/publicData";
+import { resolveFotoUrl } from "@/lib/imageUtils";
 import CarrosselDestaques from "@/components/CarrosselDestaques";
-import { FiMail, FiAward } from "react-icons/fi";
-import {
-  RiInstagramLine,
-  RiFacebookCircleLine,
-  RiLinkedinLine,
-  RiWhatsappLine,
-} from "react-icons/ri";
-
-
+import { FiMail, FiAward, FiPhone } from "react-icons/fi";
+import { FaInstagram, FaFacebook, FaLinkedin, FaWhatsapp } from "react-icons/fa";
 
 type Corretor = {
   name: string;
@@ -53,16 +47,11 @@ function buildSocialUrl(
 ): string | null {
   if (!username) return null;
   switch (type) {
-    case "instagram":
-      return `https://instagram.com/${username}`;
-    case "linkedin":
-      return `https://linkedin.com/in/${username}`;
-    case "facebook":
-      return username.startsWith("http") ? username : `https://facebook.com/${username}`;
-    case "whatsapp":
-      return `https://wa.me/55${username.replace(/\D/g, "")}`;
-    default:
-      return null;
+    case "instagram": return `https://instagram.com/${username}`;
+    case "linkedin": return `https://linkedin.com/in/${username}`;
+    case "facebook": return username.startsWith("http") ? username : `https://facebook.com/${username}`;
+    case "whatsapp": return `https://wa.me/55${username.replace(/\D/g, "")}`;
+    default: return null;
   }
 }
 
@@ -85,9 +74,9 @@ export default function PerfilProfissional({ corretor, todos }: Props) {
   const linkedinUrl = buildSocialUrl(corretor.linkedin, "linkedin");
   const whatsappUrl = buildSocialUrl(corretor.whatsapp, "whatsapp");
 
-  const hasSocial = instagramUrl || facebookUrl || linkedinUrl || whatsappUrl;
   const totalImoveis = todos.length;
   const totalVendidos = todos.filter((i) => i.status === "VENDIDO").length;
+  const totalDisponiveis = todos.filter((i) => i.status === "DISPONIVEL").length;
 
   return (
     <LayoutCorretor corretor={corretor}>
@@ -96,94 +85,134 @@ export default function PerfilProfissional({ corretor, todos }: Props) {
         <meta name="description" content={`Conheça a trajetória profissional de ${corretor.name}.`} />
       </Head>
 
-      <div className="bg-gray-50 dark:bg-slate-950 min-h-screen transition-colors duration-500">
-        {/* Hero */}
-        <section className="bg-white dark:bg-slate-900 border-b border-gray-100 dark:border-white/5">
-          <div className="max-w-6xl mx-auto px-6 lg:px-12 py-16 grid grid-cols-1 lg:grid-cols-5 gap-12 items-center">
-            {/* Foto */}
-            <div className="lg:col-span-2 flex justify-center">
-              <img
-                src={corretor.avatarUrl || "/placeholder.jpg"}
-                alt={corretor.name}
-                className="w-full max-w-sm rounded-2xl shadow-xl object-cover aspect-[3/4]"
-              />
-            </div>
+      <div className="bg-[#fafaf8] dark:bg-[#1a1814] min-h-screen transition-colors duration-500">
 
-            {/* Info */}
-            <div className="lg:col-span-3">
-              <p className="text-[#D4AC3A] font-semibold text-sm tracking-wider uppercase mb-2">
-                Corretor de Imóveis
-              </p>
+        {/* Hero escuro */}
+        <section className="bg-[#1a1814] pt-32 pb-0 border-b border-white/5">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 items-end">
 
-              <h1 className="text-4xl sm:text-5xl font-bold text-accent dark:text-white tracking-tight leading-tight">
-                {corretor.name}
-              </h1>
-
-              {corretor.creci && (
-                <div className="flex items-center gap-2 mt-3 text-gray-500 dark:text-slate-400">
-                  <FiAward size={16} />
-                  <span className="text-sm font-medium">CRECI {corretor.creci}</span>
-                </div>
-              )}
-
-              {corretor.email && (
-                <div className="flex items-center gap-2 mt-2 text-gray-500 dark:text-slate-400">
-                  <FiMail size={16} />
-                  <span className="text-sm">{corretor.email}</span>
-                </div>
-              )}
-
-              {/* Stats */}
-              <div className="flex items-center gap-6 mt-6">
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-accent">{totalImoveis}</p>
-                  <p className="text-xs text-gray-500 dark:text-slate-400">Imóveis</p>
-                </div>
-                <div className="w-px h-10 bg-gray-200 dark:bg-white/10" />
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-accent">{totalVendidos}</p>
-                  <p className="text-xs text-gray-500 dark:text-slate-400">Vendidos</p>
+              {/* Foto — sobe do fundo */}
+              <div className="lg:col-span-4 flex justify-center lg:justify-start">
+                <div className="w-full max-w-[320px] overflow-hidden shadow-[0_-24px_80px_rgba(0,0,0,0.4)] aspect-[3/4]">
+                  <img
+                    src={resolveFotoUrl(corretor.avatarUrl)}
+                    alt={corretor.name}
+                    className="w-full h-full object-cover"
+                    onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/placeholder.png"; }}
+                  />
                 </div>
               </div>
 
-              {/* Redes sociais */}
-              {hasSocial && (
-                <div className="flex items-center gap-3 mt-6">
+              {/* Info */}
+              <div className="lg:col-span-8 pb-16 lg:pl-16">
+                <span className="text-[#b8912a] text-[10px] font-black uppercase tracking-[0.3em] mb-4 block">
+                  Corretor de Imóveis
+                </span>
+                <h1
+                  className="text-white leading-[1.0] mb-6"
+                  style={{ fontFamily: "var(--font-serif)", fontSize: "clamp(40px, 6vw, 80px)", fontWeight: 400 }}
+                >
+                  {corretor.name}
+                </h1>
+
+                {corretor.creci && (
+                  <div className="flex items-center gap-2 mb-3 text-white/40">
+                    <FiAward size={14} />
+                    <span className="text-xs font-bold uppercase tracking-widest">CRECI {corretor.creci}</span>
+                  </div>
+                )}
+                {corretor.email && (
+                  <div className="flex items-center gap-2 mb-6 text-white/40">
+                    <FiMail size={14} />
+                    <span className="text-xs">{corretor.email}</span>
+                  </div>
+                )}
+
+                {/* Stats */}
+                <div className="flex items-center gap-8 mb-8 border-t border-white/5 pt-8">
+                  {[
+                    { num: totalImoveis, label: "Total de Imóveis" },
+                    { num: totalDisponiveis, label: "Disponíveis" },
+                    { num: totalVendidos, label: "Vendidos" },
+                  ].map((stat, i) => (
+                    <div key={i}>
+                      <p
+                        className="text-white leading-none"
+                        style={{ fontFamily: "var(--font-serif)", fontSize: "clamp(28px, 4vw, 48px)", fontWeight: 400 }}
+                      >
+                        {stat.num}
+                      </p>
+                      <p className="text-white/30 text-[10px] font-bold uppercase tracking-widest mt-1">{stat.label}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Redes sociais */}
+                <div className="flex items-center gap-3">
                   {instagramUrl && (
-                    <a href={instagramUrl} target="_blank" rel="noopener noreferrer" className="p-3 rounded-xl bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-slate-400 hover:bg-pink-50 dark:hover:bg-pink-500/10 hover:text-pink-500 transition text-xl">
-                      <RiInstagramLine />
+                    <a href={instagramUrl} target="_blank" rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-4 py-2.5 border border-white/10 text-white/40 hover:bg-[#b8912a] hover:border-[#b8912a] hover:text-white transition-all text-xs font-bold uppercase tracking-widest">
+                      <FaInstagram size={14} /> Instagram
                     </a>
                   )}
                   {facebookUrl && (
-                    <a href={facebookUrl} target="_blank" rel="noopener noreferrer" className="p-3 rounded-xl bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-slate-400 hover:bg-blue-50 dark:hover:bg-blue-600/10 hover:text-blue-600 transition text-xl">
-                      <RiFacebookCircleLine />
+                    <a href={facebookUrl} target="_blank" rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-4 py-2.5 border border-white/10 text-white/40 hover:bg-[#b8912a] hover:border-[#b8912a] hover:text-white transition-all text-xs font-bold uppercase tracking-widest">
+                      <FaFacebook size={14} /> Facebook
                     </a>
                   )}
                   {linkedinUrl && (
-                    <a href={linkedinUrl} target="_blank" rel="noopener noreferrer" className="p-3 rounded-xl bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-slate-400 hover:bg-blue-50 dark:hover:bg-blue-800/10 hover:text-blue-800 transition text-xl">
-                      <RiLinkedinLine />
+                    <a href={linkedinUrl} target="_blank" rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-4 py-2.5 border border-white/10 text-white/40 hover:bg-[#b8912a] hover:border-[#b8912a] hover:text-white transition-all text-xs font-bold uppercase tracking-widest">
+                      <FaLinkedin size={14} /> LinkedIn
                     </a>
                   )}
                   {whatsappUrl && (
-                    <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="p-3 rounded-xl bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-slate-400 hover:bg-green-50 dark:hover:bg-green-600/10 hover:text-green-600 transition text-xl">
-                      <RiWhatsappLine />
+                    <a href={whatsappUrl} target="_blank" rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-4 py-2.5 bg-[#b8912a] border border-[#b8912a] text-white transition-all text-xs font-bold uppercase tracking-widest hover:bg-white hover:text-[#1a1814]">
+                      <FaWhatsapp size={14} /> WhatsApp
                     </a>
                   )}
                 </div>
-              )}
+              </div>
             </div>
           </div>
         </section>
 
         {/* Biografia */}
-        <section className="bg-gray-50 py-16">
-          <div className="max-w-3xl mx-auto px-6">
-            <h2 className="text-2xl font-bold text-accent mb-6">Sobre mim</h2>
-            <div className="text-gray-600 dark:text-slate-400 text-[15px] leading-relaxed whitespace-pre-line">
-              {corretor.biografia || "Biografia não preenchida."}
+        {corretor.biografia && (
+          <section className="py-24 bg-[#fafaf8] dark:bg-[#1a1814]">
+            <div className="max-w-3xl mx-auto px-6">
+              <span className="text-[#b8912a] text-[10px] font-black uppercase tracking-[0.3em] mb-4 block">
+                Sobre
+              </span>
+              <h2
+                className="text-[#1a1814] dark:text-white leading-[1.05] mb-8"
+                style={{ fontFamily: "var(--font-serif)", fontSize: "clamp(28px, 4vw, 48px)", fontWeight: 400 }}
+              >
+                Trajetória Profissional
+              </h2>
+              <div className="w-12 h-px bg-[#b8912a] mb-8" />
+              <p className="text-[#6b6660] dark:text-white/60 text-lg leading-relaxed whitespace-pre-line">
+                {corretor.biografia}
+              </p>
+
+              {/* Contato CTA */}
+              {whatsappUrl && (
+                <a
+                  href={whatsappUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-3 mt-12 px-8 py-4 bg-[#1a1814] text-white text-xs font-black uppercase tracking-widest hover:bg-[#b8912a] transition-all"
+                >
+                  <FiPhone size={14} />
+                  Entrar em Contato
+                </a>
+              )}
             </div>
-          </div>
-        </section>
+          </section>
+        )}
 
         {/* Carrossel */}
         <CarrosselDestaques imoveis={todos} />
