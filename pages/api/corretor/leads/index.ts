@@ -32,6 +32,7 @@ async function handler(req: AuthApiRequest, res: NextApiResponse) {
         return res.status(400).json({ message: "Nome é obrigatório." });
       }
 
+      const now = new Date().toISOString();
       const { data: lead, error } = await supabaseAdmin
         .from("Lead")
         .insert({
@@ -45,6 +46,8 @@ async function handler(req: AuthApiRequest, res: NextApiResponse) {
           imovelInteresse: imovelInteresse?.trim() || null,
           origem: origem || "MANUAL",
           corretorId,
+          createdAt: now,
+          updatedAt: now,
         })
         .select("*")
         .single();

@@ -31,6 +31,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         ? `${tipo} - ${localizacao}`
         : tipo || localizacao || null;
 
+    const now = new Date().toISOString();
     const { data: lead, error } = await supabaseAdmin
       .from("Lead")
       .insert({
@@ -42,6 +43,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         imovelInteresse,
         corretorId,
         origem: origem || "SITE",
+        createdAt: now,
+        updatedAt: now,
       })
       .select("*")
       .single();
