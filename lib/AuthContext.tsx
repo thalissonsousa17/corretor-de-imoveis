@@ -53,9 +53,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
         setUser(null);
         if (isUnauthorized) {
-          // Clear stale cookie so middleware doesn't block the redirect
-          await axios.post("/api/logout").catch(() => {});
-          router.push("/login");
+          const isProtected =
+            router.pathname.startsWith("/corretor") ||
+            router.pathname.startsWith("/admin");
+          if (isProtected) {
+            // Clear stale cookie so middleware doesn't block the redirect
+            await axios.post("/api/logout").catch(() => {});
+            router.push("/login");
+          }
         }
       } finally {
         setIsLoading(false);
