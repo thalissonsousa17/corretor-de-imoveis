@@ -515,46 +515,81 @@ export default function DashboardCorretor() {
           </div>
 
           {/* ── Últimos Imóveis ────────────────────────────────────────── */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
-            <div className="flex items-center justify-between mb-4">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-50">
               <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
-                <FiHome className="text-gray-500" /> Últimos imóveis cadastrados
+                <span className="w-7 h-7 rounded-lg bg-gray-100 flex items-center justify-center">
+                  <FiHome className="text-gray-500" size={14} />
+                </span>
+                Últimos imóveis cadastrados
               </h3>
-              <Link href="/corretor/imoveis" className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1 font-medium">
+              <Link
+                href="/corretor/imoveis"
+                className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1 font-semibold transition-colors"
+              >
                 Ver todos <FiArrowRight size={12} />
               </Link>
             </div>
+
             {loading ? (
-              <p className="text-gray-400 text-sm">Carregando...</p>
+              <div className="px-6 py-8 flex items-center justify-center">
+                <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-blue-500" />
+              </div>
             ) : imoveisRecentes.length > 0 ? (
-              <ul className="divide-y divide-gray-50">
-                {imoveisRecentes.map((imovel) => (
-                  <li key={imovel.id} className="py-3 flex flex-col sm:flex-row justify-between sm:items-center">
-                    <div className="mb-1 sm:mb-0">
-                      <p className="font-medium text-gray-800 text-sm">{imovel.titulo}</p>
-                      <p className="text-xs text-gray-500 capitalize">{imovel.tipo}</p>
-                    </div>
-                    <div className="text-right flex items-center gap-3">
-                      <p className="text-sm font-medium text-gray-900">
-                        {imovel.preco.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-                      </p>
-                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-                        imovel.status === "DISPONIVEL" ? "text-green-700 bg-green-100"
-                          : imovel.status === "VENDIDO" ? "text-blue-700 bg-blue-100"
-                          : imovel.status === "ALUGADO" ? "text-orange-700 bg-orange-100"
-                          : "text-gray-600 bg-gray-100"
-                      }`}>
-                        {imovel.status === "DISPONIVEL" ? "Disponível"
-                          : imovel.status === "VENDIDO" ? "Vendido"
-                          : imovel.status === "ALUGADO" ? "Alugado"
-                          : "Inativo"}
-                      </span>
-                    </div>
-                  </li>
-                ))}
+              <ul>
+                {imoveisRecentes.map((imovel, i) => {
+                  const statusMap: Record<string, { label: string; dot: string; text: string; bg: string }> = {
+                    DISPONIVEL: { label: "Disponível", dot: "bg-green-500", text: "text-green-700", bg: "bg-green-50" },
+                    VENDIDO:    { label: "Vendido",    dot: "bg-blue-500",  text: "text-blue-700",  bg: "bg-blue-50"  },
+                    ALUGADO:    { label: "Alugado",    dot: "bg-orange-500",text: "text-orange-700",bg: "bg-orange-50"},
+                    INATIVO:    { label: "Inativo",    dot: "bg-gray-400",  text: "text-gray-500",  bg: "bg-gray-50"  },
+                  };
+                  const s = statusMap[imovel.status] ?? statusMap.INATIVO;
+                  return (
+                    <li
+                      key={imovel.id}
+                      className={`flex items-center gap-4 px-6 py-4 hover:bg-gray-50/70 transition-colors ${
+                        i < imoveisRecentes.length - 1 ? "border-b border-gray-50" : ""
+                      }`}
+                    >
+                      {/* Ícone numerado */}
+                      <div className="flex-shrink-0 w-9 h-9 rounded-xl bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-xs font-bold text-gray-400">
+                        {i + 1}
+                      </div>
+
+                      {/* Título + tipo */}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-gray-800 truncate leading-tight">{imovel.titulo}</p>
+                        <p className="text-[11px] text-gray-400 mt-0.5 uppercase tracking-wide font-medium">{imovel.tipo}</p>
+                      </div>
+
+                      {/* Preço */}
+                      <div className="flex-shrink-0 text-right">
+                        <p className="text-sm font-bold text-gray-800">
+                          {imovel.preco.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                        </p>
+                      </div>
+
+                      {/* Status badge com dot */}
+                      <div className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1 rounded-full ${s.bg}`}>
+                        <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${s.dot}`} />
+                        <span className={`text-[11px] font-semibold ${s.text}`}>{s.label}</span>
+                      </div>
+                    </li>
+                  );
+                })}
               </ul>
             ) : (
-              <p className="text-gray-400 text-sm text-center py-4">Nenhum imóvel cadastrado ainda.</p>
+              <div className="px-6 py-10 text-center">
+                <div className="w-12 h-12 rounded-2xl bg-gray-100 flex items-center justify-center mx-auto mb-3">
+                  <FiHome className="text-gray-400" size={20} />
+                </div>
+                <p className="text-sm font-medium text-gray-500">Nenhum imóvel cadastrado ainda</p>
+                <Link href="/corretor/imoveis/cadastrar" className="text-xs text-blue-600 hover:underline mt-1 inline-block">
+                  Cadastrar primeiro imóvel →
+                </Link>
+              </div>
             )}
           </div>
 
