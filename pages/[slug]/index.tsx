@@ -1,7 +1,6 @@
 import Head from "next/head";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import DOMPurify from "isomorphic-dompurify";
 import type { GetServerSidePropsContext, GetServerSidePropsResult } from "next";
 import LayoutCorretor from "@/components/LayoutCorretor";
 import ImovelCard from "@/components/ImovelCard";
@@ -61,13 +60,16 @@ export default function CorretorHome({ corretor, imoveis }: PageProps) {
   const [busca, setBusca] = useState("");
   const [isLeadModalOpen, setIsLeadModalOpen] = useState(false);
 
-  useEffect(() => {
-    if (typeof window !== "undefined" && corretor.biografia) {
-      setSafeHtml(DOMPurify.sanitize(corretor.biografia));
-    } else {
-      setSafeHtml("");
-    }
-  }, [corretor.biografia]);
+
+useEffect(() => {
+  if (corretor.biografia) {
+    import("dompurify").then((mod) => {
+      setSafeHtml(mod.default.sanitize(corretor.biografia!));
+    });
+  } else {
+    setSafeHtml("");
+  }
+}, [corretor.biografia]);
 
   const handleSearch = () => {
     const section = document.getElementById("vitrine");
