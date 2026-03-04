@@ -12,7 +12,6 @@ import {
   FiFileText,
   FiUsers,
   FiCalendar,
-  FiLock,
   FiChevronLeft,
   FiMenu,
   FiDollarSign,
@@ -35,7 +34,6 @@ const toolsNav = [
 
 const accountNav = [
   { href: "/corretor/perfil", icon: FiUser, label: "Perfil" },
-  { href: "/corretor/seguranca", icon: FiLock, label: "Segurança" },
   { href: "/corretor/assinaturas", icon: AiOutlineFileText, label: "Meu Plano" },
   { href: "/corretor/suporte", icon: FiMessageSquare, label: "Suporte" },
 ];
