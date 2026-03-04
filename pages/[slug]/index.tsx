@@ -123,14 +123,17 @@ useEffect(() => {
                 <span
                   className="inline-block px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.3em] mb-6 border"
                   style={{
-                    backgroundColor: `${corretor.accentColor || "#1A2A4F"}15`,
-                    borderColor: `${corretor.accentColor || "#1A2A4F"}30`,
+                    backgroundColor: `${corretor.accentColor || "#b8912a"}15`,
+                    borderColor: `${corretor.accentColor || "#b8912a"}30`,
                     color: "var(--accent-color)",
                   }}
                 >
                   Curadoria Exclusiva
                 </span>
-                <h2 className="text-3xl md:text-5xl font-black text-[#1a1814] dark:text-white tracking-tighter leading-tight">
+                <h2
+                  className="text-[#1a1814] dark:text-white leading-[1.05]"
+                  style={{ fontFamily: "var(--font-serif)", fontSize: "clamp(36px, 5vw, 60px)", fontWeight: 400 }}
+                >
                   Imóveis Selecionados{" "}
                   <span className="text-[#9c9890] dark:text-white/40">
                     para o seu estilo de vida.
@@ -166,11 +169,11 @@ useEffect(() => {
             {/* Grid de Imóveis Premium */}
             {imoveisFiltrados.length === 0 ? (
               <div className="bg-white dark:bg-[#231f18] rounded-3xl p-20 text-center border-2 border-dashed border-[#e8e4dc] dark:border-white/5">
-                <FiSearch className="mx-auto text-slate-200 dark:text-slate-800 mb-6" size={64} />
+                <FiSearch className="mx-auto text-[#e8e4dc] dark:text-white/10 mb-6" size={64} />
                 <h3 className="text-xl font-bold text-[#1a1814] dark:text-white mb-2">
                   Sem resultados no momento
                 </h3>
-                <p className="text-slate-400 text-sm">
+                <p className="text-[#9c9890] text-sm">
                   Tente ajustar seus filtros para encontrar o que busca.
                 </p>
               </div>
@@ -208,12 +211,15 @@ useEffect(() => {
 
               <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                 <div>
-                  <span className="text-blue-200 text-accent dark:text-blue-200 text-[10px] font-black uppercase tracking-[0.4em] mb-4 block">
+                  <span className="text-[#b8912a] text-[10px] font-black uppercase tracking-[0.4em] mb-4 block">
                     Venda com Exclusividade
                   </span>
-                  <h2 className="text-white text-4xl lg:text-6xl font-black tracking-tighter leading-[0.9] mb-6">
+                  <h2
+                    className="text-white leading-[1.0] mb-6"
+                    style={{ fontFamily: "var(--font-serif)", fontSize: "clamp(36px, 5vw, 64px)", fontWeight: 400 }}
+                  >
                     Sua Propriedade merece uma{" "}
-                    <span className="text-accent dark:text-blue-200">
+                    <span className="text-[#b8912a]">
                       Exposição de Classe Mundial.
                     </span>
                   </h2>
@@ -225,10 +231,10 @@ useEffect(() => {
                 <div className="flex lg:justify-end">
                   <button
                     onClick={() => setIsLeadModalOpen(true)}
-                    className="group relative inline-flex items-center gap-6 px-12 py-7 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-3xl font-black text-sm uppercase tracking-[0.2em] hover:bg-accent hover:text-slate-500 dark:hover:shadow-[0_0_30px_rgba(var(--accent-color-rgb),0.3)] cursor-pointer transition-all shadow-2xl active:scale-95"
+                    className="group relative inline-flex items-center gap-6 px-12 py-7 bg-white text-[#1a1814] rounded-3xl font-black text-sm uppercase tracking-[0.2em] hover:bg-[#b8912a] hover:text-white cursor-pointer transition-all duration-300 shadow-2xl active:scale-95"
                   >
                     Desejo Vender meu Imóvel
-                    <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-white/10 group-hover:bg-white/20 flex items-center justify-center transition-colors">
+                    <div className="w-10 h-10 rounded-full bg-[#f0ede6] group-hover:bg-white/20 flex items-center justify-center transition-colors">
                       <FiChevronRight size={20} />
                     </div>
                   </button>
@@ -269,7 +275,7 @@ useEffect(() => {
                   <p className="text-[#1a1814] dark:text-white font-black text-3xl tracking-tighter italic">
                     {corretor.creci ? `CRECI ${corretor.creci}` : "Autoridade"}
                   </p>
-                  <p className="text-slate-400 dark:text-slate-500 text-[10px] font-bold uppercase tracking-widest mt-1">
+                  <p className="text-[#9c9890] dark:text-white/40 text-[10px] font-bold uppercase tracking-widest mt-1">
                     Negócios de Valor
                   </p>
                 </div>
@@ -277,15 +283,18 @@ useEffect(() => {
 
               {/* Lado do Conteúdo Editorial */}
               <div className="lg:col-span-7">
-                <span className="text-blue-600 text-[10px] font-black uppercase tracking-[0.3em] mb-4 block">
+                <span className="text-[#b8912a] text-[10px] font-black uppercase tracking-[0.3em] mb-4 block">
                   Storytelling
                 </span>
-                <h2 className="text-4xl md:text-6xl font-black text-[#1a1814] dark:text-white tracking-tighter leading-tight mb-8">
+                <h2
+                  className="text-[#1a1814] dark:text-white leading-[1.05] mb-8"
+                  style={{ fontFamily: "var(--font-serif)", fontSize: "clamp(36px, 5vw, 64px)", fontWeight: 400 }}
+                >
                   {corretor.bioTitle ?? "Excelência em cada detalhe."}
                 </h2>
                 <div className="relative">
                   <FaQuoteLeft
-                    className="absolute -top-10 -left-10 text-slate-100 dark:text-slate-900/40 font-light"
+                    className="absolute -top-10 -left-10 text-[#e8e4dc] dark:text-white/5 font-light"
                     size={120}
                   />
                   <div
@@ -309,7 +318,7 @@ useEffect(() => {
                     <a
                       href={`https://wa.me/${corretor.whatsapp.replace(/\D/g, "")}`}
                       target="_blank"
-                      className="flex items-center gap-3 px-6 py-4 rounded-xl border border-slate-200 dark:border-white/5 text-slate-600 dark:text-slate-400 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-all font-bold text-xs uppercase tracking-widest"
+                      className="flex items-center gap-3 px-6 py-4 rounded-xl border border-[#e8e4dc] dark:border-white/5 text-[#9c9890] dark:text-[#9c9890] hover:bg-[#1a1814] dark:hover:bg-white hover:text-white dark:hover:text-[#1a1814] hover:border-[#1a1814] dark:hover:border-white transition-all font-bold text-xs uppercase tracking-widest"
                     >
                       <FaWhatsapp size={18} /> WhatsApp
                     </a>
@@ -318,7 +327,7 @@ useEffect(() => {
                     <a
                       href={`https://facebook.com/${corretor.facebook}`}
                       target="_blank"
-                      className="flex items-center gap-3 px-6 py-4 rounded-xl border border-slate-200 dark:border-white/5 text-slate-600 dark:text-slate-400 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all font-bold text-xs uppercase tracking-widest"
+                      className="flex items-center gap-3 px-6 py-4 rounded-xl border border-[#e8e4dc] dark:border-white/5 text-[#9c9890] dark:text-[#9c9890] hover:bg-[#1a1814] dark:hover:bg-white hover:text-white dark:hover:text-[#1a1814] hover:border-[#1a1814] dark:hover:border-white transition-all font-bold text-xs uppercase tracking-widest"
                     >
                       <FaFacebook size={18} /> Facebook
                     </a>

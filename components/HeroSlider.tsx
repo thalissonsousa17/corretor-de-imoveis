@@ -78,7 +78,14 @@ export default function HeroSlider({
               >
                 {corretorName} — Portfólio de Luxo
               </span>
-              <h1 className="text-[#1a1814] dark:text-white text-4xl sm:text-6xl font-black tracking-tighter leading-[1.1] mb-6 drop-shadow-sm dark:drop-shadow-2xl">
+              <h1
+                className="text-[#1a1814] dark:text-white leading-[1.05] mb-6 drop-shadow-sm dark:drop-shadow-2xl"
+                style={{
+                  fontFamily: "var(--font-serif)",
+                  fontSize: "clamp(48px, 7vw, 84px)",
+                  fontWeight: 400,
+                }}
+              >
                 Encontre o seu <br />
                 <span className="text-[#9c9890] dark:text-white/50">Novo Legado.</span>
               </h1>

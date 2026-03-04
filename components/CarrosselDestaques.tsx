@@ -4,7 +4,7 @@ import React, { useId, useMemo } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Navigation } from "swiper/modules";
 import { resolveFotoUrl } from "@/lib/imageUtils";
-import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import { FiChevronLeft, FiChevronRight, FiMapPin } from "react-icons/fi";
 import "swiper/css";
 import "swiper/css/navigation";
 
@@ -18,15 +18,9 @@ type Imovel = {
   estado: string;
   status: string;
   finalidade: string;
-
-  // ✅ pode vir de um endpoint
   fotos?: Foto[];
-
-  // ✅ pode vir de outro endpoint
   fotoPrincipal?: string | null;
 };
-
-
 
 export default function CarrosselDestaques({ imoveis }: { imoveis: Imovel[] }) {
   const uid = useId();
@@ -43,129 +37,124 @@ export default function CarrosselDestaques({ imoveis }: { imoveis: Imovel[] }) {
   const canLoop = destaques.length > 1;
 
   return (
-    <section className="bg-white dark:bg-slate-950 py-24 transition-colors duration-500 overflow-hidden">
-      <div className="text-center mb-16">
-        <span className="inline-block px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.3em] mb-4 border border-slate-100 dark:border-white/5 bg-slate-50 dark:bg-white/5 text-accent dark:text-blue-200">
-          Seleção Premium
-        </span>
-        <h2 className="text-4xl md:text-5xl font-black text-slate-950 dark:text-white tracking-tighter leading-tight">
-          Destaques <span className="text-slate-400 dark:text-slate-500">para você.</span>
-        </h2>
+    <section className="bg-[#fafaf8] dark:bg-[#1a1814] py-28 transition-colors duration-500 overflow-hidden border-t border-[#e8e4dc] dark:border-white/5">
+      {/* Header */}
+      <div className="max-w-7xl mx-auto px-6 mb-16">
+        <div className="flex items-end justify-between">
+          <div>
+            <span className="inline-block px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.3em] mb-5 border border-[#e8e4dc] dark:border-white/5 bg-white dark:bg-[#231f18] text-[#b8912a]">
+              Seleção Premium
+            </span>
+            <h2
+              className="text-4xl md:text-6xl text-[#1a1814] dark:text-white leading-[1.05] tracking-tight"
+              style={{ fontFamily: "var(--font-serif)", fontWeight: 400 }}
+            >
+              Destaques{" "}
+              <span className="text-[#9c9890] dark:text-white/30">para você.</span>
+            </h2>
+          </div>
+
+          {/* Nav buttons — alinhados à direita do título */}
+          <div className="hidden lg:flex items-center gap-3 pb-1">
+            <button
+              id={prevId}
+              className="w-12 h-12 rounded-full bg-white dark:bg-[#231f18] border border-[#e8e4dc] dark:border-white/10 text-[#1a1814] dark:text-white hover:bg-[#b8912a] hover:border-[#b8912a] hover:text-white flex items-center justify-center transition-all duration-300 active:scale-95"
+              aria-label="Anterior"
+            >
+              <FiChevronLeft size={20} />
+            </button>
+            <button
+              id={nextId}
+              className="w-12 h-12 rounded-full bg-white dark:bg-[#231f18] border border-[#e8e4dc] dark:border-white/10 text-[#1a1814] dark:text-white hover:bg-[#b8912a] hover:border-[#b8912a] hover:text-white flex items-center justify-center transition-all duration-300 active:scale-95"
+              aria-label="Próximo"
+            >
+              <FiChevronRight size={20} />
+            </button>
+          </div>
+        </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 relative">
-        {/* BOTÃO ESQUERDO */}
-        <button
-          id={prevId}
-          className="
-            absolute -left-4 top-1/2 -translate-y-1/2 z-30
-            w-14 h-14 rounded-full
-            bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl
-            text-slate-900 dark:text-white 
-            shadow-[0_20px_40px_rgba(0,0,0,0.1)] 
-            hover:shadow-[0_30px_60px_rgba(0,0,0,0.15)]
-            flex items-center justify-center
-            transition-all duration-300 hover:scale-110 active:scale-95
-            disabled:opacity-20 disabled:cursor-not-allowed
-            hidden lg:flex border border-white dark:border-white/10
-          "
-          aria-label="Anterior"
-        >
-          <FiChevronLeft size={24} />
-        </button>
-
-        {/* BOTÃO DIREITO */}
-        <button
-          id={nextId}
-          className="
-            absolute -right-4 top-1/2 -translate-y-1/2 z-30
-            w-14 h-14 rounded-full
-            bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl
-            text-slate-900 dark:text-white 
-            shadow-[0_20px_40px_rgba(0,0,0,0.1)] 
-            hover:shadow-[0_30px_60px_rgba(0,0,0,0.15)]
-            flex items-center justify-center
-            transition-all duration-300 hover:scale-110 active:scale-95
-            disabled:opacity-20 disabled:cursor-not-allowed
-            hidden lg:flex border border-white dark:border-white/10
-          "
-          aria-label="Próximo"
-        >
-          <FiChevronRight size={24} />
-        </button>
-
+      {/* Swiper */}
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 relative">
         <Swiper
           modules={[Autoplay, Navigation]}
           navigation={{ prevEl: `#${prevId}`, nextEl: `#${nextId}` }}
-          autoplay={canLoop ? { delay: 2200, disableOnInteraction: false } : false}
+          autoplay={canLoop ? { delay: 3000, disableOnInteraction: false } : false}
           loop={canLoop}
           grabCursor={true}
           spaceBetween={16}
           breakpoints={{
-            0: { slidesPerView: 1.1, spaceBetween: 12 },
-            480: { slidesPerView: 1.3, spaceBetween: 14 },
-            640: { slidesPerView: 1.6, spaceBetween: 16 },
-            768: { slidesPerView: 2.1, spaceBetween: 18 },
-            1024: { slidesPerView: 3.1, spaceBetween: 22 },
+            0:    { slidesPerView: 1.1,  spaceBetween: 12 },
+            480:  { slidesPerView: 1.3,  spaceBetween: 14 },
+            640:  { slidesPerView: 1.6,  spaceBetween: 16 },
+            768:  { slidesPerView: 2.1,  spaceBetween: 18 },
+            1024: { slidesPerView: 3.1,  spaceBetween: 22 },
           }}
-          className="pb-8"
+          className="pb-2"
         >
           {destaques.slice(0, 12).map((imovel) => {
-            // ✅ pega de onde vier (fotos[0] OU fotoPrincipal)
             const capaRaw = imovel.fotos?.[0]?.url ?? imovel.fotoPrincipal ?? null;
             const capa = resolveFotoUrl(capaRaw);
+            const isVenda = imovel.finalidade === "VENDA";
 
             return (
               <SwiperSlide key={imovel.id} className="group">
-                <div
-                  className="
-                    relative rounded-[2.5rem] overflow-hidden 
-                    shadow-[0_30px_60px_-15px_rgba(0,0,0,0.15)]
-                    hover:shadow-[0_40px_80px_rgba(var(--accent-color-rgb),0.1)]
-                    transition-all duration-700
-                    hover:-translate-y-4
-                    bg-gradient-to-br from-slate-900 to-slate-950 border border-white/5 dark:hover:border-accent/30
-                  "
-                >
-                  <img
-                    src={capa}
-                    alt={imovel.titulo}
-                    className="w-full h-48 sm:h-56 md:h-60 lg:h-64 object-cover"
-                    onError={(e) => {
-                      (e.currentTarget as HTMLImageElement).src = "/placeholder.png";
-                    }}
-                  />
+                <article className="relative overflow-hidden bg-[#1a1814] border border-white/5 hover:border-[#b8912a]/30 transition-all duration-500 hover:shadow-[0_24px_64px_rgba(184,145,42,0.12)]">
+                  {/* Foto */}
+                  <div className="relative h-64 overflow-hidden">
+                    <img
+                      src={capa}
+                      alt={imovel.titulo}
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).src = "/placeholder.png";
+                      }}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#1a1814]/80 via-transparent to-transparent" />
 
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/20 to-transparent opacity-80 group-hover:opacity-100 transition-opacity duration-700" />
+                    {/* Badge flush top-left */}
+                    <div className="absolute top-0 left-0">
+                      <span
+                        className={`block text-[9px] font-black uppercase tracking-[0.28em] px-4 py-2 ${
+                          isVenda
+                            ? "bg-[#b8912a] text-white"
+                            : "bg-[#1a1814] text-[#b8912a]"
+                        }`}
+                      >
+                        {isVenda ? "Venda" : "Aluguel"}
+                      </span>
+                    </div>
+                  </div>
 
-                  <div className="absolute bottom-6 left-6 right-6 text-white transition-transform duration-500 group-hover:-translate-y-2">
-                    <h3 className="font-black text-lg sm:text-xl drop-shadow-2xl line-clamp-1 tracking-tight">
-                      {imovel.titulo}
-                    </h3>
- 
-                    <p className="text-xs sm:text-sm font-bold opacity-60 line-clamp-1 uppercase tracking-widest mt-1">
-                      {imovel.cidade} - {imovel.estado}
-                    </p>
- 
-                    <p className="text-white font-black mt-3 text-lg sm:text-xl tracking-tighter drop-shadow-2xl">
+                  {/* Conteúdo */}
+                  <div className="p-5">
+                    <p
+                      className="text-white leading-none tracking-tight mb-1"
+                      style={{
+                        fontFamily: "var(--font-serif)",
+                        fontSize: "clamp(22px, 2.8vw, 28px)",
+                        fontWeight: 400,
+                      }}
+                    >
                       {Number(imovel.preco).toLocaleString("pt-BR", {
                         style: "currency",
                         currency: "BRL",
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0,
                       })}
                     </p>
+                    <p className="text-[9px] text-[#b8912a] font-bold uppercase tracking-[0.22em] mb-3">
+                      {isVenda ? "valor de venda" : "por mês"}
+                    </p>
+                    <h3 className="text-white/90 text-[13px] font-semibold leading-snug line-clamp-1 mb-2">
+                      {imovel.titulo}
+                    </h3>
+                    <div className="flex items-center gap-1.5 text-white/40 text-[11px]">
+                      <FiMapPin size={10} />
+                      <span>{imovel.cidade}, {imovel.estado}</span>
+                    </div>
                   </div>
-
-                  <span
-                    className={`
-                      absolute top-4 left-4 px-4 py-1.5
-                      text-[10px] font-black rounded-full uppercase tracking-widest
-                      backdrop-blur-md shadow-lg border border-white/10
-                      ${imovel.finalidade === "VENDA" ? "bg-accent/80 text-white" : "bg-blue-600/80 text-white"}
-                    `}
-                  >
-                    {imovel.finalidade === "VENDA" ? "À VENDA" : "ALUGUEL"}
-                  </span>
-                </div>
+                </article>
               </SwiperSlide>
             );
           })}

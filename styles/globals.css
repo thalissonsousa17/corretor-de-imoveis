@@ -17,8 +17,9 @@
 }
 
 :root {
-  --accent-color: #1A2A4F;
-  --accent-color-rgb: 26, 42, 79;
+  --accent-color: #b8912a;
+  --accent-color-rgb: 184, 145, 42;
+  --font-serif: 'Cormorant Garamond', Georgia, serif;
 }
 
 body {
