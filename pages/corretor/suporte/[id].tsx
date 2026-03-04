@@ -79,11 +79,16 @@ export default function TicketChat() {
     }
   };
 
-  const formatTime = (d: string) =>
-    new Date(d).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" });
+  // UTC-3 (Brasília) — subtrai 3h manualmente para não depender do timezone do ambiente
+  const toBRT = (d: string) => new Date(new Date(d).getTime() - 3 * 60 * 60 * 1000);
 
-  const formatDate = (d: string) =>
-    new Date(d).toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric", timeZone: "America/Sao_Paulo" });
+  const formatTime = (d: string) => toBRT(d).toISOString().slice(11, 16);
+
+  const MESES = ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
+  const formatDate = (d: string) => {
+    const dt = toBRT(d);
+    return `${String(dt.getUTCDate()).padStart(2,"0")} de ${MESES[dt.getUTCMonth()]} de ${dt.getUTCFullYear()}`;
+  };
 
   const isClosed = ticket?.status === "FECHADO";
 
