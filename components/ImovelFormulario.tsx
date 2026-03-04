@@ -1,6 +1,6 @@
 import React, { useState, FormEvent, ChangeEvent, useEffect } from "react";
 import UpgradeModal from "@/components/UpgradeModal";
-import axios from "axios";
+import api from "@/lib/api";
 import { resolveFotoUrl } from "@/lib/imageUtils";
 import { Imovel, Foto } from "@/types/Imovel";
 import BuscaEndereco from "./BuscaEndereco";
@@ -144,8 +144,8 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
   useEffect(() => {
     if (isEditMode && imovelId) {
       setLoading(true);
-      axios
-        .get(`/api/imoveis/${imovelId}`)
+      api
+        .get(`/imoveis/${imovelId}`)
         .then((response) => {
           const imovel: Imovel = response.data;
           setFormData({
@@ -234,8 +234,8 @@ const ImovelFormulario: React.FC<ImovelFormularioProps> = ({ imovelId, onSuccess
 
     try {
       const response = isEditMode
-        ? await axios.put(`/api/imoveis/${imovelId}`, data)
-        : await axios.post("/api/imoveis", data);
+        ? await api.put(`/imoveis/${imovelId}`, data)
+        : await api.post("/imoveis", data);
 
       setMessage({
         text: response.data.message || "Imóvel salvo com sucesso!",
