@@ -39,71 +39,67 @@ const handleGet = async (req: AuthApiRequest, res: NextApiResponse) => {
 
 const handlePost = async (req: AuthApiRequest, res: NextApiResponse) => {
   try {
-  const corretorId = req.user!.id;
+    const corretorId = req.user!.id;
 
-  // ── Verificar limite do plano ──────────────────────────────────────────────
-  const { data: profile } = await supabaseAdmin
-    .from("CorretorProfile")
-    .select("plano, planoStatus")
-    .eq("userId", corretorId)
-    .maybeSingle();
+    // Verificar limite do plano
+    const { data: profile } = await supabaseAdmin
+      .from("CorretorProfile")
+      .select("plano, planoStatus")
+      .eq("userId", corretorId)
+      .maybeSingle();
 
-  const plano = (profile?.plano ?? "GRATUITO") as keyof typeof LIMITE_IMOVEIS_POR_PLANO;
-  const limite = LIMITE_IMOVEIS_POR_PLANO[plano] ?? LIMITE_IMOVEIS_POR_PLANO.GRATUITO;
+    const plano = (profile?.plano ?? "GRATUITO") as keyof typeof LIMITE_IMOVEIS_POR_PLANO;
+    const limite = LIMITE_IMOVEIS_POR_PLANO[plano] ?? LIMITE_IMOVEIS_POR_PLANO.GRATUITO;
 
-  if (limite !== Infinity) {
-    const { count: totalImoveis } = await supabaseAdmin
-      .from("Imovel")
-      .select("*", { count: "exact", head: true })
-      .eq("corretorId", corretorId);
+    if (limite !== Infinity) {
+      const { count: totalImoveis } = await supabaseAdmin
+        .from("Imovel")
+        .select("*", { count: "exact", head: true })
+        .eq("corretorId", corretorId);
 
-    if ((totalImoveis ?? 0) >= limite) {
-      return res.status(403).json({
-        message: `Limite de ${limite} imóveis do plano ${plano} atingido. Faça upgrade para continuar.`,
-        code: "PLANO_LIMITE_ATINGIDO",
-      });
+      if ((totalImoveis ?? 0) >= limite) {
+        return res.status(403).json({
+          message: `Limite de ${limite} imóveis do plano ${plano} atingido. Faça upgrade para continuar.`,
+          code: "PLANO_LIMITE_ATINGIDO",
+        });
+      }
     }
-  }
-  // ──────────────────────────────────────────────────────────────────────────
 
-  const form = formidable({
-    uploadDir: "/tmp",
-    keepExtensions: true,
-    maxFiles: 20,
-    maxFileSize: 15 * 1024 * 1024,
-    maxTotalFileSize: 200 * 1024 * 1024,
-    allowEmptyFiles: true,
-    multiples: true,
-  });
-
-  const { fields, files } = await new Promise<{
-    fields: formidable.Fields;
-    files: formidable.Files;
-  }>((resolve, reject) => {
-    form.parse(req, (err, fields, files) => {
-      if (err) return reject(err);
-      resolve({ fields, files });
+    const form = formidable({
+      uploadDir: "/tmp",
+      keepExtensions: true,
+      maxFiles: 20,
+      maxFileSize: 15 * 1024 * 1024,
+      maxTotalFileSize: 200 * 1024 * 1024,
+      allowEmptyFiles: true,
+      multiples: true,
     });
-  });
 
-  const getFieldValue = (field: string | string[] | undefined): string => {
-    return Array.isArray(field) ? field[0] : (field ?? "");
-  };
+    const { fields, files } = await new Promise<{
+      fields: formidable.Fields;
+      files: formidable.Files;
+    }>((resolve, reject) => {
+      form.parse(req, (err, fields, files) => {
+        if (err) return reject(err);
+        resolve({ fields, files });
+      });
+    });
 
-  const { titulo, descricao, preco, tipo, cidade, estado, localizacao, bairro, rua, numero, cep, finalidade } = fields;
+    const getFieldValue = (field: string | string[] | undefined): string => {
+      return Array.isArray(field) ? field[0] : (field ?? "");
+    };
 
-  if (!titulo || !preco || !descricao) {
-    return res.status(400).json({ message: "Campos obrigatórios faltando." });
-  }
+    const { titulo, descricao, preco, tipo, cidade, estado, localizacao, bairro, rua, numero, cep, finalidade } = fields;
 
-  const finalidadeValue = getFieldValue(finalidade)?.toUpperCase() ?? "VENDA";
-  const finalidadeFinal = finalidadeValue === "ALUGUEL" ? "ALUGUEL" : "VENDA";
-  const numericValor = parseFloat(getFieldValue(preco));
+    if (!titulo || !preco || !descricao) {
+      return res.status(400).json({ message: "Campos obrigatórios faltando." });
+    }
 
-  try {
-    const imovelId = randomUUID();
-
+    const finalidadeValue = getFieldValue(finalidade)?.toUpperCase() ?? "VENDA";
+    const finalidadeFinal = finalidadeValue === "ALUGUEL" ? "ALUGUEL" : "VENDA";
+    const numericValor = parseFloat(getFieldValue(preco));
     const now = new Date().toISOString();
+    const imovelId = randomUUID();
 
     const { data: novoImovel, error: imovelError } = await supabaseAdmin
       .from("Imovel")
@@ -157,7 +153,6 @@ const handlePost = async (req: AuthApiRequest, res: NextApiResponse) => {
           };
         })
       );
-
       await supabaseAdmin.from("Foto").insert(fotosData);
     }
 
