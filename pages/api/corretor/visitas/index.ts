@@ -65,6 +65,7 @@ async function handler(req: AuthApiRequest, res: NextApiResponse) {
         }
       }
 
+      const now = new Date().toISOString();
       const { data: visita, error } = await supabaseAdmin
         .from("Visita")
         .insert({
@@ -76,6 +77,8 @@ async function handler(req: AuthApiRequest, res: NextApiResponse) {
           observacoes: observacoes?.trim() || null,
           imovelId: imovelId || null,
           corretorId,
+          createdAt: now,
+          updatedAt: now,
         })
         .select("*, imovel:Imovel(id,titulo,localizacao,cidade)")
         .single();

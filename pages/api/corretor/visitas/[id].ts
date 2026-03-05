@@ -29,6 +29,7 @@ async function handler(req: AuthApiRequest, res: NextApiResponse) {
       if (observacoes !== undefined) dataToUpdate.observacoes = observacoes?.trim() || null;
       if (status !== undefined) dataToUpdate.status = status;
       if (imovelId !== undefined) dataToUpdate.imovelId = imovelId || null;
+      dataToUpdate.updatedAt = new Date().toISOString();
 
       const { data: updated, error } = await supabaseAdmin
         .from("Visita")
