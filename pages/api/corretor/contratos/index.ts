@@ -46,6 +46,7 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
           planoAtual: limite.plano,
         });
       }
+      const now = new Date().toISOString();
       const { data: contrato, error } = await supabaseAdmin
         .from("Contrato")
         .insert({
@@ -54,6 +55,8 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
           conteudo,
           tipo: tipo ?? "PERSONALIZADO",
           corretorId: userId,
+          createdAt: now,
+          updatedAt: now,
         })
         .select("*")
         .single();

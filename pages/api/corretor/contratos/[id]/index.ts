@@ -29,7 +29,7 @@ export default authorize(async function handler(req: AuthApiRequest, res: NextAp
 
       const { data: atualizado, error } = await supabaseAdmin
         .from("Contrato")
-        .update({ titulo, conteudo })
+        .update({ titulo, conteudo, updatedAt: new Date().toISOString() })
         .eq("id", id)
         .select("*")
         .single();
