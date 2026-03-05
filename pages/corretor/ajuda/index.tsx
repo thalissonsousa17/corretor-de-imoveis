@@ -13,6 +13,26 @@ interface AjudaItem {
   ordem: number;
 }
 
+// Converte texto puro (com \n e •) para HTML legível
+function plainToHtml(text: string): string {
+  return text
+    .split(/\n\n+/)
+    .map((block) => {
+      const lines = block.split("\n").map((line) => {
+        const trimmed = line.trim();
+        if (trimmed.startsWith("•")) {
+          return `<li class="ml-4 list-none before:content-['•'] before:mr-2 before:text-blue-500">${trimmed.slice(1).trim()}</li>`;
+        }
+        return trimmed ? `<span>${trimmed}</span>` : "";
+      }).filter(Boolean);
+
+      const hasList = lines.some((l) => l.startsWith("<li"));
+      if (hasList) return `<ul class="space-y-1">${lines.join("")}</ul>`;
+      return `<p>${lines.join("<br>")}</p>`;
+    })
+    .join("");
+}
+
 function getYoutubeEmbed(url: string): string | null {
   const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([a-zA-Z0-9_-]{11})/);
   return match ? `https://www.youtube.com/embed/${match[1]}` : null;
@@ -203,8 +223,8 @@ export default function CorretorAjuda() {
                   )}
                   {selected.conteudo ? (
                     <div
-                      className="prose prose-sm max-w-none text-gray-700"
-                      dangerouslySetInnerHTML={{ __html: selected.conteudo }}
+                      className="text-sm text-gray-700 space-y-3 leading-relaxed [&_p]:text-gray-700 [&_li]:text-gray-600 [&_ul]:space-y-1"
+                      dangerouslySetInnerHTML={{ __html: plainToHtml(selected.conteudo) }}
                     />
                   ) : (
                     <p className="text-gray-400 text-sm italic">Sem conteúdo detalhado.</p>
