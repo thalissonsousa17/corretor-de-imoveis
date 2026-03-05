@@ -11,6 +11,7 @@ import {
   Home,
   Bell,
   HelpCircle,
+  ChevronLeft,
 } from "lucide-react";
 
 interface AdminLayoutProps {
@@ -21,6 +22,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const { user, logout, isLoading } = useAuth();
   const router = useRouter();
   const [naoLidas, setNaoLidas] = useState(0);
+  const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => {
     if (!isLoading && (!user || user.role !== "ADMIN")) {
@@ -54,77 +56,126 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   }
 
   const menuItems = [
-    { label: "Dashboard", icon: <LayoutDashboard size={20} />, href: "/admin/dashboard" },
-    { label: "Usuários", icon: <Users size={20} />, href: "/admin/users" },
-    { label: "Suporte", icon: <HeadphonesIcon size={20} />, href: "/admin/suporte" },
-    { label: "Ajuda", icon: <HelpCircle size={20} />, href: "/admin/ajuda" },
+    { label: "Dashboard", icon: <LayoutDashboard size={18} />, href: "/admin/dashboard" },
+    { label: "Usuários", icon: <Users size={18} />, href: "/admin/users" },
+    { label: "Suporte", icon: <HeadphonesIcon size={18} />, href: "/admin/suporte" },
+    { label: "Ajuda", icon: <HelpCircle size={18} />, href: "/admin/ajuda" },
   ];
 
   const extraLinks = [
-    { label: "Meu Dashboard", icon: <Home size={20} />, href: "/corretor/dashboard" },
+    { label: "Meu Dashboard", icon: <Home size={18} />, href: "/corretor/dashboard" },
   ];
+
+  const initials = user?.name
+    ? user.name.split(" ").map((n: string) => n[0]).slice(0, 2).join("").toUpperCase()
+    : "A";
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {/* Sidebar */}
-      <aside className="w-64 bg-[#1A2A4F] text-white flex flex-col fixed h-full z-10">
-        <div className="p-6 border-b border-white/10">
-          <h1 className="text-xl font-bold text-[#D4AC3A]">🏡 Admin Painel</h1>
-          <p className="text-xs text-gray-400 mt-1">Gerenciamento do Sistema</p>
+      <aside
+        className={`
+          flex flex-col fixed top-0 left-0 h-screen z-40
+          bg-[#1A2A4F] text-white
+          transition-all duration-300 ease-in-out
+          ${collapsed ? "w-[68px]" : "w-64"}
+        `}
+      >
+        {/* Header */}
+        <div className={`flex items-center ${collapsed ? "justify-center" : "justify-between"} px-3 h-14 border-b border-white/10 flex-shrink-0`}>
+          {!collapsed && (
+            <div className="flex items-center gap-2 px-1">
+              <div className="w-7 h-7 rounded-lg bg-[#D4AC3A] flex items-center justify-center text-[#1A2A4F] text-xs font-bold">
+                A
+              </div>
+              <span className="font-bold text-sm text-[#D4AC3A] tracking-tight">Admin Painel</span>
+            </div>
+          )}
+          <button
+            onClick={() => setCollapsed((c) => !c)}
+            className="flex items-center justify-center w-7 h-7 rounded-md hover:bg-white/10 transition-colors text-gray-400 hover:text-white"
+          >
+            <ChevronLeft
+              size={16}
+              className={`transition-transform duration-300 ${collapsed ? "rotate-180" : ""}`}
+            />
+          </button>
         </div>
 
-        <nav className="flex-1 py-6 px-3 space-y-1">
+        {/* User info */}
+        <div className={`px-3 py-3 border-b border-white/10 flex-shrink-0 ${collapsed ? "flex justify-center" : ""}`}>
+          {collapsed ? (
+            <div className="w-8 h-8 rounded-full bg-[#D4AC3A] flex items-center justify-center text-[#1A2A4F] text-[11px] font-bold">
+              {initials}
+            </div>
+          ) : (
+            <div className="flex items-center gap-2.5 px-1">
+              <div className="w-9 h-9 rounded-full bg-[#D4AC3A] flex items-center justify-center text-[#1A2A4F] text-xs font-bold flex-shrink-0">
+                {initials}
+              </div>
+              <div className="min-w-0">
+                <p className="text-[13px] font-semibold text-white truncate">{user?.name || "Admin"}</p>
+                <p className="text-[11px] text-gray-400 truncate">{user?.email || ""}</p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Navigation */}
+        <nav className="flex-1 overflow-y-auto px-2 py-3 space-y-1">
           {menuItems.map((item) => {
             const isActive = router.pathname === item.href;
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-sm ${
+                title={collapsed ? item.label : undefined}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 text-sm ${
                   isActive
                     ? "bg-[#D4AC3A] text-[#1A2A4F] font-bold shadow-lg shadow-[#D4AC3A]/20"
                     : "text-gray-300 hover:bg-white/10 hover:text-white"
-                }`}
+                } ${collapsed ? "justify-center" : ""}`}
               >
                 {item.icon}
-                <span>{item.label}</span>
+                {!collapsed && <span>{item.label}</span>}
               </Link>
             );
           })}
 
           {/* Separador + Links Extras */}
-          <div className="pt-4 mt-4 border-t border-white/10">
-            <p className="text-[10px] text-gray-500 uppercase tracking-wider px-4 mb-2">Área do Corretor</p>
+          <div className="pt-3 mt-2 border-t border-white/10">
+            {!collapsed && (
+              <p className="text-[10px] text-gray-500 uppercase tracking-wider px-3 mb-2">Área do Corretor</p>
+            )}
             {extraLinks.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200"
+                title={collapsed ? item.label : undefined}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200 ${collapsed ? "justify-center" : ""}`}
               >
                 {item.icon}
-                <span>{item.label}</span>
+                {!collapsed && <span>{item.label}</span>}
               </Link>
             ))}
           </div>
         </nav>
 
-        <div className="p-3 border-t border-white/10">
-          <div className="px-4 py-2 mb-2">
-            <p className="text-xs text-gray-400">Logado como</p>
-            <p className="text-sm font-medium text-white truncate">{user?.name}</p>
-          </div>
-          <button 
+        {/* Logout */}
+        <div className="px-2 py-2 border-t border-white/10 flex-shrink-0">
+          <button
             onClick={logout}
-            className="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-red-300 hover:bg-red-500/10 hover:text-red-200 transition-colors text-sm"
+            title={collapsed ? "Sair" : undefined}
+            className={`flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm text-red-300 hover:bg-red-500/10 hover:text-red-200 transition-colors cursor-pointer ${collapsed ? "justify-center" : ""}`}
           >
             <LogOut size={18} />
-            <span>Sair</span>
+            {!collapsed && <span>Sair</span>}
           </button>
         </div>
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 ml-64">
+      <main className={`flex-1 transition-all duration-300 ${collapsed ? "ml-[68px]" : "ml-64"}`}>
         <header className="bg-white border-b border-gray-100 px-8 py-4 flex justify-between items-center sticky top-0 z-[5]">
           <h2 className="text-xl font-bold text-gray-800">
             {menuItems.find(i => i.href === router.pathname)?.label || "Admin"}
@@ -143,7 +194,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             </div>
           </div>
         </header>
-        
+
         <div className="p-8">
           {children}
         </div>
