@@ -15,6 +15,7 @@ import {
   FiChevronLeft,
   FiMenu,
   FiDollarSign,
+  FiHelpCircle,
 } from "react-icons/fi";
 import { AiOutlineFileText } from "react-icons/ai";
 import { useAuth } from "@/lib/AuthContext";
@@ -35,6 +36,7 @@ const toolsNav = [
 const accountNav = [
   { href: "/corretor/perfil", icon: FiUser, label: "Perfil" },
   { href: "/corretor/assinaturas", icon: AiOutlineFileText, label: "Meu Plano" },
+  { href: "/corretor/ajuda", icon: FiHelpCircle, label: "Ajuda" },
   { href: "/corretor/suporte", icon: FiMessageSquare, label: "Suporte" },
 ];
 

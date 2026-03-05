@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
-import { Bell } from "lucide-react";
+import { Bell, HelpCircle } from "lucide-react";
 import SidebarCorretor from "./SidebarCorretor";
 import api from "@/lib/api";
 import NovoLeadToast from "./NovoLeadToast";
@@ -18,6 +18,7 @@ const pageTitles: Record<string, string> = {
   "/corretor/seguranca": "Segurança",
   "/corretor/assinaturas": "Meu Plano",
   "/corretor/suporte": "Suporte",
+  "/corretor/ajuda": "Central de Ajuda",
 };
 
 const getTitle = (pathname: string) => {
@@ -85,6 +86,9 @@ const CorretorLayout: React.FC<{ children: React.ReactNode }> = ({ children }) =
         <header className="bg-white border-b border-gray-100 px-6 py-4 flex justify-between items-center sticky top-0 z-[5]">
           <h2 className="text-xl font-bold text-gray-800">{getTitle(router.pathname)}</h2>
           <div className="flex items-center gap-3">
+            <Link href="/corretor/ajuda" className="p-1 text-gray-400 hover:text-gray-700 transition-colors" title="Ajuda">
+              <HelpCircle size={20} />
+            </Link>
             <Link href="/corretor/suporte" className="relative p-1">
               <Bell size={20} className="text-gray-400 hover:text-gray-700 transition-colors" />
               {naoLidas > 0 && (

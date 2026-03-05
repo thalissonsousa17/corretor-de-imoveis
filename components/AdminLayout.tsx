@@ -9,7 +9,8 @@ import {
   LogOut,
   HeadphonesIcon,
   Home,
-  Bell
+  Bell,
+  HelpCircle,
 } from "lucide-react";
 
 interface AdminLayoutProps {
@@ -56,6 +57,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     { label: "Dashboard", icon: <LayoutDashboard size={20} />, href: "/admin/dashboard" },
     { label: "Usuários", icon: <Users size={20} />, href: "/admin/users" },
     { label: "Suporte", icon: <HeadphonesIcon size={20} />, href: "/admin/suporte" },
+    { label: "Ajuda", icon: <HelpCircle size={20} />, href: "/admin/ajuda" },
   ];
 
   const extraLinks = [
