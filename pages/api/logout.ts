@@ -23,7 +23,29 @@ export default async function handleLougout(req: NextApiRequest, res: NextApiRes
   );
 
   if (sessionId) {
-    await supabaseAdmin.from("Session").delete().eq("id", sessionId).catch(() => {});
+    try {
+      // Fecha o LogAcesso correspondente a esta sessão
+      const { data: log } = await supabaseAdmin
+        .from("LogAcesso")
+        .select("id, loginAt")
+        .eq("sessionId", sessionId)
+        .is("logoutAt", null)
+        .maybeSingle();
+
+      if (log) {
+        const loginAtStr: string = log.loginAt;
+        const utc = loginAtStr.endsWith("Z") || loginAtStr.includes("+") ? loginAtStr : loginAtStr + "Z";
+        const durationMinutes = Math.round((Date.now() - new Date(utc).getTime()) / 60000);
+        await supabaseAdmin
+          .from("LogAcesso")
+          .update({ logoutAt: new Date().toISOString(), durationMinutes })
+          .eq("id", log.id);
+      }
+    } catch {}
+
+    try {
+      await supabaseAdmin.from("Session").delete().eq("id", sessionId);
+    } catch {}
   }
 
   return res.status(200).json({ message: "Logout realizado com sucesso." });

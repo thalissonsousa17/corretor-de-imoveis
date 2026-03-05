@@ -1,5 +1,7 @@
 import type { NextApiResponse } from "next";
 import { authorize, AuthApiRequest } from "@/lib/authMiddleware";
+import { supabaseAdmin } from "@/lib/supabase";
+import { randomUUID } from "node:crypto";
 import axios from "axios";
 
 // Aumenta o limite do body parser para suportar o HTML completo do contrato
@@ -116,6 +118,30 @@ IMPORTANTE: Suas sugestões são orientações gerais e não substituem consulto
         timeout: 30000,
       }
     );
+
+    const usage = response.data.usage as { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number } | undefined;
+    const inputTokens = usage?.prompt_tokens ?? 0;
+    const outputTokens = usage?.completion_tokens ?? 0;
+    const totalTokens = usage?.total_tokens ?? 0;
+    // gpt-4o-mini: $0.15/1M input, $0.60/1M output
+    const custo = (inputTokens / 1_000_000) * 0.15 + (outputTokens / 1_000_000) * 0.60;
+
+    // Salva log de tokens em background (fire and forget)
+    void (async () => {
+      try {
+        await supabaseAdmin.from("LogToken").insert({
+          id: randomUUID(),
+          userId: req.user!.id,
+          recurso: "contratos_ia",
+          inputTokens,
+          outputTokens,
+          totalTokens,
+          custo,
+          modelo: "gpt-4o-mini",
+          createdAt: new Date().toISOString(),
+        });
+      } catch {}
+    })();
 
     const raw: string =
       response.data.choices?.[0]?.message?.content ?? "Não foi possível obter resposta.";

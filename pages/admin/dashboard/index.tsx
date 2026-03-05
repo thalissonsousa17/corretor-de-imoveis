@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import AdminLayout from "@/components/AdminLayout";
 import api from "@/lib/api";
-import { 
-  Users, 
-  CheckCircle, 
-  DollarSign, 
+import {
+  Users,
+  CheckCircle,
+  DollarSign,
   Home,
-  TrendingUp 
+  TrendingUp,
+  Cpu,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -30,6 +31,13 @@ interface AdminStats {
     createdAt: string;
     profile: { plano: string; planoStatus: string } | null;
   }[];
+  tokensMes: { inputTokens: number; outputTokens: number; totalTokens: number; custo: number };
+}
+
+function formatTokens(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
+  return String(n);
 }
 
 export default function AdminDashboard() {
@@ -73,7 +81,7 @@ export default function AdminDashboard() {
   return (
     <AdminLayout>
       {/* Cards de Estatísticas */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-5">
         <StatCard
           title="Total Corretores"
           value={stats?.totalCorretores || 0}
@@ -99,6 +107,37 @@ export default function AdminDashboard() {
           icon={<DollarSign size={22} />}
           color="bg-amber-500"
         />
+      </div>
+
+      {/* Card Tokens IA do mês */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 mb-8">
+        <div className="flex items-center gap-2 mb-4">
+          <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center">
+            <Cpu size={16} className="text-indigo-600" />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-gray-800">Tokens IA — Mês Atual</h3>
+            <p className="text-xs text-gray-400">Uso de gpt-4o-mini pelos corretores</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-4 gap-4">
+          <div>
+            <p className="text-xs text-gray-400 mb-0.5">Input</p>
+            <p className="text-xl font-bold text-blue-600">{formatTokens(stats?.tokensMes?.inputTokens ?? 0)}</p>
+          </div>
+          <div>
+            <p className="text-xs text-gray-400 mb-0.5">Output</p>
+            <p className="text-xl font-bold text-purple-600">{formatTokens(stats?.tokensMes?.outputTokens ?? 0)}</p>
+          </div>
+          <div>
+            <p className="text-xs text-gray-400 mb-0.5">Total</p>
+            <p className="text-xl font-bold text-gray-700">{formatTokens(stats?.tokensMes?.totalTokens ?? 0)}</p>
+          </div>
+          <div>
+            <p className="text-xs text-gray-400 mb-0.5">Custo</p>
+            <p className="text-xl font-bold text-amber-600">${(stats?.tokensMes?.custo ?? 0).toFixed(4)}</p>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

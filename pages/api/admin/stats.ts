@@ -8,6 +8,10 @@ async function handler(req: AuthApiRequest, res: NextApiResponse) {
   }
 
   try {
+    const inicioMes = new Date();
+    inicioMes.setDate(1);
+    inicioMes.setHours(0, 0, 0, 0);
+
     const [
       { count: totalCorretores },
       { count: planosAtivos },
@@ -16,6 +20,7 @@ async function handler(req: AuthApiRequest, res: NextApiResponse) {
       { count: expertPlans },
       { count: totalImoveis },
       { data: recentesRaw },
+      { data: tokensMes },
     ] = await Promise.all([
       supabaseAdmin.from("User").select("*", { count: "exact", head: true }).eq("role", "CORRETOR"),
       supabaseAdmin.from("CorretorProfile").select("*", { count: "exact", head: true }).eq("planoStatus", "ATIVO"),
@@ -29,10 +34,25 @@ async function handler(req: AuthApiRequest, res: NextApiResponse) {
         .eq("role", "CORRETOR")
         .order("createdAt", { ascending: false })
         .limit(5),
+      supabaseAdmin
+        .from("LogToken")
+        .select("inputTokens,outputTokens,totalTokens,custo")
+        .gte("createdAt", inicioMes.toISOString()),
     ]);
 
     // Receita estimada (valores fictícios — ajuste conforme seus planos reais)
     const receita = ((proPlans ?? 0) * 99) + ((startPlans ?? 0) * 49) + ((expertPlans ?? 0) * 149);
+
+    // Agregar tokens do mês
+    const tokensAgg = (tokensMes ?? []).reduce(
+      (acc, t) => ({
+        inputTokens: acc.inputTokens + (t.inputTokens ?? 0),
+        outputTokens: acc.outputTokens + (t.outputTokens ?? 0),
+        totalTokens: acc.totalTokens + (t.totalTokens ?? 0),
+        custo: acc.custo + Number(t.custo ?? 0),
+      }),
+      { inputTokens: 0, outputTokens: 0, totalTokens: 0, custo: 0 }
+    );
 
     return res.status(200).json({
       totalCorretores: totalCorretores ?? 0,
@@ -45,6 +65,7 @@ async function handler(req: AuthApiRequest, res: NextApiResponse) {
         expert: expertPlans ?? 0,
       },
       recentes: recentesRaw ?? [],
+      tokensMes: tokensAgg,
     });
   } catch (error) {
     console.error("Erro ao buscar estatísticas:", error);

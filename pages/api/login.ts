@@ -31,6 +31,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     await supabaseAdmin.from("Session").insert({ id: sessionId, userId: user.id, expiresAt });
 
+    // Registra log de acesso (fire and forget)
+    void (async () => {
+      try {
+        await supabaseAdmin.from("LogAcesso").insert({
+          id: randomUUID(),
+          userId: user.id,
+          loginAt: new Date().toISOString(),
+          sessionId,
+        });
+      } catch {}
+    })();
+
     res.setHeader(
       "Set-Cookie",
       serialize("sessionId", sessionId, {
